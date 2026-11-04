@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Έντυπο παρακολούθησης υποθέσεων</title>
+<style id="pg">@page{size:A4 landscape;margin:8mm}</style>
+<style>
+*{box-sizing:border-box}
+:root{--rh:17mm}
+body{margin:0;font:8pt/1.2 system-ui,"Segoe UI",Roboto,Arial,sans-serif;color:#000;background:#e8e8e8}
+.ctl{padding:10px;display:flex;gap:8px;flex-wrap:wrap;background:#1e3a5f;position:sticky;top:0;z-index:2}
+.ctl button,.ctl a{font:600 14px system-ui,sans-serif;padding:9px 14px;border:0;border-radius:8px;background:#fff;color:#1e3a5f;text-decoration:none;cursor:pointer}
+#sheet{background:#fff;margin:10px auto;padding:8mm;min-width:1000px;max-width:1400px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:2mm;font-size:1.6em;font-weight:700}
+.top span{font-weight:400;font-size:.55em}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th,td{border:.25mm solid #000;padding:.6mm 1mm;vertical-align:top}
+th{background:#e4e4e4;font-size:.85em;height:11mm;vertical-align:middle;text-align:center}
+td{height:var(--rh)}
+td.n{text-align:center;font-weight:700;vertical-align:middle}
+.f{border:.7mm solid #000}
+th.f{background:#cfcfcf}
+.c{display:flex;flex-direction:column;height:calc(var(--rh) - 1.6mm)}
+.c>div{flex:1;display:flex;align-items:flex-end;gap:1.5mm;white-space:nowrap}
+.l{border-bottom:.2mm dotted #666;font-size:.72em;color:#666}
+.dt{color:#777;justify-content:center;border-bottom:.2mm dotted #666;font-size:1.05em}
+.cb{display:inline-block;width:2.8mm;height:2.8mm;border:.3mm solid #000;margin-right:1mm;vertical-align:-.4mm}
+.sub{display:flex;gap:1mm;height:100%}
+.sub>div{flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.sub small{font-size:.8em;color:#444}
+.foot{margin-top:2mm;font-size:.8em;color:#333}
+@media print{body{background:#fff}.ctl{display:none}#sheet{margin:0;padding:0;min-width:0;max-width:none}tr{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="ctl">
+ <button data-s="A4">Εκτύπωση A4 (οριζόντια)</button>
+ <button data-s="A3">Εκτύπωση A3 (οριζόντια)</button>
+ <a href="index.html">Πίσω στην εφαρμογή</a>
+</div>
+<div id="sheet">
+ <div class="top">ΠΑΡΑΚΟΛΟΥΘΗΣΗ ΥΠΟΘΕΣΕΩΝ <span>Φύλλο Νο: ________ &nbsp;&nbsp; Ημ/νία έναρξης: __/__/____</span></div>
+ <table>
+  <colgroup><col style="width:2.5%"><col style="width:12%"><col style="width:8%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:9%"><col style="width:13%"><col style="width:6.5%"><col style="width:10%"><col style="width:8%"><col style="width:10%"><col style="width:8%"></colgroup>
+  <thead><tr>
+   <th>Α/Α</th><th>Ονοματεπώνυμο<br>Τηλέφωνο</th><th>Πινακίδα<br>Αρ. υπόθεσης</th><th>Ημ.<br>παραλαβής</th><th>Ημ.<br>επικοινωνίας</th><th>Αποτέλεσμα<br>επικοινωνίας</th><th>Προσκλήσεις<br>(ΗΗ/ΜΜ)</th><th>Ημ.<br>προσέλευσης</th><th>Αφαίρεση<br>τι / ημερομηνία</th><th>Απόδοση<br>ημ/νία / εστάλη</th><th class="f">ΘΕΣΗ<br>ΦΑΚΕΛΟΥ</th><th>Σημειώσεις</th>
+  </tr></thead>
+  <tbody id="tb"></tbody>
+ </table>
+ <div class="foot">Πινακ. = Πινακίδες &nbsp;|&nbsp; Άδεια = Άδεια κυκλοφορίας &nbsp;|&nbsp; Δίπλ. = Δίπλωμα &nbsp;|&nbsp; Ημερομηνίες: ΗΗ/ΜΜ/ΕΕ &nbsp;|&nbsp; Σειρά πεδίων ίδια με τη φόρμα της εφαρμογής</div>
+</div>
+<script>
+const dt=y=>`<div class="dt">__/__${y?'/__':''}</div>`;
+const cb=t=>`<span><i class="cb"></i>${t}</span>`;
+const ln=t=>`<div class="l">${t}</div>`;
+const dc=()=>`<div class="c">${dt(1)}</div>`;
+const row=i=>`<tr>
+<td class="n">${i}</td>
+<td><div class="c">${ln('Ονοματεπώνυμο')}${ln('Τηλέφωνο')}</div></td>
+<td><div class="c">${ln('Πινακίδα')}${ln('Αρ. υπόθεσης')}</div></td>
+<td>${dc()}</td>
+<td>${dc()}</td>
+<td><div class="c"><div>${cb('Ενημερώθηκε')}</div><div>${cb('Δεν απάντησε')}</div><div>${cb('Χωρίς τηλέφωνο')}</div></div></td>
+<td><div class="c"><div class="sub">${['1η','2η','3η'].map(k=>`<div><small>${k}</small>${dt(0)}</div>`).join('')}</div></div></td>
+<td>${dc()}</td>
+<td><div class="c"><div>${cb('Πινακ.')}${cb('Άδεια')}</div><div>${cb('Δίπλ.')}${cb('Άλλο:')}</div>${dt(1)}</div></td>
+<td><div class="c">${dt(1)}<div><b>${cb('ΕΣΤΑΛΗ')}</b></div></div></td>
+<td class="f"></td>
+<td></td>
+</tr>`;
+function build(s){
+ const a3=s==='A3';
+ document.getElementById('pg').textContent=`@page{size:${s} landscape;margin:8mm}`;
+ document.documentElement.style.setProperty('--rh',a3?'21mm':'17mm');
+ document.body.style.fontSize=a3?'10.5pt':'8pt';
+ document.getElementById('tb').innerHTML=Array.from({length:a3?11:9},(_,i)=>row(i+1)).join('');
+}
+document.querySelector('.ctl').onclick=e=>{const b=e.target.closest('[data-s]');if(b){build(b.dataset.s);setTimeout(()=>window.print(),50)}};
+build('A4');
+</script>
+</body>
+</html>
