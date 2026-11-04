@@ -92,7 +92,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);border-colo
 
 <header>
   <h1>Υποθέσεις</h1>
-  <input id="q" placeholder="Αναζήτηση: όνομα, πινακίδα, φάκελος…">
+  <input id="q" placeholder="Αναζήτηση: όνομα, πινακίδα, ημ/νία (π.χ. 04/11)…">
   <button class="ghost" id="btnPrint" title="Εκτύπωση κατάστασης">🖨</button>
   <button id="btnNew">+ Νέα</button>
 </header>
@@ -140,7 +140,6 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);border-colo
           <option value="noresp">Μη ανταπόκριση</option>
         </select>
       </label>
-      <!-- ΕΔΩ ΕΙΝΑΙ Η ΑΛΛΑΓΗ: Προσθέσαμε λίστα με προτεινόμενους φακέλους -->
       <label class="span2">Θέση φακέλου
         <input name="folder" list="foldersList" placeholder="π.χ. Ντουλάπι Α - Ράφι 2">
         <datalist id="foldersList"></datalist>
@@ -201,9 +200,25 @@ function nextAction(c){
 function matches(c){
   if (filter !== 'all' && c.status !== filter) return false;
   if (!q) return true;
-  const hay = [c.name,c.ref,c.folder,c.phone,c.service,c.notes,c.phoneResult].join(' ').toLowerCase();
-  return hay.includes(q.toLowerCase());
+
+  // Μετατροπή ημερομηνιών σε μορφή DD/MM/YYYY για αναζήτηση
+  const dates = [c.dateReceived, c.phoneDate, c.invite1, c.invite2, c.invite3, c.arrivedDate]
+    .filter(Boolean)
+    .map(d => {
+      const p = d.split('-'); // YYYY-MM-DD
+      return `${p[2]}/${p[1]}/${p[0]} ${p[2]}/${p[1]}`; // Επιστρέφει "04/11/2026 04/11"
+    }).join(' ');
+
+  const hay = [c.name, c.ref, c.folder, c.phone, c.service, c.notes, c.phoneResult, dates]
+    .join(' ').toLowerCase();
+  
+  // Αφαιρούμε τυχόν κενά ή παύλες από την αναζήτηση για ευελιξία (π.χ. "ΑΒΓ 1234" ή "ΑΒΓ-1234")
+  const searchNormalized = q.toLowerCase().replace(/[\s-]/g, '');
+  const hayNormalized = hay.replace(/[\s-]/g, '');
+
+  return hay.includes(q.toLowerCase()) || hayNormalized.includes(searchNormalized);
 }
+
 function sorter(today){
   return (a,b) => {
     const na = nextAction(a), nb = nextAction(b);
@@ -220,18 +235,15 @@ function render(){
   const today = new Date(); today.setHours(0,0,0,0);
   const rows = data.filter(matches).sort(sorter(today));
 
-  // 1. Ενημέρωση λίστας με τους υπάρχοντες φακέλους (για την αυτόματη συμπλήρωση)
   const uniqueFolders = [...new Set(data.map(c => c.folder).filter(Boolean))].sort();
   $('#foldersList').innerHTML = uniqueFolders.map(f => `<option value="${esc(f)}">`).join('');
 
-  // 2. Εμφάνιση φίλτρων κατάστασης
   const counts = { all: data.length };
   Object.keys(ST).forEach(k => counts[k] = data.filter(c => c.status === k).length);
   const labels = [['all','Όλες'], ...Object.entries(ST).map(([k,v]) => [k,v[0]])];
   $('#chips').innerHTML = labels.map(([k,l]) =>
     `<button class="chip ${filter===k?'on':''}" data-f="${k}">${l} <b>${counts[k]||0}</b></button>`).join('');
 
-  // 3. Εμφάνιση καρτών
   $('#list').innerHTML = rows.length ? rows.map(c => card(c, today)).join('')
     : '<p class="empty">Δεν βρέθηκαν υποθέσεις.</p>';
 }
@@ -250,7 +262,6 @@ function card(c, today){
       ${c.phone ? `<span>📞 ${esc(c.phone)}</span>` : ''}
     </div>
     ${na ? `<div class="next ${late?'red':''}">➜ ${esc(na.text)} · <b>${nm}</b>${late?' ⚠':''}</div>` : ''}
-    <!-- ΕΔΩ ΕΙΝΑΙ Η ΑΛΛΑΓΗ: Έντονη εμφάνιση του φακέλου -->
     ${c.folder ? `<div class="folder-tag">📁 Φάκελος: ${esc(c.folder)}</div>` : ''}
   </article>`;
 }
