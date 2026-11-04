@@ -1,0 +1,17 @@
+{
+  "name": "Διεκπεραίωση Υποθέσεων",
+  "short_name": "Υποθέσεις",
+  "description": "Παρακολούθηση διεκπεραίωσης υποθέσεων με προσκλήσεις",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#0f766e",
+  "lang": "el",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

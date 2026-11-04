@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>Διεκπεραίωση Υποθέσεων</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#111827;--mut:#6b7280;--line:#e5e7eb;
+      --pri:#0f766e;--pri2:#115e59;--red:#b91c1c;--redbg:#fee2e2;--ok:#166534;--okbg:#dcfce7;
+      --warn:#92400e;--warnbg:#fef3c7;--blue:#1e40af;--bluebg:#dbeafe}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+     background:var(--bg);color:var(--ink);padding-bottom:70px}
+header{position:sticky;top:0;z-index:20;background:var(--pri);color:#fff;padding:10px 12px;
+       display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+       box-shadow:0 2px 8px #0002;padding-top:calc(10px + env(safe-area-inset-top))}
+header h1{font-size:16px;margin:0;white-space:nowrap}
+#q{flex:1;min-width:140px;border:0;border-radius:10px;padding:10px 12px;font:inherit;background:#ffffff22;color:#fff}
+#q::placeholder{color:#ffffffb0}
+#q:focus{outline:2px solid #fff;background:#ffffff33}
+button{font:inherit;border:0;border-radius:10px;padding:10px 14px;background:#fff;
+       color:var(--pri);font-weight:700;cursor:pointer;transition:.15s}
+button:active{transform:scale(.97)}
+button.ghost{background:#ffffff26;color:#fff}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;background:#fff;
+    border-bottom:1px solid var(--line);position:sticky;top:57px;z-index:15}
+.chip{flex:0 0 auto;background:#f1f5f9;color:#334155;font-weight:600;padding:7px 12px;
+      border-radius:999px;font-size:13px;border:1px solid transparent}
+.chip.on{background:var(--pri);color:#fff}
+.chip b{opacity:.75;font-weight:700;margin-left:2px}
+main{padding:12px;display:grid;gap:10px;max-width:900px;margin:0 auto}
+.card{background:var(--card);border-radius:14px;padding:12px 14px;border:1px solid var(--line);
+      border-left:5px solid var(--pri);cursor:pointer;box-shadow:0 1px 3px #0000000d}
+.card.overdue{border-left-color:var(--red);background:#fff7f7}
+.crow{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.crow strong{font-size:16px}
+.badge{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.b-blue{background:var(--bluebg);color:var(--blue)}
+.b-warn{background:var(--warnbg);color:var(--warn)}
+.b-ok{background:var(--okbg);color:var(--ok)}
+.b-red{background:var(--redbg);color:var(--red)}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;color:var(--mut);font-size:13px;margin-top:6px}
+.next{margin-top:8px;font-size:13.5px;background:#f0fdfa;color:var(--pri2);
+      padding:6px 10px;border-radius:8px;display:inline-block}
+.next.red{background:var(--redbg);color:var(--red);font-weight:600}
+.empty{text-align:center;color:var(--mut);padding:40px 0}
+/* dialog / φόρμα */
+dialog{border:0;border-radius:18px;padding:0;width:min(560px,100%);max-height:92vh;
+       box-shadow:0 20px 50px #0005}
+dialog::backdrop{background:#0007}
+form{padding:18px;display:flex;flex-direction:column;gap:12px}
+form h2{margin:0;font-size:18px;color:var(--pri)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:#475569}
+.grid .span2{grid-column:1/-1}
+input,select,textarea{font:inherit;padding:10px;border:1px solid #cbd5e1;border-radius:9px;
+      background:#fff;color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);border-color:transparent}
+.actions{display:flex;gap:8px;align-items:center;margin-top:4px}
+.actions .pri{background:var(--pri);color:#fff;padding:12px 22px}
+.actions .ghost2{background:#e2e8f0;color:#334155}
+.actions .danger{background:var(--redbg);color:var(--red)}
+.bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);
+     display:flex;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+     justify-content:center;z-index:20}
+.bar button{background:#f1f5f9;color:#334155;font-size:13px;padding:8px 12px}
+/* ΕΚΤΥΠΩΣΗ */
+#printArea{display:none}
+@media print{
+  @page{size:A4 landscape;margin:9mm}
+  body{background:#fff;padding:0}
+  header,nav,main,.bar,dialog{display:none!important}
+  #printArea{display:block!important;font:8pt Arial,sans-serif;color:#000}
+  #printArea h1{font-size:12pt;margin:0 0 2mm;border-bottom:1.5pt solid #000;padding-bottom:1.5mm}
+  #printArea .pmeta{font-size:8pt;margin-bottom:3mm}
+  #printArea table{width:100%;border-collapse:collapse;table-layout:fixed}
+  #printArea th,#printArea td{border:1px solid #000;padding:1mm;vertical-align:middle;word-wrap:break-word}
+  #printArea th{background:#eee;font-size:7pt;text-align:center}
+  #printArea td{font-size:7pt}
+  #printArea tr{break-inside:avoid}
+  #printArea thead{display:table-header-group}
+}
+@media(max-width:520px){ .grid{grid-template-columns:1fr} .grid .span2{grid-column:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Υποθέσεις</h1>
+  <input id="q" placeholder="Αναζήτηση: όνομα, πινακίδα, φάκελος…">
+  <button class="ghost" id="btnPrint" title="Εκτύπωση κατάστασης">🖨</button>
+  <button id="btnNew">+ Νέα</button>
+</header>
+
+<nav id="chips"></nav>
+<main id="list"></main>
+
+<div class="bar">
+  <button id="btnExp">⬇ Αντίγραφο ασφαλείας</button>
+  <button id="btnImp">⬆ Επαναφορά</button>
+  <input type="file" id="file" accept="application/json" hidden>
+</div>
+
+<dialog id="dlg">
+  <form id="frm">
+    <h2 id="dlgTitle">Νέα υπόθεση</h2>
+    <div class="grid">
+      <label>Ημ. παραλαβής<input type="date" name="dateReceived" required></label>
+      <label>Υπηρεσία αποστολέα<input name="service"></label>
+      <label class="span2">Ονοματεπώνυμο<input name="name" required></label>
+      <label class="span2">Στοιχείο (πινακίδα / αρ. υπόθεσης)<input name="ref"></label>
+      <label>Τηλέφωνο<input name="phone" inputmode="tel"></label>
+      <label>Ημ. τηλεφ. ενημέρωσης<input type="date" name="phoneDate"></label>
+      <label class="span2">Αποτέλεσμα τηλεφώνου
+        <select name="phoneResult">
+          <option value="">—</option>
+          <option>Ενημερώθηκε</option>
+          <option>Δεν απάντησε</option>
+          <option>Δεν βρέθηκε τηλέφωνο</option>
+        </select>
+      </label>
+      <label>1η πρόσκληση<input type="date" name="invite1"></label>
+      <label>2η πρόσκληση<input type="date" name="invite2"></label>
+      <label>3η πρόσκληση<input type="date" name="invite3"></label>
+      <label>Ημ. προσέλευσης<input type="date" name="arrivedDate"></label>
+      <label>Κατάσταση
+        <select name="status">
+          <option value="new">Νέα</option>
+          <option value="search">Αναζήτηση τηλεφώνου</option>
+          <option value="await">Αναμονή προσέλευσης</option>
+          <option value="sent1">Εστάλη 1η πρόσκληση</option>
+          <option value="sent2">Εστάλη 2η πρόσκληση</option>
+          <option value="sent3">Εστάλη 3η πρόσκληση</option>
+          <option value="done">Ολοκληρωμένη</option>
+          <option value="noresp">Μη ανταπόκριση</option>
+        </select>
+      </label>
+      <label>Θέση φακέλου<input name="folder" placeholder="Ντουλ. Α / Ράφι 2 / Φακ. 47"></label>
+      <label class="span2">Παρατηρήσεις<textarea name="notes" rows="2"></textarea></label>
+    </div>
+    <div class="actions">
+      <button type="button" id="btnDel" class="danger">Διαγραφή</button>
+      <span style="flex:1"></span>
+      <button type="button" id="btnCancel" class="ghost2">Άκυρο</button>
+      <button type="submit" class="pri">Αποθήκευση</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="printArea"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const KEY = 'ypotheseis.v1';
+let data = [];
+try { data = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) {}
+let filter = 'all', q = '';
+const save = () => localStorage.setItem(KEY, JSON.stringify(data));
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fd  = s => s ? new Date(s+'T00:00:00').toLocaleDateString('el-GR',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
+
+const ST = {
+  new:   ['Νέα','b-blue'],
+  search:['Αναζήτηση τηλ.','b-blue'],
+  await: ['Αναμονή προσέλευσης','b-warn'],
+  sent1: ['1η πρόσκληση','b-warn'],
+  sent2: ['2η πρόσκληση','b-warn'],
+  sent3: ['3η πρόσκληση','b-warn'],
+  done:  ['Ολοκληρωμένη','b-ok'],
+  noresp:['Μη ανταπόκριση','b-red']
+};
+
+/* ---- Ευφυής υπολογισμός επόμενης ενέργειας (10–15 ημέρες ανά βήμα) ---- */
+function nextAction(c){
+  if (c.status === 'done' || c.status === 'noresp') return null;
+  const d = s => s ? new Date(s+'T00:00:00') : null;
+  const add = (dt, n) => { const x = new Date(dt); x.setDate(x.getDate()+n); return x; };
+
+  if (!c.phoneDate && !c.invite1)
+    return { text:'Αναζήτηση τηλεφώνου', date: add(d(c.dateReceived) || new Date(), 3) };
+  if (!c.invite1)
+    return { text:'Αναμονή προσέλευσης · αλλιώς 1η πρόσκληση', date: add(d(c.phoneDate) || new Date(), 15) };
+  if (!c.invite2)
+    return { text:'Αποστολή 2ης πρόσκλησης', date: add(d(c.invite1), 12) };
+  if (!c.invite3)
+    return { text:'Αποστολή 3ης πρόσκλησης', date: add(d(c.invite2), 12) };
+  return { text:'Αρχειοθέτηση / μη ανταπόκριση', date: add(d(c.invite3), 15) };
+}
+
+/* ---- Φιλτράρισμα / ταξινόμηση ---- */
+function matches(c){
+  if (filter !== 'all' && c.status !== filter) return false;
+  if (!q) return true;
+  const hay = [c.name,c.ref,c.folder,c.phone,c.service,c.notes,c.phoneResult].join(' ').toLowerCase();
+  return hay.includes(q.toLowerCase());
+}
+function sorter(today){
+  return (a,b) => {
+    const na = nextAction(a), nb = nextAction(b);
+    const oa = na && na.date < today ? 1 : 0, ob = nb && nb.date < today ? 1 : 0;
+    if (oa !== ob) return ob - oa;                                  // εκπρόθεσμα πρώτα
+    const da = na ? na.date.getTime() : Infinity, db = nb ? nb.date.getTime() : Infinity;
+    if (da !== db) return da - db;                                  // πιο επείγον πρώτα
+    return (b.dateReceived||'').localeCompare(a.dateReceived||'');
+  };
+}
+
+/* ---- Render ---- */
+function render(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const rows = data.filter(matches).sort(sorter(today));
+
+  const counts = { all: data.length };
+  Object.keys(ST).forEach(k => counts[k] = data.filter(c => c.status === k).length);
+  const labels = [['all','Όλες'], ...Object.entries(ST).map(([k,v]) => [k,v[0]])];
+  $('#chips').innerHTML = labels.map(([k,l]) =>
+    `<button class="chip ${filter===k?'on':''}" data-f="${k}">${l} <b>${counts[k]||0}</b></button>`).join('');
+
+  $('#list').innerHTML = rows.length ? rows.map(c => card(c, today)).join('')
+    : '<p class="empty">Δεν βρέθηκαν υποθέσεις.</p>';
+}
+
+function card(c, today){
+  const na = nextAction(c);
+  const [lbl, cls] = ST[c.status] || ['—','b-blue'];
+  const late = na && na.date < today;
+  const nm = na ? na.date.toLocaleDateString('el-GR',{day:'2-digit',month:'2-digit'}) : '';
+  return `<article class="card ${late?'overdue':''}" data-id="${c.id}">
+    <div class="crow"><strong>${esc(c.name)}</strong><span class="badge ${cls}">${lbl}</span></div>
+    <div class="meta">
+      ${c.ref ? `<span>🚗 ${esc(c.ref)}</span>` : ''}
+      ${c.service ? `<span>🏛 ${esc(c.service)}</span>` : ''}
+      <span>📅 ${fd(c.dateReceived)}</span>
+      ${c.phone ? `<span>📞 ${esc(c.phone)}</span>` : ''}
+    </div>
+    ${na ? `<div class="next ${late?'red':''}">➜ ${esc(na.text)} · <b>${nm}</b>${late?' ⚠':''}</div>` : ''}
+    ${c.folder ? `<div class="meta">📁 ${esc(c.folder)}</div>` : ''}
+  </article>`;
+}
+
+/* ---- Φόρμα ---- */
+function openForm(id){
+  const c = data.find(x => x.id === id) ||
+            { status:'new', dateReceived:new Date().toISOString().slice(0,10) };
+  const f = $('#frm'); f.reset();
+  [...f.elements].forEach(el => { if (el.name) el.value = c[el.name] ?? ''; });
+  f.dataset.id = id || '';
+  $('#dlgTitle').textContent = id ? 'Επεξεργασία υπόθεσης' : 'Νέα υπόθεση';
+  $('#btnDel').style.display = id ? '' : 'none';
+  $('#dlg').showModal();
+}
+
+$('#frm').addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target, o = {};
+  [...f.elements].forEach(el => { if (el.name) o[el.name] = el.value.trim(); });
+  if (f.dataset.id){
+    const i = data.findIndex(x => x.id === f.dataset.id);
+    data[i] = { ...data[i], ...o };
+  } else {
+    o.id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    data.unshift(o);
+  }
+  save(); render(); $('#dlg').close();
+});
+
+$('#btnDel').onclick = () => {
+  const id = $('#frm').dataset.id;
+  if (id && confirm('Να διαγραφεί οριστικά η υπόθεση;')){
+    data = data.filter(x => x.id !== id);
+    save(); render(); $('#dlg').close();
+  }
+};
+$('#btnCancel').onclick = () => $('#dlg').close();
+$('#btnNew').onclick = () => openForm(null);
+$('#list').addEventListener('click', e => {
+  const el = e.target.closest('.card'); if (el) openForm(el.dataset.id);
+});
+$('#chips').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (b){ filter = b.dataset.f; render(); }
+});
+$('#q').addEventListener('input', e => { q = e.target.value; render(); });
+
+/* ---- ΕΚΤΥΠΩΣΗ ΚΑΤΑΣΤΑΣΗΣ ---- */
+$('#btnPrint').onclick = () => {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const rows = data.filter(matches).sort(sorter(today));
+  const th = ['Α/Α','Ημ. παραλ.','Υπηρεσία','Ονοματεπώνυμο','Στοιχείο','Τηλέφωνο',
+              'Τηλ. ενημ.','Αποτέλεσμα','1η','2η','3η','Προσ.','Επόμενη ενέργεια','Κατάσταση','Φάκελος'];
+  let h = `<h1>ΚΑΤΑΣΤΑΣΗ ΥΠΟΘΕΣΕΩΝ</h1>
+           <div class="pmeta">Εκτύπωση: ${new Date().toLocaleDateString('el-GR')} &nbsp;·&nbsp;
+           Εγγραφές: ${rows.length} &nbsp;·&nbsp; Φίλτρο: ${filter==='all'?'Όλες':(ST[filter]?.[0]||'')}</div>`;
+  h += '<table><thead><tr>' + th.map(t => `<th>${t}</th>`).join('') + '</tr></thead><tbody>';
+  rows.forEach((c,i) => {
+    const na = nextAction(c);
+    h += `<tr>
+      <td>${i+1}</td><td>${fd(c.dateReceived)}</td><td>${esc(c.service)}</td>
+      <td>${esc(c.name)}</td><td>${esc(c.ref)}</td><td>${esc(c.phone)}</td>
+      <td>${fd(c.phoneDate)}</td><td>${esc(c.phoneResult)}</td>
+      <td>${fd(c.invite1)}</td><td>${fd(c.invite2)}</td><td>${fd(c.invite3)}</td>
+      <td>${fd(c.arrivedDate)}</td>
+      <td>${na ? esc(na.text)+' '+na.date.toLocaleDateString('el-GR') : '—'}</td>
+      <td>${(ST[c.status]||['—'])[0]}</td><td>${esc(c.folder)}</td></tr>`;
+  });
+  h += '</tbody></table>';
+  $('#printArea').innerHTML = h;
+  window.print();
+};
+
+/* ---- Backup / Επαναφορά ---- */
+$('#btnExp').onclick = () => {
+  const b = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = `ypotheseis-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+};
+$('#btnImp').onclick = () => $('#file').click();
+$('#file').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const j = JSON.parse(r.result);
+      if (Array.isArray(j)){ data = j; save(); render(); alert(`Έγινε επαναφορά ${j.length} εγγραφών.`); }
+    } catch { alert('Μη έγκυρο αρχείο.'); }
+  };
+  r.readAsText(f);
+};
+
+/* ---- PWA ---- */
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+render();
+</script>
+</body>
+</html>
