@@ -46,6 +46,8 @@ main{padding:12px;display:grid;gap:10px;max-width:900px;margin:0 auto}
 .next{margin-top:8px;font-size:13.5px;background:#f0fdfa;color:var(--pri2);
       padding:6px 10px;border-radius:8px;display:inline-block}
 .next.red{background:var(--redbg);color:var(--red);font-weight:600}
+.folder-tag{display:inline-block;margin-top:8px;background:#e2e8f0;color:#334155;
+            padding:5px 10px;border-radius:6px;font-size:12.5px;font-weight:bold;}
 .empty{text-align:center;color:var(--mut);padding:40px 0}
 /* dialog / φόρμα */
 dialog{border:0;border-radius:18px;padding:0;width:min(560px,100%);max-height:92vh;
@@ -138,7 +140,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);border-colo
           <option value="noresp">Μη ανταπόκριση</option>
         </select>
       </label>
-      <label>Θέση φακέλου<input name="folder" placeholder="Ντουλ. Α / Ράφι 2 / Φακ. 47"></label>
+      <!-- ΕΔΩ ΕΙΝΑΙ Η ΑΛΛΑΓΗ: Προσθέσαμε λίστα με προτεινόμενους φακέλους -->
+      <label class="span2">Θέση φακέλου
+        <input name="folder" list="foldersList" placeholder="π.χ. Ντουλάπι Α - Ράφι 2">
+        <datalist id="foldersList"></datalist>
+      </label>
       <label class="span2">Παρατηρήσεις<textarea name="notes" rows="2"></textarea></label>
     </div>
     <div class="actions">
@@ -202,9 +208,9 @@ function sorter(today){
   return (a,b) => {
     const na = nextAction(a), nb = nextAction(b);
     const oa = na && na.date < today ? 1 : 0, ob = nb && nb.date < today ? 1 : 0;
-    if (oa !== ob) return ob - oa;                                  // εκπρόθεσμα πρώτα
+    if (oa !== ob) return ob - oa;                                  
     const da = na ? na.date.getTime() : Infinity, db = nb ? nb.date.getTime() : Infinity;
-    if (da !== db) return da - db;                                  // πιο επείγον πρώτα
+    if (da !== db) return da - db;                                  
     return (b.dateReceived||'').localeCompare(a.dateReceived||'');
   };
 }
@@ -214,12 +220,18 @@ function render(){
   const today = new Date(); today.setHours(0,0,0,0);
   const rows = data.filter(matches).sort(sorter(today));
 
+  // 1. Ενημέρωση λίστας με τους υπάρχοντες φακέλους (για την αυτόματη συμπλήρωση)
+  const uniqueFolders = [...new Set(data.map(c => c.folder).filter(Boolean))].sort();
+  $('#foldersList').innerHTML = uniqueFolders.map(f => `<option value="${esc(f)}">`).join('');
+
+  // 2. Εμφάνιση φίλτρων κατάστασης
   const counts = { all: data.length };
   Object.keys(ST).forEach(k => counts[k] = data.filter(c => c.status === k).length);
   const labels = [['all','Όλες'], ...Object.entries(ST).map(([k,v]) => [k,v[0]])];
   $('#chips').innerHTML = labels.map(([k,l]) =>
     `<button class="chip ${filter===k?'on':''}" data-f="${k}">${l} <b>${counts[k]||0}</b></button>`).join('');
 
+  // 3. Εμφάνιση καρτών
   $('#list').innerHTML = rows.length ? rows.map(c => card(c, today)).join('')
     : '<p class="empty">Δεν βρέθηκαν υποθέσεις.</p>';
 }
@@ -238,7 +250,8 @@ function card(c, today){
       ${c.phone ? `<span>📞 ${esc(c.phone)}</span>` : ''}
     </div>
     ${na ? `<div class="next ${late?'red':''}">➜ ${esc(na.text)} · <b>${nm}</b>${late?' ⚠':''}</div>` : ''}
-    ${c.folder ? `<div class="meta">📁 ${esc(c.folder)}</div>` : ''}
+    <!-- ΕΔΩ ΕΙΝΑΙ Η ΑΛΛΑΓΗ: Έντονη εμφάνιση του φακέλου -->
+    ${c.folder ? `<div class="folder-tag">📁 Φάκελος: ${esc(c.folder)}</div>` : ''}
   </article>`;
 }
 
@@ -304,7 +317,7 @@ $('#btnPrint').onclick = () => {
       <td>${fd(c.invite1)}</td><td>${fd(c.invite2)}</td><td>${fd(c.invite3)}</td>
       <td>${fd(c.arrivedDate)}</td>
       <td>${na ? esc(na.text)+' '+na.date.toLocaleDateString('el-GR') : '—'}</td>
-      <td>${(ST[c.status]||['—'])[0]}</td><td>${esc(c.folder)}</td></tr>`;
+      <td>${(ST[c.status]||['—'])[0]}</td><td><b>${esc(c.folder)}</b></td></tr>`;
   });
   h += '</tbody></table>';
   $('#printArea').innerHTML = h;
