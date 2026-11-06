@@ -23,7 +23,7 @@ header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:-.3px}
 #q::placeholder{color:#ffffffb0}
 #q:focus{outline:2px solid #fff;background:#ffffff33}
 button{font:inherit;border:0;border-radius:12px;padding:10px 16px;background:#fff;
-       color:var(--pri);font-weight:600;cursor:pointer;transition:.2s}
+       color:var(--pri);font-weight:600;cursor:pointer;transition:.2s;font-size:13px;}
 button:active{transform:scale(.96)}
 button.ghost{background:#ffffff26;color:#fff}
 nav{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;background:var(--card);
@@ -48,18 +48,20 @@ main{padding:16px;display:grid;gap:12px;max-width:800px;margin:0 auto}
 .b-warn{background:var(--warnbg);color:var(--warn)}
 .b-ok{background:var(--okbg);color:var(--ok)}
 .b-red{background:var(--redbg);color:var(--red)}
-.meta{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--mut);font-size:13.5px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--mut);font-size:13px; margin-top:4px;}
 .meta span{display:flex;align-items:center;gap:4px}
+.meta b{color:var(--ink);font-weight:600;}
 .next{font-size:13px;background:#f0fdfa;color:var(--pri2);
-      padding:8px 12px;border-radius:8px;border:1px solid #ccfbf1;font-weight:500}
+      padding:8px 12px;border-radius:8px;border:1px solid #ccfbf1;font-weight:500;margin-top:4px;}
 .next.red{background:var(--redbg);color:var(--red);border-color:#fecaca;font-weight:600}
 .folder-badge{display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;color:#475569;
-              padding:6px 12px;border-radius:8px;font-size:12.5px;font-weight:600;align-self:flex-start}
+              padding:6px 12px;border-radius:8px;font-size:12.5px;font-weight:600;align-self:flex-start;margin-top:4px;}
+.folder-badge b{color:var(--ink)}
 .empty{text-align:center;color:var(--mut);padding:40px 20px;font-size:15px}
 /* Floating Action Button (FAB) */
 .fab{position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;
      background:var(--pri);color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;
-     box-shadow:0 4px 14px #0f766e66;z-index:30;padding:0;transition:.2s}
+     box-shadow:0 4px 14px #0f766e66;z-index:30;padding:0;transition:.2s;font-weight:400;}
 .fab:hover{background:var(--pri2);transform:scale(1.05)}
 .fab:active{transform:scale(.95)}
 /* dialog / φόρμα */
@@ -81,7 +83,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);border-colo
 .bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);
      display:flex;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));
      justify-content:center;z-index:20;box-shadow:0 -2px 10px #00000005}
-.bar button{background:#f1f5f9;color:#475569;font-size:12.5px;padding:10px 14px;border-radius:10px}
+.bar button{background:#f1f5f9;color:#475569;font-size:12.5px;padding:10px 14px;border-radius:10px;font-weight:700;}
 /* ΕΚΤΥΠΩΣΗ */
 #printArea{display:none}
 @media print{
@@ -106,7 +108,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);border-colo
 <header>
   <h1>Υποθέσεις</h1>
   <input id="q" placeholder="Αναζήτηση (όνομα, πινακίδα, 04/11)…">
-  <button class="ghost" id="btnPrint" title="Εκτύπωση κατάστασης">🖨</button>
+  <button class="ghost" id="btnPrint" title="Εκτύπωση κατάστασης">Εκτύπωση</button>
 </header>
 
 <nav id="chips"></nav>
@@ -115,8 +117,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);border-colo
 <button class="fab" id="btnNew" title="Νέα υπόθεση">+</button>
 
 <div class="bar">
-  <button id="btnExp">⬇ Backup</button>
-  <button id="btnImp">⬆ Επαναφορά</button>
+  <button id="btnExp">Λήψη Backup</button>
+  <button id="btnImp">Επαναφορά</button>
   <input type="file" id="file" accept="application/json" hidden>
 </div>
 
@@ -270,15 +272,15 @@ function card(c, today){
     </div>
     
     <div class="meta">
-      ${c.ref ? `<span>🚗 ${esc(c.ref)}</span>` : ''}
-      ${c.service ? `<span>🏛 ${esc(c.service)}</span>` : ''}
-      <span>📅 ${fd(c.dateReceived)}</span>
-      ${c.phone ? `<span>📞 ${esc(c.phone)}</span>` : ''}
+      ${c.ref ? `<span><b>Πιν:</b> ${esc(c.ref)}</span>` : ''}
+      ${c.service ? `<span><b>Υπ:</b> ${esc(c.service)}</span>` : ''}
+      <span><b>Ημ:</b> ${fd(c.dateReceived)}</span>
+      ${c.phone ? `<span><b>Τηλ:</b> ${esc(c.phone)}</span>` : ''}
     </div>
 
-    ${na ? `<div class="next ${late?'red':''}">➜ ${esc(na.text)} · <b>${nm}</b>${late?' ⚠':''}</div>` : ''}
+    ${na ? `<div class="next ${late?'red':''}">Επόμενη ενέργεια: ${esc(na.text)} <b>(${nm})</b></div>` : ''}
     
-    ${c.folder ? `<div class="folder-badge">📁 ${esc(c.folder)}</div>` : ''}
+    ${c.folder ? `<div class="folder-badge"><b>Φάκελος:</b> ${esc(c.folder)}</div>` : ''}
   </article>`;
 }
 
