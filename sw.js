@@ -1,4 +1,4 @@
-const CACHE = 'troxonomika-v2'; // αλλάξτε το (v2, v3...) όταν ανεβάζετε νέα έκδοση
+const CACHE = 'troxonomika-v3'; // αλλάξτε το (v2, v3...) όταν ανεβάζετε νέα έκδοση
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
