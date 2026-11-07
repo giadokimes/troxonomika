@@ -80,6 +80,8 @@
     .card-details.open { display: grid; }
     .detail-item strong { display: block; color: var(--text); font-weight: 600; }
     .detail-full { grid-column: 1 / -1; }
+    .phone-link { color: var(--blue); text-decoration: none; font-weight: 700; }
+    .phone-link:hover { text-decoration: underline; }
     .violation-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 10px; font-size: 12.5px; color: #92400e; font-weight: 600; }
     
     .card-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); flex-wrap: wrap; }
@@ -565,6 +567,8 @@
         </div>`;
       }
 
+      const phoneHTML = c.phone ? `<a href="tel:${c.phone}" class="phone-link">${c.phone}</a>` : '—';
+
       return `
         <div class="card border-${s.color}">
           <div class="card-header">
@@ -584,7 +588,7 @@
             <div class="detail-item">Υπηρεσία <strong>${c.service || '—'}</strong></div>
             <div class="detail-item">Φάκελος <strong>${c.folder || '—'}</strong></div>
             <div class="detail-item">Παραλαβή <strong>${formatDate(c.receivedDate)}</strong></div>
-            <div class="detail-item">Τηλέφωνο <strong>${c.phone || '—'}</strong></div>
+            <div class="detail-item">Τηλέφωνο <strong>${phoneHTML}</strong></div>
             ${c.notes ? `<div class="detail-item detail-full">Παρατηρήσεις: <strong>${c.notes}</strong></div>` : ''}
           </div>
 
@@ -710,7 +714,6 @@
     $('fReceivedDate').value = c.receivedDate; $('fFolder').value = c.folder || '';
     $('fFineAmount').value = c.fineAmount || '';
     
-    // Violation dropdown logic
     const vType = c.violationType || '';
     const stdVTypes = ['Υπερβολική ταχύτητα', 'ΚΤΕΟ', 'Διόδια', 'Στάθμευση', 'Απόφαση'];
     if (stdVTypes.includes(vType)) {
