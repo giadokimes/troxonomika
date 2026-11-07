@@ -20,7 +20,7 @@
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--ink); font-size: 14.5px; line-height: 1.45; padding-bottom: 70px; }
+    body { background: var(--bg); color: var(--ink); font-size: 14.5px; line-height: 1.45; padding-bottom: 20px; }
     button { font: inherit; cursor: pointer; border: none; background: none; }
     input, textarea, select { font: inherit; width: 100%; padding: 10px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: #f8fafc; color: var(--ink); outline: none; }
     input:focus, textarea:focus, select:focus { border-color: var(--navy); background: #fff; box-shadow: 0 0 0 3px rgb(15 23 42 / 0.12); }
@@ -37,11 +37,14 @@
     .search-box { position: relative; }
     .search-box input { padding-left: 36px; background: #fff; }
     .search-box svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--muted); }
-    .folder-filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
-    .folder-filters::-webkit-scrollbar { display: none; }
+    
+    .filter-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; align-items: center; }
+    .filter-row::-webkit-scrollbar { display: none; }
     .f-chip { flex: 0 0 auto; background: #fff; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 12.5px; font-weight: 600; transition: 0.2s; }
     .f-chip.active { background: var(--navy); color: #fff; border-color: var(--navy); }
     .f-chip b { opacity: 0.8; margin-left: 4px; }
+    
+    .divider { height: 1px; background: var(--line); margin: 4px 0; width: 100%; }
     
     /* Banners */
     #banners { max-width: 720px; margin: 10px auto 0; padding: 0 16px; display: grid; gap: 8px; }
@@ -87,10 +90,8 @@
     .detail-notes { background: #f8fafc; border-radius: 6px; padding: 8px; margin-top: 8px; white-space: pre-wrap; }
     .history-btn { background: var(--blue-bg); color: var(--blue-ink); font-weight: 600; font-size: 12px; padding: 6px 10px; border-radius: 6px; margin-top: 10px; }
     
-    /* FAB & Bottom Bar */
-    .fab { position: fixed; bottom: 76px; right: 18px; width: 56px; height: 56px; border-radius: 16px; background: var(--navy); color: #fff; font-size: 28px; display: grid; place-items: center; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.4); z-index: 40; }
-    .bar { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: #fff; border-top: 1px solid var(--line); display: flex; gap: 8px; padding: 8px 16px; justify-content: center; z-index: 30; }
-    .bar button { background: #f1f5f9; color: var(--ink2); padding: 8px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 600; }
+    /* FAB */
+    .fab { position: fixed; bottom: 24px; right: 18px; width: 56px; height: 56px; border-radius: 16px; background: var(--navy); color: #fff; font-size: 28px; display: grid; place-items: center; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.4); z-index: 40; }
     
     /* Modals */
     dialog { border: 0; border-radius: 16px; padding: 0; width: min(440px, calc(100% - 24px)); box-shadow: var(--shadow-lg); overflow: hidden; }
@@ -126,7 +127,7 @@
     @media print {
       @page { size: A4 landscape; margin: 8mm; }
       body { background: #fff; padding: 0; }
-      header, .toolbar, #banners, main, .bar, .fab, dialog { display: none !important; }
+      header, .toolbar, #banners, main, .fab, dialog { display: none !important; }
       #printArea { display: block !important; font: 8pt Arial, sans-serif; }
       #printArea h1 { font-size: 14pt; margin: 0 0 4mm; border-bottom: 1.5pt solid #000; padding-bottom: 2mm; }
       #printArea table { width: 100%; border-collapse: collapse; }
@@ -152,17 +153,20 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
     <input type="search" id="searchInput" placeholder="Αναζήτηση (όνομα, πινακίδα, φάκελος)..." autocomplete="off">
   </div>
-  <div class="folder-filters" id="folderFilters"></div>
+  
+  <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:-4px;">Κατάσταση</div>
+  <div class="filter-row" id="stateFilters"></div>
+  
+  <div class="divider"></div>
+  
+  <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:-4px;">Φάκελος</div>
+  <div class="filter-row" id="folderFilters"></div>
 </div>
 
 <div id="banners"></div>
 <main id="casesList"></main>
 
 <button class="fab" id="btnNew">+</button>
-<div class="bar">
-  <button id="btnExpBar">Λήψη Backup</button>
-  <button id="btnImpBar">Επαναφορά</button>
-</div>
 
 <!-- Modal Φόρμας Νέας/Επεξεργασίας Υπόθεσης -->
 <dialog id="dlgForm">
@@ -200,7 +204,7 @@
   </form>
 </dialog>
 
-<!-- Modal Wizard (Βήμα-Βήμα Ερωτήσεις) -->
+<!-- Modal Wizard -->
 <dialog id="dlgWizard">
   <div class="dlg">
     <h2 id="wizardTitle">Ερώτηση</h2>
@@ -225,8 +229,8 @@
 
 <script>
 (() => {
-  const KEY = 'troxonomika_final_v10';
-  const OLD_KEYS = ['troxonomika_final_v9','troxonomika_final_v8','troxonomika_final_v7','troxonomika_final_v6','troxonomika_final_v5','troxonomika_final_v4','ypotheseis_pwa_v1','ypotheseis.v1','troxonomika.cases.v1','ypotheseis.v2','ypotheseis_gemini_v1'];
+  const KEY = 'troxonomika_final_v11';
+  const OLD_KEYS = ['troxonomika_final_v10','troxonomika_final_v9','troxonomika_final_v8','troxonomika_final_v7','troxonomika_final_v6','troxonomika_final_v5','troxonomika_final_v4','ypotheseis_pwa_v1','ypotheseis.v1','troxonomika.cases.v1','ypotheseis.v2','ypotheseis_gemini_v1'];
   
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
@@ -240,8 +244,8 @@
     let d = new Date(dateStr + 'T12:00:00');
     d.setDate(d.getDate() + Number(days));
     const day = d.getDay();
-    if (day === 6) d.setDate(d.getDate() + 2); // Σάββατο -> Δευτέρα
-    else if (day === 0) d.setDate(d.getDate() + 1); // Κυριακή -> Δευτέρα
+    if (day === 6) d.setDate(d.getDate() + 2);
+    else if (day === 0) d.setDate(d.getDate() + 1);
     return d.toISOString().split('T')[0];
   }
   function daysBetween(from, to) {
@@ -269,7 +273,7 @@
         const arr = JSON.parse(oldData);
         if (!Array.isArray(arr) || !arr.length) continue;
         cases = arr.map(o => migrateCase(o));
-        save(); // Αποθήκευση στο νέο KEY
+        save();
         setTimeout(() => alert(`Επιτυχής μεταφορά ${cases.length} υποθέσεων!`), 500);
         return;
       } catch(e) {}
@@ -377,7 +381,6 @@
     Object.assign(c.dates, extra);
     if (logMsg) c.history.push({ date: todayStr(), action: logMsg });
     
-    // Αυτόματος υπολογισμός returnDate κατά την αφαίρεση
     if (newState === 'suspended' && c.dates.susp && c.removalDays) {
       c.dates.return = addDays(c.dates.susp, c.removalDays);
     }
@@ -448,11 +451,8 @@
   }
 
   function actSetAppt(c) { openDatePrompt('Κλείσιμο Ραντεβού', 'Ημερομηνία ραντεβού:', (val) => setState(c.id, 'appointment', { appt: val }, `Νέο ραντεβού: ${val}`)); }
-  
   function actRemoval(c) { openDatePrompt('Πραγματοποιήθηκε Αφαίρεση', 'Ημερομηνία αφαίρεσης:', (val) => setState(c.id, 'suspended', { susp: val }, `Αφαίρεση διπλώματος στις ${val}. Λήγει: ${addDays(val, c.removalDays)}`)); }
-  
   function actDeliver(c) { openDatePrompt('Απόδοση Διπλώματος', 'Ημερομηνία απόδοσης:', (val) => setState(c.id, 'closed', { closed: val }, `Απόδοση διπλώματος και οριστικό κλείσιμο στις ${val}`)); }
-  
   function actClose(c) { setState(c.id, 'closed', { closed: todayStr() }, 'Επιστροφή στην υπηρεσία και κλείσιμο'); }
   
   function actSendInvite(c, n) {
@@ -470,35 +470,44 @@
   }
 
   // --- RENDER ---
-  let folderFilter = 'all', q = '';
+  let folderFilter = 'all', stateFilter = 'all', q = '';
   
   function render() {
     cases.forEach(c => {
-      // Auto-state update for informed -> inv1_next
       if (c.state === 'informed' && isPast(addDays(c.dates.phone, 5))) c.state = 'inv1_next';
-      // Auto-state update for appointment -> no_show
       if (c.state === 'appointment' && isPast(addDays(c.dates.appt, 5))) c.state = 'no_show';
-      // Auto-state update for suspended -> to_return
       if (c.state === 'suspended' && c.dates.return && isPast(c.dates.return)) c.state = 'to_return';
     });
     save();
 
-    // Folders
+    // Folder Filters
     const folderMap = {};
     cases.forEach(c => { const f = c.folder || '(χωρίς φάκελο)'; folderMap[f] = (folderMap[f] || 0) + 1; });
     const fNames = Object.keys(folderMap).sort();
     $('#folderFilters').innerHTML = `<button class="f-chip ${folderFilter==='all'?'active':''}" data-f="all">Όλοι <b>${cases.length}</b></button>` +
       fNames.map(f => `<button class="f-chip ${folderFilter===f?'active':''}" data-f="${f}">${f} <b>${folderMap[f]}</b></button>`).join('');
 
+    // State Filters
+    const stateCounts = {};
+    cases.forEach(c => { stateCounts[c.state] = (stateCounts[c.state] || 0) + 1; });
+    let stateHtml = `<button class="f-chip ${stateFilter==='all'?'active':''}" data-s="all">Όλα</button>`;
+    Object.keys(ST).forEach(k => {
+      if (stateCounts[k] > 0) {
+        stateHtml += `<button class="f-chip ${stateFilter===k?'active':''}" data-s="${k}">${ST[k].label} <b>${stateCounts[k]}</b></button>`;
+      }
+    });
+    $('#stateFilters').innerHTML = stateHtml;
+
     // Banners
     const urgent = cases.filter(c => ['no_show','to_return','return_service'].includes(c.state) || (c.state === 'informed' && isPast(addDays(c.dates.phone, 5))));
     if (urgent.length) {
-      $('#banners').innerHTML = `<div class="banner" onclick="document.getElementById('searchInput').value=''; document.getElementById('searchInput').dispatchEvent(new Event('input'));"><span class="count">${urgent.length}</span> Επείγουσες Εκκρεμότητες (Κλικ για προβολή)</div>`;
+      $('#banners').innerHTML = `<div class="banner"><span class="count">${urgent.length}</span> Επείγουσες Εκκρεμότητες</div>`;
     } else { $('#banners').innerHTML = ''; }
 
     // Cards
     const filtered = cases.filter(c => {
       if (folderFilter !== 'all' && (c.folder || '(χωρίς φάκελο)') !== folderFilter) return false;
+      if (stateFilter !== 'all' && c.state !== stateFilter) return false;
       if (!q) return true;
       return [c.name, c.plate, c.folder, c.phone].join(' ').toLowerCase().includes(q.toLowerCase());
     }).sort((a,b) => {
@@ -513,7 +522,6 @@
       const isMinimal = ['search','to_call','inv1_next'].includes(c.state);
       let alertHtml = '';
       
-      // Critical deadlines
       if (c.state === 'informed') alertHtml = `<div class="card-alert warn">Αναμονή 5 ημερών (${formatDate(addDays(c.dates.phone, 5))})</div>`;
       if (c.state === 'appointment') alertHtml = `<div class="card-alert ok">Ραντεβού: ${formatDate(c.dates.appt)} (Έλεγχος: ${formatDate(addDays(c.dates.appt, 5))})</div>`;
       if (c.state === 'suspended') alertHtml = `<div class="card-alert ok">Σε αφαίρεση (${c.removalDays} ημ.). Λήγει: ${formatDate(c.dates.return)}</div>`;
@@ -527,7 +535,6 @@
       if (c.state === 'appointment') actionHtml += `<a href="${calLink(c)}" target="_blank" class="cal-link">Προσθήκη στο Google Calendar</a>`;
       if (act) actionHtml += `<button class="btn-primary" data-act="${c.id}">${act.label}</button>`;
 
-      // Details
       const details = [
         c.service ? `<span><b>Υπηρεσία:</b> ${c.service}</span>` : '',
         c.folder ? `<span><b>Φάκελος:</b> ${c.folder}</span>` : '',
@@ -561,7 +568,7 @@
       `;
     }).join('') || '<div style="text-align:center; padding:40px; color:var(--muted);">Δεν βρέθηκαν υποθέσεις.</div>';
 
-    // Bind Card Events
+    // Bind Events
     $$('[data-act]').forEach(b => b.onclick = e => { e.stopPropagation(); getPrimaryAction(getCase(b.dataset.act)).action(); });
     $$('[data-toggle]').forEach(b => b.onclick = e => { e.stopPropagation(); $(`#det-${b.dataset.toggle}`).classList.toggle('open'); b.textContent = $(`#det-${b.dataset.toggle}`).classList.contains('open') ? '− Απόκρυψη' : '+ Λεπτομέρειες'; });
     $$('[data-edit]').forEach(b => b.onclick = e => { e.stopPropagation(); openForm(b.dataset.edit); });
@@ -589,35 +596,24 @@
     $('#btnFormDelete').style.display = c ? 'block' : 'none';
     
     if (c) {
-      f.plate.value = c.plate;
-      f.name.value = c.name;
-      f.service.value = c.service || '';
-      f.phone.value = c.phone || '';
-      f.receivedDate.value = c.receivedDate;
-      f.folder.value = c.folder || '';
+      f.plate.value = c.plate; f.name.value = c.name; f.service.value = c.service || '';
+      f.phone.value = c.phone || ''; f.receivedDate.value = c.receivedDate; f.folder.value = c.folder || '';
       
       if (['Υπερβολική ταχύτητα', 'ΚΤΕΟ', 'Διόδια', 'Στάθμευση', 'Απόφαση'].includes(c.violationType)) {
-        f.violationType.value = c.violationType;
-        f.violationOther.value = '';
+        f.violationType.value = c.violationType; f.violationOther.value = '';
       } else if (c.violationType) {
-        f.violationType.value = 'custom';
-        f.violationOther.value = c.violationType;
+        f.violationType.value = 'custom'; f.violationOther.value = c.violationType;
       } else {
-        f.violationType.value = '';
-        f.violationOther.value = '';
+        f.violationType.value = ''; f.violationOther.value = '';
       }
       
-      f.fine.value = c.fine || '';
-      f.requiresLicense.checked = c.removalDays > 0;
-      f.removalDays.value = c.removalDays || 30;
-      f.notes.value = c.notes || '';
+      f.fine.value = c.fine || ''; f.requiresLicense.checked = c.removalDays > 0;
+      f.removalDays.value = c.removalDays || 30; f.notes.value = c.notes || '';
     } else {
-      f.receivedDate.value = todayStr();
-      f.requiresLicense.checked = true;
+      f.receivedDate.value = todayStr(); f.requiresLicense.checked = true;
     }
     
-    toggleLicenseFields();
-    toggleViolationCustom();
+    toggleLicenseFields(); toggleViolationCustom();
     f.dataset.id = id || '';
     $('#dlgForm').showModal();
   }
@@ -634,17 +630,10 @@
     const vType = f.violationType.value === 'custom' ? f.violationOther.value.trim() : f.violationType.value;
     
     const rec = {
-      id,
-      plate: f.plate.value.trim().toUpperCase(),
-      name: f.name.value.trim(),
-      service: f.service.value.trim(),
-      phone: f.phone.value.trim(),
-      receivedDate: f.receivedDate.value,
-      folder: f.folder.value.trim(),
-      violationType: vType,
-      fine: f.fine.value.trim(),
-      requiresLicense: f.requiresLicense.checked,
-      removalDays: f.requiresLicense.checked ? Number(f.removalDays.value) : 0,
+      id, plate: f.plate.value.trim().toUpperCase(), name: f.name.value.trim(), service: f.service.value.trim(),
+      phone: f.phone.value.trim(), receivedDate: f.receivedDate.value, folder: f.folder.value.trim(),
+      violationType: vType, fine: f.fine.value.trim(),
+      requiresLicense: f.requiresLicense.checked, removalDays: f.requiresLicense.checked ? Number(f.removalDays.value) : 0,
       notes: f.notes.value.trim(),
       state: old ? old.state : (f.phone.value.trim() ? 'to_call' : 'search'),
       history: old ? old.history : [{ date: todayStr(), action: 'Δημιουργία Νέας Υπόθεσης' }],
@@ -653,19 +642,16 @@
 
     if (old) {
       rec.history.push({ date: todayStr(), action: 'Επεξεργασία στοιχείων' });
-      const idx = cases.findIndex(x => x.id === id);
-      cases[idx] = rec;
+      cases[cases.findIndex(x => x.id === id)] = rec;
     } else {
       cases.unshift(rec);
     }
-
     save(); render(); $('#dlgForm').close();
   };
 
   $('#btnFormDelete').onclick = () => {
     if (confirm('Οριστική διαγραφή υπόθεσης;')) {
-      const id = $('#caseForm').dataset.id;
-      cases = cases.filter(x => x.id !== id);
+      cases = cases.filter(x => x.id !== $('#caseForm').dataset.id);
       save(); render(); $('#dlgForm').close();
     }
   };
@@ -693,6 +679,11 @@
     const b = e.target.closest('.f-chip');
     if (b) { folderFilter = b.dataset.f; render(); }
   };
+  
+  $('#stateFilters').onclick = e => {
+    const b = e.target.closest('.f-chip');
+    if (b) { stateFilter = b.dataset.s; render(); }
+  };
 
   // Backup
   const exportData = () => {
@@ -701,9 +692,8 @@
     a.download = `ypotheseis_${todayStr()}.json`; a.click();
   };
   $('#btnExport').onclick = exportData;
-  $('#btnExpBar').onclick = exportData;
   
-  $('#btnImport').onclick = $('#btnImpBar').onclick = () => $('#importFile').click();
+  $('#btnImport').onclick = () => $('#importFile').click();
   $('#importFile').onchange = e => {
     const file = e.target.files[0]; if (!file) return;
     const r = new FileReader();
@@ -712,7 +702,7 @@
         const arr = JSON.parse(ev.target.result);
         if (Array.isArray(arr)) {
           if (confirm('Η εισαγωγή θα αντικαταστήσει τις τρέχουσες υποθέσεις. Συνέχεια;')) {
-            cases = arr.map(o => migrateCase(o)); // Re-migrate just in case
+            cases = arr.map(o => migrateCase(o));
             save(); render(); alert('Επιτυχής επαναφορά!');
           }
         }
