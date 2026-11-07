@@ -19,7 +19,7 @@
     body { background: var(--bg); color: var(--text); font-size: 15px; padding-bottom: 60px; }
     button { font: inherit; cursor: pointer; border: none; background: none; }
     input, textarea, select { font: inherit; width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--text); outline: none; }
-    input:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
+    input:focus, textarea:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
     
     /* Topbar */
     .topbar { background: var(--pri); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 20; flex-wrap: wrap; gap: 10px; }
@@ -226,17 +226,19 @@
       <div class="form-section">
         <div class="form-section-title">Στοιχεία Παράβασης</div>
         <div class="form-grid">
-          <div class="form-group">
-  <label>Είδος Παράβασης ΚΟΚ</label>
-  <input type="text" id="fViolationType" list="violationList" placeholder="Επιλέξτε ή πληκτρολογήστε..." style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'6 9 12 15 18 9\'></polyline></svg>'); background-repeat: no-repeat; background-position: right 10px center; background-size: 16px; padding-right: 32px;">
-  <datalist id="violationList">
-    <option value="Υπερβολική ταχύτητα"></option>
-    <option value="ΚΤΕΟ"></option>
-    <option value="Διόδια"></option>
-    <option value="Στάθμευση"></option>
-    <option value="Απόφαση"></option>
-  </datalist>
-</div>
+          <div class="form-group full">
+            <label>Είδος Παράβασης ΚΟΚ</label>
+            <select id="fViolationSelect" onchange="toggleViolationInput()">
+              <option value="">— Επιλέξτε —</option>
+              <option value="Υπερβολική ταχύτητα">Υπερβολική ταχύτητα</option>
+              <option value="ΚΤΕΟ">ΚΤΕΟ</option>
+              <option value="Διόδια">Διόδια</option>
+              <option value="Στάθμευση">Στάθμευση</option>
+              <option value="Απόφαση">Απόφαση</option>
+              <option value="custom">Άλλο (ελεύθερο κείμενο)...</option>
+            </select>
+            <input type="text" id="fViolationCustom" style="display:none; margin-top: 8px;" placeholder="Γράψτε το είδος παράβασης...">
+          </div>
           <div class="form-group">
             <label>Ποσό Προστίμου (€)</label>
             <input type="number" id="fFineAmount" min="0" placeholder="π.χ. 300">
@@ -254,7 +256,7 @@
         </div>
       </div>
 
-      <!-- Advanced Sections (Κρύβονται στη Νέα Υπόθεση) -->
+      <!-- Advanced Sections -->
       <div class="advanced-section" id="advAppt" style="display:none;">
         <div class="form-section">
           <div class="form-section-title">Κλάδος Τηλεφώνου & Ραντεβού</div>
@@ -405,7 +407,6 @@
   let folderFilter = 'all';
   const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(cases));
 
-  // Date Utilities
   const parseDate = v => v ? new Date(v + 'T12:00:00') : null;
   const addDays = (v, n) => { if(!v) return ''; const d = parseDate(v); d.setDate(d.getDate()+Number(n)); return d.toISOString().split('T')[0]; };
   const formatDate = v => { const d = parseDate(v); return d ? d.toLocaleDateString('el-GR') : '—'; };
@@ -415,20 +416,18 @@
     if (!dateStr) return '';
     const d = parseDate(dateStr);
     const day = d.getDay();
-    if (day === 6) return addDays(dateStr, 2); // Σάββατο -> Δευτέρα
-    if (day === 0) return addDays(dateStr, 1); // Κυριακή -> Δευτέρα
+    if (day === 6) return addDays(dateStr, 2);
+    if (day === 0) return addDays(dateStr, 1);
     return dateStr;
   };
 
-  // State Machine
   function getCaseStatus(c) {
     if (c.closedDate) return { state: 'done', label: 'Ολοκληρωμένη', color: 'green', action: null };
     
-    // License flow
     if (c.returnDate) { 
       const due = adjustWeekend(c.returnDate);
       const late = today() >= due; 
-      return { state: 'return', label: 'Προς Απόδοση Διπλώματος', color: late ? 'red' : 'amber', action: 'return', alert: late ? 'Εκπρεμεί η απόδοση διπλώματος!' : '' }; 
+      return { state: 'return', label: 'Προς Απόδοση Διπλώματος', color: late ? 'red' : 'amber', action: 'return', alert: late ? 'Εκκρεμεί η απόδοση διπλώματος!' : '' }; 
     }
     if (c.suspDate) {
       const due = adjustWeekend(c.returnDate);
@@ -436,14 +435,12 @@
       return { state: 'suspended', label: 'Σε Αφαίρεση', color: 'blue', action: null, alert: `Λήγει σε ${daysLeft} ημέρες (${formatDate(due)})` };
     }
     
-    // Appointment flow
     if (c.apptDate) {
       const due = adjustWeekend(addDays(c.apptDate, 5));
       const isNoShow = today() > due;
       return { state: 'appt', label: isNoShow ? 'Μη Προσέλευση' : 'Ραντεβού', color: isNoShow ? 'red' : 'blue', action: 'suspend', alert: isNoShow ? `Δεν προσήλθε στο ραντεβού της ${formatDate(c.apptDate)}` : `Ραντεβού: ${formatDate(c.apptDate)}` };
     }
     
-    // Phone flow
     if (c.callResult === 'informed' && !c.inv1Send) {
       const due = adjustWeekend(addDays(c.phoneDate, 5));
       const isLate = today() > due;
@@ -453,7 +450,6 @@
       return { state: 'noanswer_wait', label: 'Δεν Απάντησε', color: 'amber', action: 'noanswer_wait', alert: 'Εκκρεμεί Αποστολή 1ης Πρόσκλησης' };
     }
     
-    // Invitations flow
     if (c.inv3Proof) { 
       const due = adjustWeekend(addDays(c.inv3Proof, 10)); 
       return { state: 'return_service', label: 'Επιστροφή Υπηρεσίας', color: today() >= due ? 'red' : 'amber', action: today() >= due ? 'close_service' : null, alert: `3ο Αποδεικτικό: ${formatDate(c.inv3Proof)}` }; 
@@ -473,9 +469,7 @@
     return { state: 'new', label: 'Νέα Υπόθεση', color: 'blue', action: 'call', alert: '' };
   }
 
-  // Render
   function render() {
-    // 1. Φίλτρα Φακέλων
     const folders = {};
     cases.forEach(c => { if (c.folder) folders[c.folder] = (folders[c.folder] || 0) + 1; });
     const folderKeys = Object.keys(folders).sort();
@@ -484,7 +478,6 @@
     chipsHTML += folderKeys.map(f => `<button class="f-chip ${folderFilter === f ? 'active' : ''}" onclick="setFolderFilter('${f.replace(/'/g, "\\'")}')">${f} <span>${folders[f]}</span></button>`).join('');
     $('folderChips').innerHTML = chipsHTML;
 
-    // 2. Alerts (Banners)
     let alertsHTML = '';
     const urgentCases = cases.map(c => ({ c, s: getCaseStatus(c) })).filter(x => x.s.color === 'red');
     if (urgentCases.length > 0) {
@@ -495,7 +488,6 @@
     }
     $('alertContainer').innerHTML = alertsHTML;
 
-    // 3. Κάρτες
     const q = $('searchInput').value.toLowerCase();
     let filtered = cases.filter(c => {
       if (folderFilter !== 'all' && c.folder !== folderFilter) return false;
@@ -513,7 +505,6 @@
       const s = getCaseStatus(c);
       let actionHTML = '';
       
-      // Smart Actions Logic
       if (s.action === 'call') {
         actionHTML = `
           <button class="btn-action primary" onclick="openAction('${c.id}', 'call_appt')">1. Έκλεισε Ραντεβού</button>
@@ -550,14 +541,12 @@
         actionHTML = `<button class="btn-action primary" onclick="openAction('${c.id}', 'close_service')" style="flex:100%;">Επιστροφή στην Υπηρεσία</button>`;
       }
 
-      // Google Calendar button
       if (c.apptDate && !c.suspDate && !c.closedDate) {
         actionHTML += `<a href="${generateGCalLink(c)}" target="_blank" class="btn-action calendar" style="flex:100%; text-decoration:none;">Προσθήκη στο Ημερολόγιο</a>`;
       }
 
       actionHTML += `<button class="btn-action secondary" style="flex:0 0 auto; padding:8px 12px;" onclick="editCase('${c.id}')">Επεξεργασία</button>`;
 
-      // Details & License Box
       let licenseBoxHTML = '';
       if (c.suspDays && c.suspDays > 0) {
         if (s.state === 'suspended') {
@@ -613,6 +602,11 @@
     if (el) el.classList.toggle('open');
   };
 
+  window.toggleViolationInput = () => {
+    $('fViolationCustom').style.display = $('fViolationSelect').value === 'custom' ? 'block' : 'none';
+    if ($('fViolationSelect').value !== 'custom') $('fViolationCustom').value = '';
+  };
+
   window.setFolderFilter = (f) => { folderFilter = f; render(); };
 
   window.handleAutoInvite = (id, step) => {
@@ -636,7 +630,6 @@
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDateTime}/${endDateTime}&ctz=Europe/Athens&details=${details}`;
   }
 
-  // Modal Actions
   let currentActionCaseId = null;
   let currentActionType = null;
 
@@ -708,7 +701,6 @@
     save(); render(); closeActionModal();
   };
 
-  // Edit Modal
   window.editCase = (id) => {
     const c = cases.find(x => x.id === id);
     if (!c) return;
@@ -716,7 +708,24 @@
     $('fName').value = c.name; $('fPlate').value = c.plate;
     $('fService').value = c.service || ''; $('fPhone').value = c.phone || '';
     $('fReceivedDate').value = c.receivedDate; $('fFolder').value = c.folder || '';
-    $('fViolationType').value = c.violationType || ''; $('fFineAmount').value = c.fineAmount || '';
+    $('fFineAmount').value = c.fineAmount || '';
+    
+    // Violation dropdown logic
+    const vType = c.violationType || '';
+    const stdVTypes = ['Υπερβολική ταχύτητα', 'ΚΤΕΟ', 'Διόδια', 'Στάθμευση', 'Απόφαση'];
+    if (stdVTypes.includes(vType)) {
+      $('fViolationSelect').value = vType;
+      $('fViolationCustom').style.display = 'none';
+      $('fViolationCustom').value = '';
+    } else if (vType) {
+      $('fViolationSelect').value = 'custom';
+      $('fViolationCustom').style.display = 'block';
+      $('fViolationCustom').value = vType;
+    } else {
+      $('fViolationSelect').value = '';
+      $('fViolationCustom').style.display = 'none';
+      $('fViolationCustom').value = '';
+    }
     
     $('fRequiresLicense').checked = c.suspDays > 0 || c.suspDate !== '';
     toggleLicenseFields();
@@ -741,6 +750,9 @@
     $('caseId').value = '';
     $('fReceivedDate').value = today();
     $('fRequiresLicense').checked = true;
+    $('fViolationSelect').value = '';
+    $('fViolationCustom').style.display = 'none';
+    $('fViolationCustom').value = '';
     toggleLicenseFields();
     
     $('modalTitle').textContent = 'Νέα Υπόθεση';
@@ -772,7 +784,8 @@
       id, name: $('fName').value.trim(), plate: $('fPlate').value.trim().toUpperCase(),
       service: $('fService').value.trim(), phone: $('fPhone').value.trim(),
       receivedDate: $('fReceivedDate').value, folder: $('fFolder').value.trim(),
-      violationType: $('fViolationType').value.trim(), fineAmount: $('fFineAmount').value.trim(),
+      violationType: $('fViolationSelect').value === 'custom' ? $('fViolationCustom').value.trim() : $('fViolationSelect').value,
+      fineAmount: $('fFineAmount').value.trim(),
       suspDays: $('fRequiresLicense').checked ? $('fSuspDays').value : '',
       phoneDate: $('fPhoneDate').value, apptDate: $('fApptDate').value,
       suspDate: $('fSuspDate').value,
@@ -802,7 +815,6 @@
 
   $('searchInput').oninput = render;
 
-  // Backup / Print
   $('btnExport').onclick = () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(cases, null, 2)], {type:'application/json'}));
