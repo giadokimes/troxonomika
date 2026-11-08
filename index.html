@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#000000">
   <title>Διαχείριση Υποθέσεων</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="./icon-192.png">
@@ -22,8 +22,28 @@
 </header>
 
 <div id="backupWarning" class="backup-warning" style="display:none;">
-  <span>Έχουν περάσει 7 ημέρες από το τελευταίο Backup. Παρακαλώ κάντε λήψη αντιγράφου ασφαλείας.</span>
+  <span>Έχουν περάσει 7 ημέρες από το τελευταίο Backup. Παρακαλώ κάντε λήψη.</span>
   <button onclick="document.getElementById('backupWarning').style.display='none'">X</button>
+</div>
+
+<!-- Dashboard Στατιστικών -->
+<div class="dashboard">
+  <div class="stat">
+    <strong id="statTotal">0</strong>
+    <span>Ενεργές Υποθέσεις</span>
+  </div>
+  <div class="stat">
+    <strong id="statDueToday">0</strong>
+    <span>Ενέργειες Σήμερα</span>
+  </div>
+  <div class="stat">
+    <strong id="statDueSoon">0</strong>
+    <span>Προθεσμίες Σύντομα</span>
+  </div>
+  <div class="stat">
+    <strong id="statWaiting">0</strong>
+    <span>Σε Αναμονή</span>
+  </div>
 </div>
 
 <div class="tools">
@@ -99,7 +119,7 @@
   </form>
 </dialog>
 
-<!-- Modal Wizard -->
+<!-- Modal Wizard (Βήμα-Βήμα Ενέργειες) -->
 <dialog id="dlgWizard">
   <div class="dlg">
     <h2 id="wT"></h2>

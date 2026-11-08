@@ -1,6 +1,6 @@
 (() => {
-  const KEY = 'troxonomika_final_v22';
-  const OLD = [...Array(20)].map((_, i) => 'troxonomika_final_v' + (21 - i))
+  const KEY = 'troxonomika_final_v23';
+  const OLD = [...Array(22)].map((_, i) => 'troxonomika_final_v' + (22 - i))
     .concat(['ypotheseis_pwa_v1','ypotheseis.v1','troxonomika.cases.v1','ypotheseis.v2','ypotheseis_gemini_v1']);
 
   // ---------- Ρυθμίσεις & Σταθερές ----------
@@ -25,7 +25,14 @@
     closed:      { l: 'Ολοκληρωμένη', t: 'ok', a: '' }
   };
   const URG = ['no_show','to_return','return_service','inv1_next','inv2_next','inv3_next'];
-  const BANNER = { no_show: 'Μη προσέλευση', to_return: 'Προς απόδοση διπλώματος', return_service: 'Επιστροφή στην Υπηρεσία', inv1_next: 'Αποστολή 1ης', inv2_next: 'Αποστολή 2ης', inv3_next: 'Αποστολή 3ης' };
+  const BANNER = { 
+    no_show: 'Μη προσέλευση', 
+    to_return: 'Προς απόδοση διπλώματος', 
+    return_service: 'Επιστροφή στην Υπηρεσία', 
+    inv1_next: 'Αποστολή 1ης πρόσκλησης', 
+    inv2_next: 'Αποστολή 2ης πρόσκλησης', 
+    inv3_next: 'Αποστολή 3ης πρόσκλησης' 
+  };
   const FOLDERS = {
     'Τηλέφωνα': ['Με ραντεβού', 'Χωρίς ραντεβού'],
     'Προσκλήσεις': ['1η πρόσκληση', '2η πρόσκληση', '3η πρόσκληση'],
@@ -53,7 +60,7 @@
     const month = Math.floor((d + e + 114) / 31);
     const day = ((d + e + 114) % 31) + 1;
     const date = new Date(year, month - 1, day);
-    date.setDate(date.getDate() + 13); // Προσαρμογή στο Γρηγοριανό
+    date.setDate(date.getDate() + 13);
     return date;
   };
 
@@ -61,15 +68,10 @@
     const d = new Date(dateStr + 'T12:00:00');
     const y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
     const md = `${m}-${day}`;
-    
-    // Σταθερές αργίες
     if (['1-1', '1-6', '3-25', '5-1', '8-15', '10-28', '12-25', '12-26'].includes(md)) return true;
-    
-    // Κινούμενες αργίες (Πάσχα)
     const easter = getOrthodoxEaster(y);
     const diff = Math.round((d - easter) / 86400000);
-    if ([-48, -2, 1, 50].includes(diff)) return true; // Καθαρά Δευτέρα, Μ. Παρασκευή, Δευτέρα Πάσχα, Αγ. Πνεύματος
-    
+    if ([-48, -2, 1, 50].includes(diff)) return true;
     return false;
   };
 
@@ -162,7 +164,6 @@
     cases = [];
   };
 
-  // Έλεγχος Backup
   const checkBackup = () => {
     const last = localStorage.getItem('last_backup');
     const warn = $('#backupWarning');
@@ -184,7 +185,6 @@
       else if (s === 'inv1_wait' && isDue(addDays(D.inv1Proof, 10))) n = 'inv2_next';
       else if (s === 'inv2_wait' && isDue(addDays(D.inv2Proof, 10))) n = 'inv3_next';
       else if (s === 'inv3_wait' && isDue(addDays(D.inv3Proof, 10))) n = 'return_service';
-      
       if (n !== s) { c.state = n; ch = true; }
     });
     if (ch) save();
@@ -208,11 +208,7 @@
     btns.concat([{ t: 'Άκυρο', c: 'ghost' }]).forEach(b => {
       const x = document.createElement('button');
       x.type = 'button'; x.className = 'btn ' + (b.c || ''); x.textContent = b.t;
-      x.onclick = () => {
-        if (b.v && !b.v()) return;
-        dlgW.close();
-        if (b.f) b.f();
-      };
+      x.onclick = () => { if (b.v && !b.v()) return; dlgW.close(); if (b.f) b.f(); };
       a.append(x);
     });
     if (!dlgW.open) dlgW.showModal();
@@ -311,7 +307,7 @@
     ].filter(Boolean).join('');
     
     return `<article class="card t-${s.t}">
-      <div class="hd"><div><div class="nm">${esc(c.name)}</div><div class="pl">${esc(c.plate)}</div></div><span class="badge">${s.l}</span></div>
+      <div class="hd"><div><div class="pl">${esc(c.plate)}</div><div class="nm">${esc(c.name)}</div></div><span class="badge">${s.l}</span></div>
       ${infoLine(c) ? `<div class="info">${esc(infoLine(c))}</div>` : ''}
       <div class="act">${act}</div>
       <details class="more"><summary>Λεπτομέρειες</summary>
@@ -322,6 +318,33 @@
 
   const render = () => {
     tick();
+    
+    // Dashboard Stats
+    let total = 0, dueToday = 0, dueSoon = 0, waiting = 0;
+    const tToday = todayStr();
+    const tSoon = addDays(tToday, 5); // 5 μέρες μπροστά
+    
+    cases.forEach(c => {
+      if (c.state === 'closed') return;
+      total++;
+      
+      const dueDate = getCaseDueDate(c);
+      if (dueDate) {
+        if (dueDate <= tToday) dueToday++;
+        else if (dueDate <= tSoon) dueSoon++;
+      }
+      
+      if (['informed', 'inv1_wait', 'inv2_wait', 'inv3_wait', 'inv1_sent', 'inv2_sent', 'inv3_sent'].includes(c.state)) {
+        waiting++;
+      }
+    });
+    
+    $('#statTotal').textContent = total;
+    $('#statDueToday').textContent = dueToday;
+    $('#statDueSoon').textContent = dueSoon;
+    $('#statWaiting').textContent = waiting;
+
+    // Filters
     const fm = {}; cases.forEach(c => { const f = c.folder || '(χωρίς φάκελο)'; fm[f] = (fm[f] || 0) + 1; });
     $('#folderFilters').innerHTML = chip('f', 'all', 'Όλοι', cases.length, folderF === 'all') +
       Object.keys(fm).sort().map(f => chip('f', f, f, fm[f], folderF === f)).join('');
@@ -351,6 +374,17 @@
     $('#casesList').innerHTML = list.map(card).join('') || '<div class="empty">Δεν βρέθηκαν υποθέσεις.</div>';
     
     checkBackup();
+  };
+
+  const getCaseDueDate = (c) => {
+    const D = c.dates, s = c.state;
+    if (s === 'informed') return addDays(D.phone, 5);
+    if (s === 'appointment') return addDays(D.appt, 5);
+    if (s === 'suspended') return D.return;
+    if (s === 'inv1_wait') return addDays(D.inv1Proof, 10);
+    if (s === 'inv2_wait') return addDays(D.inv2Proof, 10);
+    if (s === 'inv3_wait') return addDays(D.inv3Proof, 10);
+    return null;
   };
 
   // ---------- Φόρμα ----------
