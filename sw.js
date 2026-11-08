@@ -1,4 +1,4 @@
-const CACHE_NAME = "troxonomika-final-v19";
+const CACHE_NAME = "troxonomika-final-v20";
 const APP_FILES = [
   "./",
   "./index.html",
