@@ -298,13 +298,16 @@
     if (c.state === 'appointment') act += `<button class="btn ghost" data-r="${c.id}">Αλλαγή ραντεβού</button>`;
     if (c.state.startsWith('inv') && c.state.endsWith('_next')) act += `<button class="btn ghost" data-copy="${c.id}">Αντιγραφή Κειμένου</button>`;
     
-    const det = [
-      c.service && `<span><b>Υπηρεσία:</b> ${esc(c.service)}</span>`, c.folder && `<span><b>Φάκελος:</b> ${esc(c.folder)}</span>`,
-      `<span><b>Παραλαβή:</b> ${fmt(c.receivedDate)}</span>`,
-      c.phone && `<span><b>Τηλ:</b> <a href="tel:${esc(c.phone)}">${esc(c.phone)}</a></span>`,
-      c.violationType && `<span><b>Παράβαση:</b> ${esc(c.violationType)}</span>`, c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
-      c.removalDays > 0 && `<span><b>Ημέρες αφαίρεσης:</b> ${esc(c.removalDays)}</span>`
-    ].filter(Boolean).join('');
+    // Παίρνουμε την τελευταία ενέργεια από το ιστορικό
+const lastAction = c.history && c.history.length > 0 ? c.history[c.history.length - 1].action : '—';
+
+const det = [
+  c.folder && `<span><b>Φάκελος:</b> ${esc(c.folder)}</span>`,
+  c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
+  c.removalDays > 0 && `<span><b>Ημέρες αφαίρεσης:</b> ${esc(c.removalDays)}</span>`,
+  c.violationType && `<span><b>Είδος παράβασης:</b> ${esc(c.violationType)}</span>`,
+  `<span><b>Τελευταία Ενέργεια:</b> ${esc(lastAction)}</span>`
+].filter(Boolean).join('');
     
     return `<article class="card t-${s.t}">
       <div class="hd"><div><div class="pl">${esc(c.plate)}</div><div class="nm">${esc(c.name)}</div></div><span class="badge">${s.l}</span></div>
