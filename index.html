@@ -94,7 +94,7 @@
     .fab { position: fixed; bottom: 24px; right: 18px; width: 56px; height: 56px; border-radius: 16px; background: var(--navy); color: #fff; font-size: 28px; display: grid; place-items: center; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.4); z-index: 40; }
     
     /* Modals */
-    dialog { border: 0; border-radius: 16px; padding: 0; width: min(440px, calc(100% - 24px)); box-shadow: var(--shadow-lg); overflow: hidden; }
+    dialog { border: 0; border-radius: 16px; padding: 0; width: min(480px, calc(100% - 24px)); box-shadow: var(--shadow-lg); overflow: hidden; }
     dialog::backdrop { background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(3px); }
     .dlg { padding: 22px; display: flex; flex-direction: column; gap: 16px; max-height: 85vh; overflow-y: auto; }
     .dlg h2 { font-size: 18px; font-weight: 700; }
@@ -168,7 +168,7 @@
 
 <button class="fab" id="btnNew">+</button>
 
-<!-- Modal Φόρμας Νέας/Επεξεργασίας Υπόθεσης -->
+<!-- Modal Πλήρους Φόρμας (Νέα ή Επεξεργασία) -->
 <dialog id="dlgForm">
   <form class="dlg" id="caseForm">
     <h2 id="formTitle">Νέα Υπόθεση</h2>
@@ -195,7 +195,28 @@
       <label class="full"><span class="check-row"><input type="checkbox" name="requiresLicense" id="fReqLicense" checked> Προβλέπεται αφαίρεση διπλώματος</span></label>
       <label id="licenseDaysWrap">Ημέρες Αφαίρεσης<input type="number" name="removalDays" min="1" value="30"></label>
     </div>
-    <label class="full">Παρατηρήσεις<textarea name="notes" rows="2" placeholder="Προαιρετικά..."></textarea></label>
+    
+    <!-- Advanced Edit Fields (Κρύβονται στη Νέα Υπόθεση) -->
+    <div id="advancedFields" style="display:none; margin-top:12px;">
+      <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px; text-transform:uppercase; border-bottom:1px solid var(--line); padding-bottom:4px;">Προχωρημένη Διόρθωση</div>
+      <div class="dlg-grid">
+        <label class="full">Χειροκίνητη Αλλαγή Κατάστασης
+          <select name="manualState" id="fManualState"></select>
+        </label>
+        <label>Ημ. Τηλεφωνήματος<input type="date" name="d_phone"></label>
+        <label>Ημ. Ραντεβού<input type="date" name="d_appt"></label>
+        <label>Ημ. Αφαίρεσης<input type="date" name="d_susp"></label>
+        <label>Ημ. Απόδοσης (Auto)<input type="date" name="d_return" readonly style="background:#e2e8f0; font-weight:bold;"></label>
+        <label>1η Αποστολή<input type="date" name="d_inv1Send"></label>
+        <label>1ο Αποδεικτικό<input type="date" name="d_inv1Proof"></label>
+        <label>2η Αποστολή<input type="date" name="d_inv2Send"></label>
+        <label>2ο Αποδεικτικό<input type="date" name="d_inv2Proof"></label>
+        <label>3η Αποστολή<input type="date" name="d_inv3Send"></label>
+        <label>3ο Αποδεικτικό<input type="date" name="d_inv3Proof"></label>
+      </div>
+    </div>
+
+    <label class="full" style="margin-top:12px;">Παρατηρήσεις<textarea name="notes" rows="2" placeholder="Προαιρετικά..."></textarea></label>
     <div class="dlg-actions">
       <button type="button" class="btn-cancel" id="btnFormCancel">Άκυρο</button>
       <button type="button" class="btn-cancel" id="btnFormDelete" style="display:none; color:var(--red-ink)">Διαγραφή</button>
@@ -229,13 +250,12 @@
 
 <script>
 (() => {
-  const KEY = 'troxonomika_final_v11';
-  const OLD_KEYS = ['troxonomika_final_v10','troxonomika_final_v9','troxonomika_final_v8','troxonomika_final_v7','troxonomika_final_v6','troxonomika_final_v5','troxonomika_final_v4','ypotheseis_pwa_v1','ypotheseis.v1','troxonomika.cases.v1','ypotheseis.v2','ypotheseis_gemini_v1'];
+  const KEY = 'troxonomika_final_v12';
+  const OLD_KEYS = ['troxonomika_final_v11','troxonomika_final_v10','troxonomika_final_v9','troxonomika_final_v8','troxonomika_final_v7','troxonomika_final_v6','troxonomika_final_v5','troxonomika_final_v4','ypotheseis_pwa_v1','ypotheseis.v1','troxonomika.cases.v1','ypotheseis.v2','ypotheseis_gemini_v1'];
   
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   
-  // --- DATE UTILS ---
   const todayStr = () => new Date().toISOString().split('T')[0];
   const formatDate = v => v ? new Date(v + 'T12:00:00').toLocaleDateString('el-GR') : '—';
   
@@ -248,10 +268,6 @@
     else if (day === 0) d.setDate(d.getDate() + 1);
     return d.toISOString().split('T')[0];
   }
-  function daysBetween(from, to) {
-    if (!from || !to) return null;
-    return Math.round((new Date(to+'T12:00:00') - new Date(from+'T12:00:00')) / 86400000);
-  }
   function isPast(dateStr) {
     if (!dateStr) return false;
     return new Date(dateStr + 'T12:00:00') < new Date(todayStr() + 'T12:00:00');
@@ -262,10 +278,7 @@
   
   function migrateData() {
     const current = localStorage.getItem(KEY);
-    if (current) {
-      cases = JSON.parse(current) || [];
-      return;
-    }
+    if (current) { cases = JSON.parse(current) || []; return; }
     for (const oldKey of OLD_KEYS) {
       const oldData = localStorage.getItem(oldKey);
       if (!oldData) continue;
@@ -380,11 +393,7 @@
     c.state = newState;
     Object.assign(c.dates, extra);
     if (logMsg) c.history.push({ date: todayStr(), action: logMsg });
-    
-    if (newState === 'suspended' && c.dates.susp && c.removalDays) {
-      c.dates.return = addDays(c.dates.susp, c.removalDays);
-    }
-    
+    if (newState === 'suspended' && c.dates.susp && c.removalDays) c.dates.return = addDays(c.dates.susp, c.removalDays);
     save(); render();
   }
 
@@ -480,31 +489,24 @@
     });
     save();
 
-    // Folder Filters
     const folderMap = {};
     cases.forEach(c => { const f = c.folder || '(χωρίς φάκελο)'; folderMap[f] = (folderMap[f] || 0) + 1; });
     const fNames = Object.keys(folderMap).sort();
     $('#folderFilters').innerHTML = `<button class="f-chip ${folderFilter==='all'?'active':''}" data-f="all">Όλοι <b>${cases.length}</b></button>` +
       fNames.map(f => `<button class="f-chip ${folderFilter===f?'active':''}" data-f="${f}">${f} <b>${folderMap[f]}</b></button>`).join('');
 
-    // State Filters
     const stateCounts = {};
     cases.forEach(c => { stateCounts[c.state] = (stateCounts[c.state] || 0) + 1; });
     let stateHtml = `<button class="f-chip ${stateFilter==='all'?'active':''}" data-s="all">Όλα</button>`;
     Object.keys(ST).forEach(k => {
-      if (stateCounts[k] > 0) {
-        stateHtml += `<button class="f-chip ${stateFilter===k?'active':''}" data-s="${k}">${ST[k].label} <b>${stateCounts[k]}</b></button>`;
-      }
+      if (stateCounts[k] > 0) stateHtml += `<button class="f-chip ${stateFilter===k?'active':''}" data-s="${k}">${ST[k].label} <b>${stateCounts[k]}</b></button>`;
     });
     $('#stateFilters').innerHTML = stateHtml;
 
-    // Banners
     const urgent = cases.filter(c => ['no_show','to_return','return_service'].includes(c.state) || (c.state === 'informed' && isPast(addDays(c.dates.phone, 5))));
-    if (urgent.length) {
-      $('#banners').innerHTML = `<div class="banner"><span class="count">${urgent.length}</span> Επείγουσες Εκκρεμότητες</div>`;
-    } else { $('#banners').innerHTML = ''; }
+    if (urgent.length) $('#banners').innerHTML = `<div class="banner"><span class="count">${urgent.length}</span> Επείγουσες Εκκρεμότητες</div>`;
+    else $('#banners').innerHTML = '';
 
-    // Cards
     const filtered = cases.filter(c => {
       if (folderFilter !== 'all' && (c.folder || '(χωρίς φάκελο)') !== folderFilter) return false;
       if (stateFilter !== 'all' && c.state !== stateFilter) return false;
@@ -568,13 +570,11 @@
       `;
     }).join('') || '<div style="text-align:center; padding:40px; color:var(--muted);">Δεν βρέθηκαν υποθέσεις.</div>';
 
-    // Bind Events
     $$('[data-act]').forEach(b => b.onclick = e => { e.stopPropagation(); getPrimaryAction(getCase(b.dataset.act)).action(); });
     $$('[data-toggle]').forEach(b => b.onclick = e => { e.stopPropagation(); $(`#det-${b.dataset.toggle}`).classList.toggle('open'); b.textContent = $(`#det-${b.dataset.toggle}`).classList.contains('open') ? '− Απόκρυψη' : '+ Λεπτομέρειες'; });
     $$('[data-edit]').forEach(b => b.onclick = e => { e.stopPropagation(); openForm(b.dataset.edit); });
     $$('[data-history]').forEach(b => b.onclick = e => { e.stopPropagation(); openHistory(b.dataset.history); });
 
-    // Datalist
     const folders = [...new Set(cases.map(c => c.folder).filter(Boolean))].sort();
     $('#folderList').innerHTML = folders.map(f => `<option value="${f}">`).join('');
   }
@@ -594,25 +594,36 @@
     f.reset();
     $('#formTitle').textContent = c ? 'Επεξεργασία Υπόθεσης' : 'Νέα Υπόθεση';
     $('#btnFormDelete').style.display = c ? 'block' : 'none';
+    $('#advancedFields').style.display = c ? 'block' : 'none';
     
     if (c) {
       f.plate.value = c.plate; f.name.value = c.name; f.service.value = c.service || '';
       f.phone.value = c.phone || ''; f.receivedDate.value = c.receivedDate; f.folder.value = c.folder || '';
-      
       if (['Υπερβολική ταχύτητα', 'ΚΤΕΟ', 'Διόδια', 'Στάθμευση', 'Απόφαση'].includes(c.violationType)) {
         f.violationType.value = c.violationType; f.violationOther.value = '';
       } else if (c.violationType) {
         f.violationType.value = 'custom'; f.violationOther.value = c.violationType;
-      } else {
-        f.violationType.value = ''; f.violationOther.value = '';
-      }
+      } else { f.violationType.value = ''; f.violationOther.value = ''; }
       
       f.fine.value = c.fine || ''; f.requiresLicense.checked = c.removalDays > 0;
       f.removalDays.value = c.removalDays || 30; f.notes.value = c.notes || '';
+      
+      // Advanced Fields
+      f.manualState.value = c.state;
+      f.d_phone.value = c.dates.phone || ''; f.d_appt.value = c.dates.appt || '';
+      f.d_susp.value = c.dates.susp || ''; f.d_return.value = c.dates.return || '';
+      f.d_inv1Send.value = c.dates.inv1Send || ''; f.d_inv1Proof.value = c.dates.inv1Proof || '';
+      f.d_inv2Send.value = c.dates.inv2Send || ''; f.d_inv2Proof.value = c.dates.inv2Proof || '';
+      f.d_inv3Send.value = c.dates.inv3Send || ''; f.d_inv3Proof.value = c.dates.inv3Proof || '';
     } else {
       f.receivedDate.value = todayStr(); f.requiresLicense.checked = true;
     }
     
+    // Populate State Dropdown
+    let stateOpts = '';
+    for (const k in ST) stateOpts += `<option value="${k}">${ST[k].label}</option>`;
+    f.manualState.innerHTML = stateOpts;
+
     toggleLicenseFields(); toggleViolationCustom();
     f.dataset.id = id || '';
     $('#dlgForm').showModal();
@@ -626,22 +637,37 @@
     const f = e.target;
     const id = f.dataset.id || Date.now().toString(36) + Math.random().toString(36).slice(2,6);
     const old = getCase(id);
-    
     const vType = f.violationType.value === 'custom' ? f.violationOther.value.trim() : f.violationType.value;
     
+    // Auto-calc return date if suspension date & days exist
+    let calcReturn = f.d_return.value;
+    if (f.d_susp.value && f.removalDays.value) calcReturn = addDays(f.d_susp.value, f.removalDays.value);
+
     const rec = {
       id, plate: f.plate.value.trim().toUpperCase(), name: f.name.value.trim(), service: f.service.value.trim(),
       phone: f.phone.value.trim(), receivedDate: f.receivedDate.value, folder: f.folder.value.trim(),
       violationType: vType, fine: f.fine.value.trim(),
       requiresLicense: f.requiresLicense.checked, removalDays: f.requiresLicense.checked ? Number(f.removalDays.value) : 0,
       notes: f.notes.value.trim(),
-      state: old ? old.state : (f.phone.value.trim() ? 'to_call' : 'search'),
+      state: old ? f.manualState.value : (f.phone.value.trim() ? 'to_call' : 'search'),
       history: old ? old.history : [{ date: todayStr(), action: 'Δημιουργία Νέας Υπόθεσης' }],
-      dates: old ? old.dates : { phone: '', appt: '', susp: '', return: '', inv1Send: '', inv1Proof: '', inv2Send: '', inv2Proof: '', inv3Send: '', inv3Proof: '', closed: '' }
+      dates: {
+        phone: old ? f.d_phone.value : '', 
+        appt: old ? f.d_appt.value : '', 
+        susp: old ? f.d_susp.value : '', 
+        return: calcReturn,
+        inv1Send: old ? f.d_inv1Send.value : '', 
+        inv1Proof: old ? f.d_inv1Proof.value : '',
+        inv2Send: old ? f.d_inv2Send.value : '', 
+        inv2Proof: old ? f.d_inv2Proof.value : '',
+        inv3Send: old ? f.d_inv3Send.value : '', 
+        inv3Proof: old ? f.d_inv3Proof.value : '',
+        closed: old ? old.dates.closed : ''
+      }
     };
 
     if (old) {
-      rec.history.push({ date: todayStr(), action: 'Επεξεργασία στοιχείων' });
+      rec.history.push({ date: todayStr(), action: 'Χειροκίνητη επεξεργασία στοιχείων' });
       cases[cases.findIndex(x => x.id === id)] = rec;
     } else {
       cases.unshift(rec);
@@ -675,17 +701,9 @@
   $('#fReqLicense').onchange = toggleLicenseFields;
   $('#fViolationSelect').onchange = toggleViolationCustom;
   
-  $('#folderFilters').onclick = e => {
-    const b = e.target.closest('.f-chip');
-    if (b) { folderFilter = b.dataset.f; render(); }
-  };
-  
-  $('#stateFilters').onclick = e => {
-    const b = e.target.closest('.f-chip');
-    if (b) { stateFilter = b.dataset.s; render(); }
-  };
+  $('#folderFilters').onclick = e => { const b = e.target.closest('.f-chip'); if (b) { folderFilter = b.dataset.f; render(); } };
+  $('#stateFilters').onclick = e => { const b = e.target.closest('.f-chip'); if (b) { stateFilter = b.dataset.s; render(); } };
 
-  // Backup
   const exportData = () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(cases, null, 2)], {type:'application/json'}));
@@ -711,7 +729,6 @@
     r.readAsText(file);
   };
 
-  // Print
   $('#btnPrint').onclick = () => {
     let html = `<h1>ΚΑΤΑΣΤΑΣΗ ΥΠΟΘΕΣΕΩΝ</h1><div style="font-size:10px; margin-bottom:10px;">Ημερομηνία: ${formatDate(todayStr())} | Σύνολο: ${cases.length}</div>`;
     html += `<table><thead><tr><th>Α/Α</th><th>Πινακίδα</th><th>Ονοματεπώνυμο</th><th>Τηλέφωνο</th><th>Κατάσταση</th><th>Ραντεβού</th><th>Απόδοση</th><th>Φάκελος</th></tr></thead><tbody>`;
@@ -732,7 +749,6 @@
     window.print();
   };
 
-  // Init
   migrateData();
   render();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
