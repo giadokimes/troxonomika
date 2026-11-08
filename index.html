@@ -38,68 +38,79 @@
 <div id="banners"></div>
 <main id="casesList"></main>
 
-<button class="fab" id="btnNew">+</button>
+<button class="fab" id="btnNew" aria-label="Νέα Υπόθεση">+</button>
 
 <!-- Modal Πλήρους Φόρμας -->
 <dialog id="dlgForm">
   <form class="dlg" id="caseForm">
     <h2 id="formTitle">Νέα Υπόθεση</h2>
-    <div class="dlg-grid">
-      <label class="full">Πινακίδα Οχήματος *<input name="plate" required placeholder="π.χ. KHK-1234" autocomplete="off" style="text-transform:uppercase"></label>
-      <label class="full">Ονοματεπώνυμο *<input name="name" required placeholder="Επώνυμο Όνομα" autocomplete="off"></label>
-      <label>Υπηρεσία<input name="service" placeholder="π.χ. Τροχαία"></label>
-      <label>Τηλέφωνο<input name="phone" type="tel" placeholder="69xxxxxxxx"></label>
-      <label>Ημ. Παραλαβής *<input type="date" name="receivedDate" required></label>
-      
-      <label class="full">Θέση Φακέλου
-        <select name="folderSelect" id="fFolderSelect">
-          <option value="">— Επιλέξτε —</option>
-          <option value="custom">+ Νέος Φάκελος...</option>
-        </select>
-        <input type="text" name="folderCustom" id="fFolderCustom" style="display:none; margin-top:6px" placeholder="Γράψτε νέο φάκελο...">
-      </label>
+    
+    <div class="form-section">
+      <div class="form-section-title">Βασικά Στοιχεία</div>
+      <div class="dlg-grid">
+        <label class="full">Πινακίδα Οχήματος *<input name="plate" required placeholder="π.χ. KHK-1234" autocomplete="off" style="text-transform:uppercase"></label>
+        <label class="full">Ονοματεπώνυμο *<input name="name" required placeholder="Επώνυμο Όνομα" autocomplete="off"></label>
+        <label>Υπηρεσία<input name="service" placeholder="π.χ. Τροχαία"></label>
+        <label>Τηλέφωνο<input name="phone" type="tel" placeholder="69xxxxxxxx"></label>
+        <label>Ημ. Παραλαβής *<input type="date" name="receivedDate" required></label>
+        <label class="full">Θέση Φακέλου
+          <select name="folderSelect" id="fFolderSelect">
+            <option value="">— Επιλέξτε —</option>
+            <option value="custom">+ Νέος Φάκελος...</option>
+          </select>
+          <input type="text" name="folderCustom" id="fFolderCustom" style="display:none; margin-top:6px" placeholder="Γράψτε νέο φάκελο...">
+        </label>
+      </div>
+    </div>
 
-      <label class="full">Είδος Παράβασης
-        <select name="violationType" id="fViolationSelect">
-          <option value="">— Επιλέξτε —</option>
-          <option value="Υπερβολική ταχύτητα">Υπερβολική ταχύτητα</option>
-          <option value="ΚΤΕΟ">ΚΤΕΟ</option>
-          <option value="Διόδια">Διόδια</option>
-          <option value="Στάθμευση">Στάθμευση</option>
-          <option value="Απόφαση">Απόφαση</option>
-          <option value="custom">Άλλο (ελεύθερο κείμενο)...</option>
-        </select>
-        <input type="text" name="violationOther" id="fViolationCustom" style="display:none; margin-top:6px" placeholder="Περιγραφή παράβασης...">
-      </label>
-      <label>Ποσό Προστίμου (€)<input type="number" name="fine" min="0" step="0.01" placeholder="0.00"></label>
-      <label class="full"><span class="check-row"><input type="checkbox" name="requiresLicense" id="fReqLicense" checked> Προβλέπεται αφαίρεση διπλώματος</span></label>
-      <label id="licenseDaysWrap">Ημέρες Αφαίρεσης<input type="number" name="removalDays" min="1" value="30"></label>
+    <div class="form-section">
+      <div class="form-section-title">Στοιχεία Παράβασης</div>
+      <div class="dlg-grid">
+        <label class="full">Είδος Παράβασης
+          <select name="violationType" id="fViolationSelect">
+            <option value="">— Επιλέξτε —</option>
+            <option value="Υπερβολική ταχύτητα">Υπερβολική ταχύτητα</option>
+            <option value="ΚΤΕΟ">ΚΤΕΟ</option>
+            <option value="Διόδια">Διόδια</option>
+            <option value="Στάθμευση">Στάθμευση</option>
+            <option value="Απόφαση">Απόφαση</option>
+            <option value="custom">Άλλο (ελεύθερο κείμενο)...</option>
+          </select>
+          <input type="text" name="violationOther" id="fViolationCustom" style="display:none; margin-top:6px" placeholder="Περιγραφή παράβασης...">
+        </label>
+        <label>Ποσό Προστίμου (€)<input type="number" name="fine" min="0" step="0.01" placeholder="0.00"></label>
+        <label class="full"><span class="check-row"><input type="checkbox" name="requiresLicense" id="fReqLicense" checked> Προβλέπεται αφαίρεση διπλώματος</span></label>
+        <label id="licenseDaysWrap" class="full">Ημέρες Αφαίρεσης<input type="number" name="removalDays" min="1" value="30"></label>
+      </div>
     </div>
     
     <div class="advanced-toggle" id="btnAdvancedToggle">+ Προχωρημένη Διόρθωση (Κατάσταση & Ημερομηνίες)</div>
     
-    <div id="advancedFields" style="display:none; margin-top:12px;">
-      <div class="dlg-grid">
-        <label class="full">Χειροκίνητη Αλλαγή Κατάστασης
-          <select name="manualState" id="fManualState"></select>
-        </label>
-        <label>Ημ. Τηλεφωνήματος<input type="date" name="d_phone"></label>
-        <label>Ημ. Ραντεβού<input type="date" name="d_appt"></label>
-        <label>Ημ. Αφαίρεσης<input type="date" name="d_susp"></label>
-        <label>Ημ. Απόδοσης (Auto)<input type="date" name="d_return" readonly style="background:#e2e8f0; font-weight:bold;"></label>
-        <label>1η Αποστολή<input type="date" name="d_inv1Send"></label>
-        <label>1ο Αποδεικτικό<input type="date" name="d_inv1Proof"></label>
-        <label>2η Αποστολή<input type="date" name="d_inv2Send"></label>
-        <label>2ο Αποδεικτικό<input type="date" name="d_inv2Proof"></label>
-        <label>3η Αποστολή<input type="date" name="d_inv3Send"></label>
-        <label>3ο Αποδεικτικό<input type="date" name="d_inv3Proof"></label>
+    <div id="advancedFields" style="display:none;">
+      <div class="form-section">
+        <div class="dlg-grid">
+          <label class="full">Χειροκίνητη Αλλαγή Κατάστασης
+            <select name="manualState" id="fManualState"></select>
+          </label>
+          <label>Ημ. Τηλεφωνήματος<input type="date" name="d_phone"></label>
+          <label>Ημ. Ραντεβού<input type="date" name="d_appt"></label>
+          <label>Ημ. Αφαίρεσης<input type="date" name="d_susp"></label>
+          <label>Ημ. Απόδοσης (Auto)<input type="date" name="d_return" readonly style="background:#e2e8f0; font-weight:bold;"></label>
+          <label>1η Αποστολή<input type="date" name="d_inv1Send"></label>
+          <label>1ο Αποδεικτικό<input type="date" name="d_inv1Proof"></label>
+          <label>2η Αποστολή<input type="date" name="d_inv2Send"></label>
+          <label>2ο Αποδεικτικό<input type="date" name="d_inv2Proof"></label>
+          <label>3η Αποστολή<input type="date" name="d_inv3Send"></label>
+          <label>3ο Αποδεικτικό<input type="date" name="d_inv3Proof"></label>
+        </div>
       </div>
     </div>
 
     <label class="full" style="margin-top:12px;">Παρατηρήσεις<textarea name="notes" rows="2" placeholder="Προαιρετικά..."></textarea></label>
+    
     <div class="dlg-actions">
       <button type="button" class="btn-cancel" id="btnFormCancel">Άκυρο</button>
-      <button type="button" class="btn-cancel" id="btnFormDelete" style="display:none; color:var(--red-ink)">Διαγραφή</button>
+      <button type="button" class="btn-cancel" id="btnFormDelete" style="display:none; color:var(--md-sys-color-error)">Διαγραφή</button>
       <button type="submit" class="btn-ok">Αποθήκευση</button>
     </div>
   </form>
@@ -109,7 +120,7 @@
 <dialog id="dlgWizard">
   <div class="dlg">
     <h2 id="wizardTitle">Ερώτηση</h2>
-    <p id="wizardDesc" style="font-size:13.5px; color:var(--muted); margin-top:-8px;"></p>
+    <p id="wizardDesc" style="font-size:13.5px; color:var(--md-sys-color-outline); margin-top:-8px;"></p>
     <div id="wizardContent"></div>
     <div class="dlg-actions" id="wizardActions" style="justify-content:center;"></div>
   </div>
@@ -120,7 +131,7 @@
   <div class="dlg">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <h2>Ιστορικό Ενεργειών</h2>
-      <button id="btnHistoryClose" style="font-size:20px; color:var(--muted);">&times;</button>
+      <button id="btnHistoryClose" style="font-size:20px; color:var(--md-sys-color-outline);">&times;</button>
     </div>
     <div id="historyContent" style="display:flex; flex-direction:column; gap:8px; max-height:60vh; overflow-y:auto;"></div>
   </div>
