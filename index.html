@@ -107,6 +107,10 @@
     .btn-cancel { background: #f1f5f9; color: var(--ink2); padding: 10px 16px; border-radius: 8px; font-weight: 600; }
     .btn-ok { background: var(--navy); color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 650; }
     
+    /* Expandable Advanced Toggle */
+    .advanced-toggle { background: #e2e8f0; color: var(--ink2); text-align: center; padding: 12px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 12px; transition: 0.2s; border: 1px solid var(--line2); }
+    .advanced-toggle:hover { background: #cbd5e1; }
+
     .choice-btns { display: flex; flex-direction: column; gap: 10px; }
     .choice-btn { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; font-weight: 600; text-align: left; color: var(--ink); transition: 0.2s; }
     .choice-btn:hover { background: #f1f5f9; }
@@ -178,7 +182,17 @@
       <label>Υπηρεσία<input name="service" placeholder="π.χ. Τροχαία"></label>
       <label>Τηλέφωνο<input name="phone" type="tel" placeholder="69xxxxxxxx"></label>
       <label>Ημ. Παραλαβής *<input type="date" name="receivedDate" required></label>
-      <label>Θέση Φακέλου<input name="folder" list="folderList" placeholder="π.χ. Ντουλάπι Α"><datalist id="folderList"></datalist></label>
+      
+      <!-- ΝΕΟ: Dropdown για Φάκελο -->
+      <label class="full">Θέση Φακέλου
+        <select name="folderSelect" id="fFolderSelect" onchange="toggleFolderCustom()">
+          <option value="">— Επιλέξτε —</option>
+          <!-- Options γεμίζουν με JS -->
+          <option value="custom">+ Νέος Φάκελος...</option>
+        </select>
+        <input type="text" name="folderCustom" id="fFolderCustom" style="display:none; margin-top:6px" placeholder="Γράψτε νέο φάκελο...">
+      </label>
+
       <label class="full">Είδος Παράβασης
         <select name="violationType" id="fViolationSelect">
           <option value="">— Επιλέξτε —</option>
@@ -196,9 +210,10 @@
       <label id="licenseDaysWrap">Ημέρες Αφαίρεσης<input type="number" name="removalDays" min="1" value="30"></label>
     </div>
     
-    <!-- Advanced Edit Fields (Κρύβονται στη Νέα Υπόθεση) -->
+    <!-- Expandable Advanced Edit Fields -->
+    <div class="advanced-toggle" id="btnAdvancedToggle" onclick="toggleAdvanced()">+ Προχωρημένη Διόρθωση (Κατάσταση & Ημερομηνίες)</div>
+    
     <div id="advancedFields" style="display:none; margin-top:12px;">
-      <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px; text-transform:uppercase; border-bottom:1px solid var(--line); padding-bottom:4px;">Προχωρημένη Διόρθωση</div>
       <div class="dlg-grid">
         <label class="full">Χειροκίνητη Αλλαγή Κατάστασης
           <select name="manualState" id="fManualState"></select>
@@ -250,8 +265,8 @@
 
 <script>
 (() => {
-  const KEY = 'troxonomika_final_v12';
-  const OLD_KEYS = ['troxonomika_final_v11','troxonomika_final_v10','troxonomika_final_v9','troxonomika_final_v8','troxonomika_final_v7','troxonomika_final_v6','troxonomika_final_v5','troxonomika_final_v4','ypotheseis_pwa_v1','ypotheseis.v1','troxonomika.cases.v1','ypotheseis.v2','ypotheseis_gemini_v1'];
+  const KEY = 'troxonomika_final_v13';
+  const OLD_KEYS = ['troxonomika_final_v12','troxonomika_final_v11','troxonomika_final_v10','troxonomika_final_v9','troxonomika_final_v8','troxonomika_final_v7','troxonomika_final_v6','troxonomika_final_v5','troxonomika_final_v4','ypotheseis_pwa_v1','ypotheseis.v1','troxonomika.cases.v1','ypotheseis.v2','ypotheseis_gemini_v1'];
   
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
@@ -574,9 +589,6 @@
     $$('[data-toggle]').forEach(b => b.onclick = e => { e.stopPropagation(); $(`#det-${b.dataset.toggle}`).classList.toggle('open'); b.textContent = $(`#det-${b.dataset.toggle}`).classList.contains('open') ? '− Απόκρυψη' : '+ Λεπτομέρειες'; });
     $$('[data-edit]').forEach(b => b.onclick = e => { e.stopPropagation(); openForm(b.dataset.edit); });
     $$('[data-history]').forEach(b => b.onclick = e => { e.stopPropagation(); openHistory(b.dataset.history); });
-
-    const folders = [...new Set(cases.map(c => c.folder).filter(Boolean))].sort();
-    $('#folderList').innerHTML = folders.map(f => `<option value="${f}">`).join('');
   }
 
   function calLink(c) {
@@ -588,17 +600,62 @@
   }
 
   // --- MODALS & FORMS ---
+  function toggleAdvanced() {
+    const el = $('#advancedFields');
+    const btn = $('#btnAdvancedToggle');
+    if (el.style.display === 'none') {
+      el.style.display = 'block';
+      btn.textContent = '- Απόκρυψη Προχωρημένων';
+      btn.style.background = '#cbd5e1';
+    } else {
+      el.style.display = 'none';
+      btn.textContent = '+ Προχωρημένη Διόρθωση (Κατάσταση & Ημερομηνίες)';
+      btn.style.background = '#e2e8f0';
+    }
+  }
+
+  function toggleFolderCustom() { $('#fFolderCustom').style.display = $('#fFolderSelect').value === 'custom' ? 'block' : 'none'; }
+  function toggleViolationCustom() { $('#fViolationCustom').style.display = $('#fViolationSelect').value === 'custom' ? 'block' : 'none'; }
+  function toggleLicenseFields() { $('#licenseDaysWrap').style.display = $('#fReqLicense').checked ? 'flex' : 'none'; }
+
+  function populateFolderSelect(currentFolder) {
+    const folders = [...new Set(cases.map(c => c.folder).filter(Boolean))].sort();
+    const sel = $('#fFolderSelect');
+    sel.innerHTML = '<option value="">— Επιλέξτε —</option>' +
+      folders.map(f => `<option value="${f}">${f}</option>`).join('') +
+      '<option value="custom">+ Νέος Φάκελος...</option>';
+
+    if (!currentFolder) {
+      sel.value = '';
+      $('#fFolderCustom').style.display = 'none';
+    } else if (folders.includes(currentFolder)) {
+      sel.value = currentFolder;
+      $('#fFolderCustom').style.display = 'none';
+    } else {
+      sel.value = 'custom';
+      $('#fFolderCustom').style.display = 'block';
+      $('#fFolderCustom').value = currentFolder;
+    }
+  }
+
   function openForm(id) {
     const c = id ? getCase(id) : null;
     const f = $('#caseForm');
     f.reset();
     $('#formTitle').textContent = c ? 'Επεξεργασία Υπόθεσης' : 'Νέα Υπόθεση';
     $('#btnFormDelete').style.display = c ? 'block' : 'none';
-    $('#advancedFields').style.display = c ? 'block' : 'none';
     
+    // Reset Advanced
+    $('#advancedFields').style.display = 'none';
+    $('#btnAdvancedToggle').textContent = '+ Προχωρημένη Διόρθωση (Κατάσταση & Ημερομηνίες)';
+    $('#btnAdvancedToggle').style.background = '#e2e8f0';
+
+    populateFolderSelect(c ? c.folder : '');
+
     if (c) {
       f.plate.value = c.plate; f.name.value = c.name; f.service.value = c.service || '';
-      f.phone.value = c.phone || ''; f.receivedDate.value = c.receivedDate; f.folder.value = c.folder || '';
+      f.phone.value = c.phone || ''; f.receivedDate.value = c.receivedDate;
+      
       if (['Υπερβολική ταχύτητα', 'ΚΤΕΟ', 'Διόδια', 'Στάθμευση', 'Απόφαση'].includes(c.violationType)) {
         f.violationType.value = c.violationType; f.violationOther.value = '';
       } else if (c.violationType) {
@@ -619,7 +676,6 @@
       f.receivedDate.value = todayStr(); f.requiresLicense.checked = true;
     }
     
-    // Populate State Dropdown
     let stateOpts = '';
     for (const k in ST) stateOpts += `<option value="${k}">${ST[k].label}</option>`;
     f.manualState.innerHTML = stateOpts;
@@ -629,23 +685,20 @@
     $('#dlgForm').showModal();
   }
 
-  function toggleLicenseFields() { $('#licenseDaysWrap').style.display = $('#fReqLicense').checked ? 'flex' : 'none'; }
-  function toggleViolationCustom() { $('#fViolationCustom').style.display = $('#fViolationSelect').value === 'custom' ? 'block' : 'none'; }
-
   $('#caseForm').onsubmit = e => {
     e.preventDefault();
     const f = e.target;
     const id = f.dataset.id || Date.now().toString(36) + Math.random().toString(36).slice(2,6);
     const old = getCase(id);
     const vType = f.violationType.value === 'custom' ? f.violationOther.value.trim() : f.violationType.value;
+    const folder = f.folderSelect.value === 'custom' ? f.folderCustom.value.trim() : f.folderSelect.value;
     
-    // Auto-calc return date if suspension date & days exist
     let calcReturn = f.d_return.value;
     if (f.d_susp.value && f.removalDays.value) calcReturn = addDays(f.d_susp.value, f.removalDays.value);
 
     const rec = {
       id, plate: f.plate.value.trim().toUpperCase(), name: f.name.value.trim(), service: f.service.value.trim(),
-      phone: f.phone.value.trim(), receivedDate: f.receivedDate.value, folder: f.folder.value.trim(),
+      phone: f.phone.value.trim(), receivedDate: f.receivedDate.value, folder,
       violationType: vType, fine: f.fine.value.trim(),
       requiresLicense: f.requiresLicense.checked, removalDays: f.requiresLicense.checked ? Number(f.removalDays.value) : 0,
       notes: f.notes.value.trim(),
