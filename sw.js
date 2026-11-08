@@ -1,4 +1,4 @@
-const CACHE_NAME = "troxonomika-final-v20";
+const CACHE_NAME = "troxonomika-final-v21";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -7,16 +7,18 @@ const APP_FILES = [
   "./manifest.json"
 ];
 
-// Εγκατάσταση: Αποθήκευση των αρχείων στην κρυφή μνήμη
+// Χρήση {cache: 'reload'} για να μην παίρνει παλιά αρχεία από την προσωρινή μνήμη του HTTP
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(APP_FILES))
+      .then(cache => {
+        const requests = APP_FILES.map(url => new Request(url, { cache: 'reload' }));
+        return cache.addAll(requests);
+      })
       .then(() => self.skipWaiting())
   );
 });
 
-// Ενεργοποίηση: Διαγραφή παλιών εκδόσεων (Cache)
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
@@ -27,19 +29,12 @@ self.addEventListener("activate", event => {
   );
 });
 
-// Διαχείριση Δικτύου (Fetch)
 self.addEventListener("fetch", event => {
   const request = event.request;
-  
-  // Δεν διαχειριζόμαστε μη-GET αιτήματα
   if (request.method !== "GET") return;
-
   const url = new URL(request.url);
-  
-  // Αγνοούμε εξωτερικά domains (π.χ. Google Fonts αν χρησιμοποιούσαμε)
   if (url.origin !== self.location.origin) return;
 
-  // Στρατηγική: Network-first για HTML (για να βλέπεις πάντα την τελευταία έκδοση)
   if (request.mode === "navigate" || url.pathname.endsWith(".html")) {
     event.respondWith(
       fetch(request)
@@ -53,11 +48,9 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // Στρατηγική: Cache-first για CSS, JS, Icons (για να φορτώνει ακαριαία offline)
   event.respondWith(
     caches.match(request).then(cached => {
       if (cached) return cached;
-      
       return fetch(request).then(response => {
         if (response && response.ok) {
           const copy = response.clone();
