@@ -1,144 +1,82 @@
 <!doctype html>
-<html lang="el">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f172a">
-  <title>Διαχείριση Υποθέσεων</title>
-  <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./style.css">
-</head>
-<body>
-
+<html lang="el"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Διαχείριση Υποθέσεων</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<link rel="stylesheet" href="./style.css">
+</head><body>
 <header>
-  <h1>Διαχείριση Υποθέσεων</h1>
-  <div class="top-actions">
-    <button class="btn-top" id="btnPrint">Εκτύπωση</button>
-    <button class="btn-top" id="btnExport">Backup</button>
-    <button class="btn-top" id="btnImport">Επαναφορά</button>
+  <h1>Υποθέσεις</h1>
+  <div class="top">
+    <button id="btnPrint">Εκτύπωση</button>
+    <button id="btnExport">Backup</button>
+    <button id="btnImport">Επαναφορά</button>
     <input type="file" id="importFile" accept=".json" hidden>
   </div>
 </header>
-
-<div class="toolbar">
-  <div class="search-box">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
-    <input type="search" id="searchInput" placeholder="Αναζήτηση (όνομα, πινακίδα, φάκελος)..." autocomplete="off">
-  </div>
-  
-  <div class="filter-label">Κατάσταση</div>
-  <div class="filter-row" id="stateFilters"></div>
-  
-  <div class="divider"></div>
-  
-  <div class="filter-label">Φάκελος</div>
-  <div class="filter-row" id="folderFilters"></div>
+<div class="tools">
+  <input type="search" id="searchInput" placeholder="Αναζήτηση: όνομα, πινακίδα, τηλέφωνο, φάκελος" autocomplete="off">
+  <div class="lbl">Κατάσταση</div><div class="chips" id="stateFilters"></div>
+  <div class="lbl">Φάκελος</div><div class="chips" id="folderFilters"></div>
 </div>
-
 <div id="banners"></div>
 <main id="casesList"></main>
+<button class="fab" id="btnNew" aria-label="Νέα υπόθεση">+</button>
 
-<button class="fab" id="btnNew" aria-label="Νέα Υπόθεση">+</button>
-
-<!-- Modal Πλήρους Φόρμας -->
-<dialog id="dlgForm">
-  <form class="dlg" id="caseForm">
-    <h2 id="formTitle">Νέα Υπόθεση</h2>
-    
-    <div class="form-section">
-      <div class="form-section-title">Βασικά Στοιχεία</div>
-      <div class="dlg-grid">
-        <label class="full">Πινακίδα Οχήματος *<input name="plate" required placeholder="π.χ. KHK-1234" autocomplete="off" style="text-transform:uppercase"></label>
-        <label class="full">Ονοματεπώνυμο *<input name="name" required placeholder="Επώνυμο Όνομα" autocomplete="off"></label>
-        <label>Υπηρεσία<input name="service" placeholder="π.χ. Τροχαία"></label>
-        <label>Τηλέφωνο<input name="phone" type="tel" placeholder="69xxxxxxxx"></label>
-        <label>Ημ. Παραλαβής *<input type="date" name="receivedDate" required></label>
-        <label class="full">Θέση Φακέλου
-          <select name="folderSelect" id="fFolderSelect">
-            <option value="">— Επιλέξτε —</option>
-            <option value="custom">+ Νέος Φάκελος...</option>
-          </select>
-          <input type="text" name="folderCustom" id="fFolderCustom" style="display:none; margin-top:6px" placeholder="Γράψτε νέο φάκελο...">
-        </label>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">Στοιχεία Παράβασης</div>
-      <div class="dlg-grid">
-        <label class="full">Είδος Παράβασης
-          <select name="violationType" id="fViolationSelect">
-            <option value="">— Επιλέξτε —</option>
-            <option value="Υπερβολική ταχύτητα">Υπερβολική ταχύτητα</option>
-            <option value="ΚΤΕΟ">ΚΤΕΟ</option>
-            <option value="Διόδια">Διόδια</option>
-            <option value="Στάθμευση">Στάθμευση</option>
-            <option value="Απόφαση">Απόφαση</option>
-            <option value="custom">Άλλο (ελεύθερο κείμενο)...</option>
-          </select>
-          <input type="text" name="violationOther" id="fViolationCustom" style="display:none; margin-top:6px" placeholder="Περιγραφή παράβασης...">
-        </label>
-        <label>Ποσό Προστίμου (€)<input type="number" name="fine" min="0" step="0.01" placeholder="0.00"></label>
-        <label class="full"><span class="check-row"><input type="checkbox" name="requiresLicense" id="fReqLicense" checked> Προβλέπεται αφαίρεση διπλώματος</span></label>
-        <label id="licenseDaysWrap" class="full">Ημέρες Αφαίρεσης<input type="number" name="removalDays" min="1" value="30"></label>
-      </div>
-    </div>
-    
-    <div class="advanced-toggle" id="btnAdvancedToggle">+ Προχωρημένη Διόρθωση (Κατάσταση & Ημερομηνίες)</div>
-    
-    <div id="advancedFields" style="display:none;">
-      <div class="form-section">
-        <div class="dlg-grid">
-          <label class="full">Χειροκίνητη Αλλαγή Κατάστασης
-            <select name="manualState" id="fManualState"></select>
-          </label>
-          <label>Ημ. Τηλεφωνήματος<input type="date" name="d_phone"></label>
-          <label>Ημ. Ραντεβού<input type="date" name="d_appt"></label>
-          <label>Ημ. Αφαίρεσης<input type="date" name="d_susp"></label>
-          <label>Ημ. Απόδοσης (Auto)<input type="date" name="d_return" readonly style="background:#e2e8f0; font-weight:bold;"></label>
-          <label>1η Αποστολή<input type="date" name="d_inv1Send"></label>
-          <label>1ο Αποδεικτικό<input type="date" name="d_inv1Proof"></label>
-          <label>2η Αποστολή<input type="date" name="d_inv2Send"></label>
-          <label>2ο Αποδεικτικό<input type="date" name="d_inv2Proof"></label>
-          <label>3η Αποστολή<input type="date" name="d_inv3Send"></label>
-          <label>3ο Αποδεικτικό<input type="date" name="d_inv3Proof"></label>
-        </div>
-      </div>
-    </div>
-
-    <label class="full" style="margin-top:12px;">Παρατηρήσεις<textarea name="notes" rows="2" placeholder="Προαιρετικά..."></textarea></label>
-    
-    <div class="dlg-actions">
-      <button type="button" class="btn-cancel" id="btnFormCancel">Άκυρο</button>
-      <button type="button" class="btn-cancel" id="btnFormDelete" style="display:none; color:var(--md-sys-color-error)">Διαγραφή</button>
-      <button type="submit" class="btn-ok">Αποθήκευση</button>
-    </div>
-  </form>
-</dialog>
-
-<!-- Modal Wizard -->
-<dialog id="dlgWizard">
-  <div class="dlg">
-    <h2 id="wizardTitle">Ερώτηση</h2>
-    <p id="wizardDesc" style="font-size:13.5px; color:var(--md-sys-color-outline); margin-top:-8px;"></p>
-    <div id="wizardContent"></div>
-    <div class="dlg-actions" id="wizardActions" style="justify-content:center;"></div>
+<dialog id="dlgForm"><form id="caseForm" class="dlg">
+  <h2 id="formTitle">Νέα υπόθεση</h2>
+  <div class="grid">
+    <label class="full">Πινακίδα *<input name="plate" required autocomplete="off" style="text-transform:uppercase"></label>
+    <label class="full">Ονοματεπώνυμο *<input name="name" required autocomplete="off"></label>
+    <label>Υπηρεσία<input name="service"></label>
+    <label>Τηλέφωνο<input name="phone" type="tel"></label>
+    <label>Ημ. παραλαβής *<input type="date" name="receivedDate" required></label>
+    <label>Θέση φακέλου<select name="folderSelect" id="fFolder"></select></label>
+    <label class="full" id="fFolderCustomWrap" hidden>Νέος φάκελος<input name="folderCustom"></label>
+    <label class="full">Είδος παράβασης
+      <select name="violationType" id="fViol"><option value="">—</option>
+        <option>Υπερβολική ταχύτητα</option><option>ΚΤΕΟ</option><option>Διόδια</option><option>Στάθμευση</option><option>Απόφαση</option>
+        <option value="custom">Άλλο...</option></select></label>
+    <label class="full" id="fViolCustomWrap" hidden>Περιγραφή<input name="violationOther"></label>
+    <label>Πρόστιμο (€)<input type="number" name="fine" min="0" step="0.01"></label>
+    <label class="chk"><input type="checkbox" name="requiresLicense" id="fReq" checked> Αφαίρεση διπλώματος</label>
+    <label class="full" id="fDaysWrap">Ημέρες αφαίρεσης<input type="number" name="removalDays" min="1" value="30"></label>
+    <label class="full">Παρατηρήσεις<textarea name="notes" rows="2"></textarea></label>
   </div>
-</dialog>
-
-<!-- Modal Ιστορικού -->
-<dialog id="dlgHistory">
-  <div class="dlg">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h2>Ιστορικό Ενεργειών</h2>
-      <button id="btnHistoryClose" style="font-size:20px; color:var(--md-sys-color-outline);">&times;</button>
+  <details class="adv"><summary>Προχωρημένη διόρθωση (κατάσταση και ημερομηνίες)</summary>
+    <div class="grid">
+      <label class="full">Κατάσταση<select name="manualState"></select></label>
+      <label>Τηλεφώνημα<input type="date" name="d_phone"></label>
+      <label>Ραντεβού<input type="date" name="d_appt"></label>
+      <label>Αφαίρεση<input type="date" name="d_susp"></label>
+      <label>Απόδοση (αυτόματο)<input type="date" name="d_return" readonly></label>
+      <label>1η αποστολή<input type="date" name="d_inv1Send"></label>
+      <label>1ο αποδεικτικό<input type="date" name="d_inv1Proof"></label>
+      <label>2η αποστολή<input type="date" name="d_inv2Send"></label>
+      <label>2ο αποδεικτικό<input type="date" name="d_inv2Proof"></label>
+      <label>3η αποστολή<input type="date" name="d_inv3Send"></label>
+      <label>3ο αποδεικτικό<input type="date" name="d_inv3Proof"></label>
     </div>
-    <div id="historyContent" style="display:flex; flex-direction:column; gap:8px; max-height:60vh; overflow-y:auto;"></div>
+  </details>
+  <div class="acts">
+    <button type="button" class="btn ghost" id="btnFormCancel">Άκυρο</button>
+    <button type="button" class="btn bad" id="btnFormDelete" hidden>Διαγραφή</button>
+    <button type="submit" class="btn pri">Αποθήκευση</button>
   </div>
-</dialog>
+</form></dialog>
+
+<dialog id="dlgWizard"><div class="dlg">
+  <h2 id="wT"></h2><p id="wD" class="muted"></p><div id="wB"></div><div class="acts col" id="wA"></div>
+</div></dialog>
+
+<dialog id="dlgHistory"><div class="dlg">
+  <h2>Ιστορικό ενεργειών</h2><div id="histBody" class="hist"></div>
+  <div class="acts"><button class="btn ghost" id="btnHistoryClose">Κλείσιμο</button></div>
+</div></dialog>
 
 <section id="printArea"></section>
-
 <script src="./app.js"></script>
-</body>
-</html>
+</body></html>
