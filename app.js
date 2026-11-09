@@ -193,7 +193,7 @@
   const go = (c, state, extra, log) => {
     c.state = state;
     Object.assign(c.dates, extra || {});
-    if (log) c.history.push({ date: todayStr(), action: log });
+    if (log) c.history.push({ date: todayStr(), action: log.toUpperCase() }); // Logs σε κεφαλαία
     if (state === 'suspended' && c.dates.susp && c.removalDays) {
       c.dates.return = addDays(c.dates.susp, c.removalDays, 'backward');
     }
@@ -298,16 +298,16 @@
     if (c.state === 'appointment') act += `<button class="btn ghost" data-r="${c.id}">Αλλαγή ραντεβού</button>`;
     if (c.state.startsWith('inv') && c.state.endsWith('_next')) act += `<button class="btn ghost" data-copy="${c.id}">Αντιγραφή Κειμένου</button>`;
     
-    // Παίρνουμε την τελευταία ενέργεια από το ιστορικό
-const lastAction = c.history && c.history.length > 0 ? c.history[c.history.length - 1].action : '—';
+    // Τελευταία ενέργεια από το ιστορικό
+    const lastAction = c.history && c.history.length > 0 ? c.history[c.history.length - 1].action : '—';
 
-const det = [
-  c.folder && `<span><b>Φάκελος:</b> ${esc(c.folder)}</span>`,
-  c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
-  c.removalDays > 0 && `<span><b>Ημέρες αφαίρεσης:</b> ${esc(c.removalDays)}</span>`,
-  c.violationType && `<span><b>Είδος παράβασης:</b> ${esc(c.violationType)}</span>`,
-  `<span><b>Τελευταία Ενέργεια:</b> ${esc(lastAction)}</span>`
-].filter(Boolean).join('');
+    const det = [
+      c.folder && `<span><b>Φάκελος:</b> ${esc(c.folder)}</span>`,
+      c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
+      c.removalDays > 0 && `<span><b>Ημέρες αφαίρεσης:</b> ${esc(c.removalDays)}</span>`,
+      c.violationType && `<span><b>Είδος παράβασης:</b> ${esc(c.violationType)}</span>`,
+      `<span><b>Τελευταία Ενέργεια:</b> ${esc(lastAction)}</span>`
+    ].filter(Boolean).join('');
     
     return `<article class="card t-${s.t}">
       <div class="hd"><div><div class="pl">${esc(c.plate)}</div><div class="nm">${esc(c.name)}</div></div><span class="badge">${s.l}</span></div>
@@ -325,7 +325,7 @@ const det = [
     // Dashboard Stats
     let total = 0, dueToday = 0, dueSoon = 0, waiting = 0;
     const tToday = todayStr();
-    const tSoon = addDays(tToday, 5); // 5 μέρες μπροστά
+    const tSoon = addDays(tToday, 5);
     
     cases.forEach(c => {
       if (c.state === 'closed') return;
@@ -417,12 +417,20 @@ const det = [
   };
 
   const checkPlate = (val) => {
-    const exists = cases.some(c => c.plate === val && c.id !== F.dataset.id);
+    const v = String(val).trim().toUpperCase();
+    const currentId = String(F.dataset.id || '');
+    // Ελέγχουμε αν υπάρχει άλλη υπόθεση με την ίδια πινακίδα, εξαιρώντας την τρέχουσα
+    const exists = cases.some(c => String(c.plate).trim().toUpperCase() === v && String(c.id) !== currentId);
     const w = $('#plateWarning');
-    if (exists) { w.textContent = 'Βρέθηκαν προηγούμενες υποθέσεις για αυτή την πινακίδα.'; w.style.display = 'block'; }
-    else { w.style.display = 'none'; }
+    
+    if (exists && v !== '') { 
+      w.textContent = 'Υπάρχει ήδη άλλη υπόθεση με αυτή την πινακίδα.'; 
+      w.style.display = 'block'; 
+    } else { 
+      w.style.display = 'none'; 
+    }
   };
-  E.plate.addEventListener('input', (e) => checkPlate(e.target.value.trim().toUpperCase()));
+  E.plate.addEventListener('input', (e) => checkPlate(e.target.value));
 
   const openForm = (id) => {
     const c = id ? get(id) : null;
@@ -461,7 +469,9 @@ const det = [
   F.addEventListener('submit', (e) => {
     e.preventDefault();
     const id = F.dataset.id || uid(), old = get(id);
-    const folder = E.folderSelect.value === 'custom' ? E.folderCustom.value.trim() : E.folderSelect.value;
+    
+    // Μετατροπή σε κεφαλαία κατά την αποθήκευση
+    const folder = E.folderSelect.value === 'custom' ? E.folderCustom.value.trim().toUpperCase() : E.folderSelect.value;
     const req = E.requiresLicense.checked, days = req ? Number(E.removalDays.value) : 0;
     const keep = (v) => old ? v : '';
     
@@ -474,16 +484,25 @@ const det = [
     if (D.susp && days) D.return = addDays(D.susp, days, 'backward');
     
     const rec = {
-      id, plate: E.plate.value.trim().toUpperCase(), name: E.name.value.trim(), service: E.service.value.trim(),
-      phone: E.phone.value.trim(), receivedDate: E.receivedDate.value, folder,
-      violationType: E.violationType.value === 'custom' ? E.violationOther.value.trim() : E.violationType.value,
-      fine: E.fine.value.trim(), requiresLicense: req, removalDays: days, notes: E.notes.value.trim(),
+      id, 
+      plate: E.plate.value.trim().toUpperCase(), 
+      name: E.name.value.trim().toUpperCase(), 
+      service: E.service.value.trim().toUpperCase(),
+      phone: E.phone.value.trim(), 
+      receivedDate: E.receivedDate.value, 
+      folder,
+      violationType: E.violationType.value === 'custom' ? E.violationOther.value.trim().toUpperCase() : E.violationType.value,
+      fine: E.fine.value.trim(), 
+      requiresLicense: req, 
+      removalDays: days, 
+      notes: E.notes.value.trim().toUpperCase(),
       state: old ? E.manualState.value : (E.phone.value.trim() ? 'to_call' : 'search'),
-      history: old ? old.history : [{ date: todayStr(), action: 'Δημιουργία νέας υπόθεσης' }], dates: D
+      history: old ? old.history : [{ date: todayStr(), action: 'ΔΗΜΙΟΥΡΓΙΑ ΝΕΑΣ ΥΠΟΘΕΣΗΣ' }], 
+      dates: D
     };
     
     if (old) {
-      rec.history.push({ date: todayStr(), action: 'Χειροκίνητη επεξεργασία' });
+      rec.history.push({ date: todayStr(), action: 'ΧΕΙΡΟΚΙΝΗΤΗ ΕΠΕΞΕΡΓΑΣΙΑ' });
       cases[cases.indexOf(old)] = rec;
     } else {
       cases.unshift(rec);
