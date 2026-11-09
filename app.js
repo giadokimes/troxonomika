@@ -193,7 +193,7 @@
   const go = (c, state, extra, log) => {
     c.state = state;
     Object.assign(c.dates, extra || {});
-    if (log) c.history.push({ date: todayStr(), action: log.toUpperCase() }); // Logs σε κεφαλαία
+    if (log) c.history.push({ date: todayStr(), action: log.toUpperCase() });
     if (state === 'suspended' && c.dates.susp && c.removalDays) {
       c.dates.return = addDays(c.dates.susp, c.removalDays, 'backward');
     }
@@ -301,6 +301,7 @@
     // Τελευταία ενέργεια από το ιστορικό
     const lastAction = c.history && c.history.length > 0 ? c.history[c.history.length - 1].action : '—';
 
+    // Μόνο τα 5 ζητούμενα πεδία
     const det = [
       c.folder && `<span><b>Φάκελος:</b> ${esc(c.folder)}</span>`,
       c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
@@ -419,7 +420,6 @@
   const checkPlate = (val) => {
     const v = String(val).trim().toUpperCase();
     const currentId = String(F.dataset.id || '');
-    // Ελέγχουμε αν υπάρχει άλλη υπόθεση με την ίδια πινακίδα, εξαιρώντας την τρέχουσα
     const exists = cases.some(c => String(c.plate).trim().toUpperCase() === v && String(c.id) !== currentId);
     const w = $('#plateWarning');
     
@@ -430,7 +430,18 @@
       w.style.display = 'none'; 
     }
   };
+  
   E.plate.addEventListener('input', (e) => checkPlate(e.target.value));
+
+  // Αυτόματη εναλλαγή κατάστασης αν πληκτρολογηθεί τηλέφωνο σε ΝΕΑ υπόθεση
+  E.phone.addEventListener('input', () => {
+    if (!F.dataset.id) {
+      const cur = E.manualState.value;
+      if (cur === 'search' || cur === 'to_call') {
+        E.manualState.value = E.phone.value.trim() ? 'to_call' : 'search';
+      }
+    }
+  });
 
   const openForm = (id) => {
     const c = id ? get(id) : null;
@@ -460,6 +471,7 @@
     } else {
       E.receivedDate.value = todayStr(); E.requiresLicense.checked = true;
       $('#plateWarning').style.display = 'none';
+      E.manualState.value = 'search'; // Default state για νέα υπόθεση
     }
     toggles();
     F.dataset.id = id || '';
@@ -470,7 +482,6 @@
     e.preventDefault();
     const id = F.dataset.id || uid(), old = get(id);
     
-    // Μετατροπή σε κεφαλαία κατά την αποθήκευση
     const folder = E.folderSelect.value === 'custom' ? E.folderCustom.value.trim().toUpperCase() : E.folderSelect.value;
     const req = E.requiresLicense.checked, days = req ? Number(E.removalDays.value) : 0;
     const keep = (v) => old ? v : '';
@@ -496,7 +507,7 @@
       requiresLicense: req, 
       removalDays: days, 
       notes: E.notes.value.trim().toUpperCase(),
-      state: old ? E.manualState.value : (E.phone.value.trim() ? 'to_call' : 'search'),
+      state: E.manualState.value, // Διαβάζει πάντα την επιλογή του χρήστη
       history: old ? old.history : [{ date: todayStr(), action: 'ΔΗΜΙΟΥΡΓΙΑ ΝΕΑΣ ΥΠΟΘΕΣΗΣ' }], 
       dates: D
     };
