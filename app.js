@@ -134,7 +134,7 @@
       violationType: o.violationType || '', fine: o.fine || o.fineAmount || '',
       requiresLicense: o.requiresLicense !== false && o.hasRemoval !== false,
       removalDays: o.removalDays || o.suspDays || 30, notes: o.notes || '',
-      state: mapOld(o), history: o.history || [{ date: todayStr(), action: 'Μεταφορά από παλιά έκδοση' }],
+      state: mapOld(o), history: o.history || [{ date: todayStr(), action: 'ΜΕΤΑΦΟΡΑ ΑΠΟ ΠΑΛΙΑ ΕΚΔΟΣΗ' }],
       dates: { ...BLANK_DATES,
         phone: o.phoneDate || o.callDate || '', appt: o.apptDate || o.appointmentDate || '',
         susp: o.suspDate || o.removalDate || o.arrivedDate || '', return: o.returnDate || '',
@@ -219,37 +219,37 @@
 
   // ---------- Ενέργειες ----------
   const actSearch = (c) => wiz('Αναζήτηση τηλεφώνου', 'Βρέθηκε τηλέφωνο;', '', [
-    { t: 'Όχι, δεν βρέθηκε', c: 'bad', f: () => go(c, 'inv1_next', {}, 'Δεν βρέθηκε τηλέφωνο -> Πρόσκληση') },
+    { t: 'Όχι, δεν βρέθηκε', c: 'bad', f: () => go(c, 'inv1_next', {}, 'ΔΕΝ ΒΡΕΘΗΚΕ ΤΗΛΕΦΩΝΟ -> ΠΡΟΣΚΛΗΣΗ') },
     { t: 'Ναι', c: 'ok', f: () => wiz('Εισαγωγή τηλεφώνου', 'Πληκτρολογήστε τον αριθμό:', '<input type="tel" id="wV">',
-      [{ t: 'Αποθήκευση', c: 'pri', v: () => $('#wV').value.trim(), f: () => { const p = $('#wV').value.trim(); c.phone = p; go(c, 'to_call', {}, 'Καταχώρηση τηλεφώνου: ' + p); } }]) }
+      [{ t: 'Αποθήκευση', c: 'pri', v: () => $('#wV').value.trim(), f: () => { const p = $('#wV').value.trim(); c.phone = p; go(c, 'to_call', {}, 'ΚΑΤΑΧΩΡΗΣΗ ΤΗΛΕΦΩΝΟΥ: ' + p); } }]) }
   ]);
 
   const actCall = (c) => wiz('Καταχώρηση κλήσης', 'Απάντησε ο πολίτης;', '', [
-    { t: 'Όχι', c: 'bad', f: () => go(c, 'inv1_next', {}, 'Κλήση χωρίς απάντηση -> Πρόσκληση') },
+    { t: 'Όχι', c: 'bad', f: () => go(c, 'inv1_next', {}, 'ΚΛΗΣΗ ΧΩΡΙΣ ΑΠΑΝΤΗΣΗ -> ΠΡΟΣΚΛΗΣΗ') },
     { t: 'Ναι', c: 'ok', f: () => wiz('Ραντεβού', 'Έκλεισε ραντεβού;', '', [
-      { t: 'Όχι, ενημερώθηκε (αναμονή 5 ημ.)', c: 'bad', f: () => go(c, 'informed', { phone: todayStr() }, 'Ενημερώθηκε. Αναμονή 5 ημερών.') },
-      { t: 'Ναι', c: 'ok', f: () => dateWiz('Ημερομηνία ραντεβού', 'Επιλέξτε ημερομηνία:', v => go(c, 'appointment', { appt: v, phone: c.dates.phone || todayStr() }, 'Ραντεβού: ' + fmt(v))) }
+      { t: 'Όχι, ενημερώθηκε (αναμονή 5 ημ.)', c: 'bad', f: () => go(c, 'informed', { phone: todayStr() }, 'ΕΝΗΜΕΡΩΘΗΚΕ. ΑΝΑΜΟΝΗ 5 ΗΜΕΡΩΝ.') },
+      { t: 'Ναι', c: 'ok', f: () => dateWiz('Ημερομηνία ραντεβού', 'Επιλέξτε ημερομηνία:', v => go(c, 'appointment', { appt: v, phone: c.dates.phone || todayStr() }, 'ΡΑΝΤΕΒΟΥ: ' + fmt(v))) }
     ]) }
   ]);
 
-  const actAppt = (c) => dateWiz('Ραντεβού', 'Ημερομηνία ραντεβού:', v => go(c, 'appointment', { appt: v }, 'Νέο ραντεβού: ' + fmt(v)));
+  const actAppt = (c) => dateWiz('Ραντεβού', 'Ημερομηνία ραντεβού:', v => go(c, 'appointment', { appt: v }, 'ΝΕΟ ΡΑΝΤΕΒΟΥ: ' + fmt(v)));
 
   const actRemoval = (c) => wiz('Αφαίρεση διπλώματος', 'Ημερομηνία αφαίρεσης και ημέρες:',
     `<input type="date" id="wV" value="${todayStr()}"><input type="number" id="wN" min="1" value="${c.removalDays || 30}">`,
     [{ t: 'Αποθήκευση', c: 'pri', v: () => $('#wV').value && Number($('#wN').value) > 0, f: () => {
       const d = $('#wV').value, n = Number($('#wN').value);
       c.removalDays = n; c.requiresLicense = true;
-      go(c, 'suspended', { susp: d }, `Αφαίρεση στις ${fmt(d)} για ${n} ημ. Λήγει: ${fmt(addDays(d, n, 'backward'))}`);
+      go(c, 'suspended', { susp: d }, `ΑΦΑΙΡΕΣΗ ΣΤΙΣ ${fmt(d)} ΓΙΑ ${n} ΗΜ. ΛΗΓΕΙ: ${fmt(addDays(d, n, 'backward'))}`);
     } }]);
 
-  const actDeliver = (c) => dateWiz('Απόδοση διπλώματος', 'Ημερομηνία απόδοσης:', v => go(c, 'closed', { closed: v }, 'Απόδοση και κλείσιμο στις ' + fmt(v)));
-  const actClose = (c) => go(c, 'closed', { closed: todayStr() }, 'Επιστροφή στην υπηρεσία και κλείσιμο');
+  const actDeliver = (c) => dateWiz('Απόδοση διπλώματος', 'Ημερομηνία απόδοσης:', v => go(c, 'closed', { closed: v }, 'ΑΠΟΔΟΣΗ ΚΑΙ ΚΛΕΙΣΙΜΟ ΣΤΙΣ ' + fmt(v)));
+  const actClose = (c) => go(c, 'closed', { closed: todayStr() }, 'ΕΠΙΣΤΡΟΦΗ ΣΤΗΝ ΥΠΗΡΕΣΙΑ ΚΑΙ ΚΛΕΙΣΙΜΟ');
   
   const invite = (c, n) => dateWiz(`Αποστολή ${n}ης πρόσκλησης`, 'Ημερομηνία αποστολής:',
-    v => go(c, `inv${n}_sent`, { ['inv' + n + 'Send']: v }, `Αποστολή ${n}ης πρόσκλησης στις ${fmt(v)}`));
+    v => go(c, `inv${n}_sent`, { ['inv' + n + 'Send']: v }, `ΑΠΟΣΤΟΛΗ ${n}ΗΣ ΠΡΟΣΚΛΗΣΗΣ ΣΤΙΣ ${fmt(v)}`));
     
   const proof = (c, n) => dateWiz(`Αποδεικτικό ${n}ης`, 'Ημερομηνία παραλαβής:',
-    v => go(c, `inv${n}_wait`, { ['inv' + n + 'Proof']: v }, `Παραλαβή αποδεικτικού ${n}ης. Αναμονή 10 ημερών.`));
+    v => go(c, `inv${n}_wait`, { ['inv' + n + 'Proof']: v }, `ΠΑΡΑΛΑΒΗ ΑΠΟΔΕΙΚΤΙΚΟΥ ${n}ΗΣ. ΑΝΑΜΟΝΗ 10 ΗΜΕΡΩΝ.`));
 
   const ACT = {
     search: ['Αναζήτηση τηλεφώνου', actSearch], to_call: ['Καταχώρηση κλήσης', actCall], informed: ['Κλείσιμο ραντεβού', actAppt],
@@ -296,12 +296,11 @@
     if (c.state === 'appointment') act += `<a class="btn ghost" target="_blank" rel="noopener" href="${esc(calLink(c))}">Google Calendar</a>`;
     if (a) act += `<button class="btn pri" data-a="${c.id}">${a[0]}</button>`;
     if (c.state === 'appointment') act += `<button class="btn ghost" data-r="${c.id}">Αλλαγή ραντεβού</button>`;
-    if (c.state.startsWith('inv') && c.state.endsWith('_next')) act += `<button class="btn ghost" data-copy="${c.id}">Αντιγραφή Κειμένου</button>`;
     
-    // Τελευταία ενέργεια από το ιστορικό
+    // Το κουμπί "Αντιγραφή Κειμένου" έχει αφαιρεθεί προσωρινά
+    
     const lastAction = c.history && c.history.length > 0 ? c.history[c.history.length - 1].action : '—';
 
-    // Μόνο τα 5 ζητούμενα πεδία
     const det = [
       c.folder && `<span><b>Φάκελος:</b> ${esc(c.folder)}</span>`,
       c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
@@ -323,7 +322,6 @@
   const render = () => {
     tick();
     
-    // Dashboard Stats
     let total = 0, dueToday = 0, dueSoon = 0, waiting = 0;
     const tToday = todayStr();
     const tSoon = addDays(tToday, 5);
@@ -348,7 +346,6 @@
     $('#statDueSoon').textContent = dueSoon;
     $('#statWaiting').textContent = waiting;
 
-    // Filters
     const fm = {}; cases.forEach(c => { const f = c.folder || '(χωρίς φάκελο)'; fm[f] = (fm[f] || 0) + 1; });
     $('#folderFilters').innerHTML = chip('f', 'all', 'Όλοι', cases.length, folderF === 'all') +
       Object.keys(fm).sort().map(f => chip('f', f, f, fm[f], folderF === f)).join('');
@@ -357,7 +354,6 @@
     $('#stateFilters').innerHTML = chip('s', 'all', 'Όλα', null, stateF === 'all') +
       Object.keys(ST).filter(k => sc[k]).map(k => chip('s', k, ST[k].l, sc[k], stateF === k)).join('');
 
-    // Smart Inbox Banners
     const urg = cases.filter(c => URG.includes(c.state));
     const grp = {};
     urg.forEach(c => { grp[c.state] = (grp[c.state] || 0) + 1; });
@@ -430,10 +426,7 @@
       w.style.display = 'none'; 
     }
   };
-  
   E.plate.addEventListener('input', (e) => checkPlate(e.target.value));
-
-  // Αυτόματη εναλλαγή κατάστασης αν πληκτρολογηθεί τηλέφωνο σε ΝΕΑ υπόθεση
   E.phone.addEventListener('input', () => {
     if (!F.dataset.id) {
       const cur = E.manualState.value;
@@ -471,7 +464,7 @@
     } else {
       E.receivedDate.value = todayStr(); E.requiresLicense.checked = true;
       $('#plateWarning').style.display = 'none';
-      E.manualState.value = 'search'; // Default state για νέα υπόθεση
+      E.manualState.value = 'search';
     }
     toggles();
     F.dataset.id = id || '';
@@ -507,7 +500,7 @@
       requiresLicense: req, 
       removalDays: days, 
       notes: E.notes.value.trim().toUpperCase(),
-      state: E.manualState.value, // Διαβάζει πάντα την επιλογή του χρήστη
+      state: E.manualState.value,
       history: old ? old.history : [{ date: todayStr(), action: 'ΔΗΜΙΟΥΡΓΙΑ ΝΕΑΣ ΥΠΟΘΕΣΗΣ' }], 
       dates: D
     };
