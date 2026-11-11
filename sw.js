@@ -1,4 +1,4 @@
-const CACHE = "troxonomika-v35";
+const CACHE = "troxonomika-v36";
 const FILES = ["./", "./index.html", "./style.css", "./app.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
