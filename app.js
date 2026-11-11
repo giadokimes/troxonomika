@@ -210,7 +210,6 @@
       const D = c.dates;
       let newState = c.state;
 
-      // Ελέγχουμε μόνο αν έχει περάσει ο χρόνος από την τρέχουσα κατάσταση
       if (c.state === 'informed' && D.phone && isDue(addDays(D.phone, 5))) newState = 'inv1_create';
       else if (c.state === 'appointment' && D.appt && isDue(addDays(D.appt, 5))) newState = 'no_show';
       else if (c.state === 'suspended' && D.return && isDue(D.return)) newState = 'to_return';
@@ -479,7 +478,6 @@
     const pk = normPlate(c.plate), nO = (pc[pk] || 1) - 1;
     const multi = nO ? `<button class="linkbtn" data-p="${esc(pk)}">Άλλες υποθέσεις με την ίδια πινακίδα: ${nO}</button>` : '';
 
-    // Εδώ προσθέτουμε το τηλέφωνο στην κύρια κάρτα
     const phoneHtml = c.phone ? `<div class="info" style="margin-top: 4px;"><a href="tel:${esc(c.phone)}" style="color: var(--warn); font-weight: 600; text-decoration: none;">Τηλέφωνο: ${esc(c.phone)}</a></div>` : '';
 
     const det = [
@@ -761,18 +759,29 @@
     checkBackup();
   };
 
+  // ΔΙΟΡΘΩΣΗ: Αποδοχή και των δύο μορφών JSON (Array ή Object με cases)
   $('#btnImport').onclick = () => $('#importFile').click();
   $('#importFile').onchange = (e) => {
     const file = e.target.files[0]; if (!file) return;
     const r = new FileReader();
     r.onload = (ev) => {
       try {
-        const arr = JSON.parse(ev.target.result);
-        if (!Array.isArray(arr)) throw 0;
+        let parsed = JSON.parse(ev.target.result);
+        let arr = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.cases) ? parsed.cases : null);
+        
+        if (!arr) throw new Error('Invalid format');
+        
         if (confirm('Η επαναφορά θα αντικαταστήσει τις τρέχουσες υποθέσεις. Συνέχεια;')) {
-          cases = arr.map(migrate); save(); repairAllCases(true); render(); alert('Επιτυχής επαναφορά: ' + cases.length + ' υποθέσεις.');
+          cases = arr.map(migrate); 
+          save(); 
+          repairAllCases(true); 
+          render(); 
+          alert('Επιτυχής επαναφορά: ' + cases.length + ' υποθέσεις.');
         }
-      } catch { alert('Μη έγκυρο αρχείο.'); }
+      } catch (err) { 
+        console.error(err);
+        alert('Μη έγκυρο αρχείο. Βεβαιωθείτε ότι είναι ένα σωστό αρχείο Backup JSON (όχι το manifest.json).'); 
+      }
       e.target.value = '';
     };
     r.readAsText(file);
