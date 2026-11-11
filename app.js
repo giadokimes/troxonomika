@@ -201,59 +201,34 @@
   };
   const migrate = (o) => upgrade(migrateBase(o));
 
-  // ---------- ΑΥΤΟΜΑΤΗ ΔΙΟΡΘΩΣΗ ΥΠΑΡΧΟΥΣΩΝ ΕΓΓΡΑΦΩΝ ----------
+  // ---------- ΑΣΦΑΛΗΣ ΑΥΤΟΜΑΤΗ ΔΙΟΡΘΩΣΗ (Μόνο μπροστά, με βάση τις προθεσμίες) ----------
   const repairAllCases = (silent = true) => {
     let repaired = 0;
+    const today = todayStr();
     cases.forEach(c => {
       if (!c.dates) c.dates = { ...BLANK_DATES };
       const D = c.dates;
       let newState = c.state;
 
-      if (D.closed) {
-        newState = 'closed';
-      } else if (D.returned) {
-        newState = c.violationType === 'Απόφαση' ? 'complaint' : 'transmittal';
-      } else if (D.susp) {
-        newState = isDue(D.return) ? 'to_return' : 'suspended';
-      } else if (D.inv3Proof) {
-        newState = isDue(addDays(D.inv3Proof, 10)) ? (c.violationType === 'Απόφαση' ? 'complaint' : 'transmittal') : 'inv3_wait';
-      } else if (D.inv3Send) {
-        newState = 'inv3_sent';
-      } else if (D.inv3Create) {
-        newState = 'inv3_next';
-      } else if (D.inv2Proof) {
-        newState = isDue(addDays(D.inv2Proof, 10)) ? 'inv3_create' : 'inv2_wait';
-      } else if (D.inv2Send) {
-        newState = 'inv2_sent';
-      } else if (D.inv2Create) {
-        newState = 'inv2_next';
-      } else if (D.inv1Proof) {
-        newState = isDue(addDays(D.inv1Proof, 10)) ? 'inv2_create' : 'inv1_wait';
-      } else if (D.inv1Send) {
-        newState = 'inv1_sent';
-      } else if (D.inv1Create) {
-        newState = 'inv1_next';
-      } else if (D.appt) {
-        newState = isDue(addDays(D.appt, 5)) ? 'no_show' : 'appointment';
-      } else if (c.state === 'informed' || D.phone) {
-        if (c.state === 'informed' && isDue(addDays(D.phone, 5))) newState = 'inv1_create';
-        else if (c.state === 'informed') newState = 'informed';
-        else newState = 'to_call';
-      } else {
-        newState = 'search';
-      }
+      // Ελέγχουμε μόνο αν έχει περάσει ο χρόνος από την τρέχουσα κατάσταση
+      if (c.state === 'informed' && D.phone && isDue(addDays(D.phone, 5))) newState = 'inv1_create';
+      else if (c.state === 'appointment' && D.appt && isDue(addDays(D.appt, 5))) newState = 'no_show';
+      else if (c.state === 'suspended' && D.return && isDue(D.return)) newState = 'to_return';
+      else if (c.state === 'inv1_wait' && D.inv1Proof && isDue(addDays(D.inv1Proof, 10))) newState = 'inv2_create';
+      else if (c.state === 'inv2_wait' && D.inv2Proof && isDue(addDays(D.inv2Proof, 10))) newState = 'inv3_create';
+      else if (c.state === 'inv3_wait' && D.inv3Proof && isDue(addDays(D.inv3Proof, 10))) newState = endState(c);
 
       if (c.state !== newState) {
         c.state = newState;
         c.history = c.history || [];
-        c.history.push({ date: todayStr(), action: `ΑΥΤΟΜΑΤΗ ΔΙΟΡΘΩΣΗ ΣΕ: ${newState}` });
+        c.history.push({ date: todayStr(), action: `ΑΥΤΟΜΑΤΗ ΜΕΤΑΒΑΣΗ: ${ST[newState]?.l || newState}` });
         repaired++;
       }
       setMove(c);
     });
     if (repaired > 0) {
       save();
-      if (!silent) alert(`Διορθώθηκαν αυτόματα ${repaired} υποθέσεις σύμφωνα με τις ημερομηνίες.`);
+      if (!silent) alert(`Ενημερώθηκαν αυτόματα ${repaired} υποθέσεις λόγω παρέλευσης προθεσμίας.`);
     }
   };
 
@@ -297,7 +272,6 @@
     let ch = false;
     cases.forEach(c => {
       const D = c.dates, s = c.state; let n = s;
-      // ΑΦΑΙΡΕΣΗ 2ΗΣ ΚΛΗΣΗΣ: Από informed πάει κατευθείαν σε inv1_create
       if (s === 'informed' && isDue(addDays(D.phone, 5))) n = 'inv1_create';
       else if (s === 'appointment' && isDue(addDays(D.appt, 5))) n = 'no_show';
       else if (s === 'suspended' && isDue(D.return)) n = 'to_return';
@@ -329,7 +303,6 @@
       x.type = 'button'; x.className = 'btn ' + (b.c || ''); x.textContent = b.t;
       x.onclick = () => { 
         if (b.v && !b.v()) return; 
-        // ΠΡΟΣΘΗΚΗ PROMPT ΕΠΙΒΕΒΑΙΩΣΗΣ
         if (b.confirm !== false && !confirm('Είστε σίγουρος/η για την ενέργεια;')) return;
         dlgW.close(); 
         if (b.f) b.f(); 
@@ -511,6 +484,7 @@
       c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
       c.removalDays > 0 && `<span><b>Ημέρες αφαίρεσης:</b> ${esc(c.removalDays)}</span>`,
       c.violationType && `<span><b>Είδος παράβασης:</b> ${esc(c.violationType)}</span>`,
+      c.phone && `<span><b>Τηλέφωνο:</b> <a href="tel:${esc(c.phone)}" style="color: var(--warn); text-decoration: none; font-weight: bold;">${esc(c.phone)}</a></span>`,
       `<span><b>Τελευταία Ενέργεια:</b> ${esc(lastAction)}</span>`
     ].filter(Boolean).join('');
     
