@@ -759,19 +759,41 @@
     checkBackup();
   };
 
-  // ΔΙΟΡΘΩΣΗ: Αποδοχή και των δύο μορφών JSON (Array ή Object με cases)
+  // ---------- ΔΙΟΡΘΩΜΕΝΗ ΕΙΣΑΓΩΓΗ (IMPORT) ----------
   $('#btnImport').onclick = () => $('#importFile').click();
   $('#importFile').onchange = (e) => {
     const file = e.target.files[0]; if (!file) return;
     const r = new FileReader();
     r.onload = (ev) => {
       try {
-        let parsed = JSON.parse(ev.target.result);
-        let arr = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.cases) ? parsed.cases : null);
+        const text = ev.target.result;
         
-        if (!arr) throw new Error('Invalid format');
+        // Έλεγχος αν είναι το manifest
+        if (text.includes('"manifest_version"') || text.includes('"start_url"')) {
+          throw new Error('Επιλέξατε το manifest.json της εφαρμογής. Παρακαλώ επιλέξτε το αρχείο Backup (π.χ. ypotheseis_2024-XX-XX.json).');
+        }
+
+        let parsed = JSON.parse(text);
+        let arr = null;
         
-        if (confirm('Η επαναφορά θα αντικαταστήσει τις τρέχουσες υποθέσεις. Συνέχεια;')) {
+        // Εύρεση της λίστας υποθέσεων (υποστηρίζει διάφορες παλιές δομές)
+        if (Array.isArray(parsed)) {
+          arr = parsed;
+        } else if (parsed && typeof parsed === 'object') {
+          for (let k of Object.keys(parsed)) {
+            if (Array.isArray(parsed[k])) {
+              arr = parsed[k];
+              break;
+            }
+          }
+        }
+        
+        if (!arr) throw new Error('Το αρχείο δεν περιέχει λίστα υποθέσεων.');
+        
+        // Φιλτράρουμε τα άκυρα (null, undefined, strings)
+        arr = arr.filter(x => x && typeof x === 'object');
+
+        if (confirm(`Βρέθηκαν ${arr.length} υποθέσεις στο αρχείο. Η επαναφορά θα αντικαταστήσει τις τρέχουσες. Συνέχεια;`)) {
           cases = arr.map(migrate); 
           save(); 
           repairAllCases(true); 
@@ -780,7 +802,7 @@
         }
       } catch (err) { 
         console.error(err);
-        alert('Μη έγκυρο αρχείο. Βεβαιωθείτε ότι είναι ένα σωστό αρχείο Backup JSON (όχι το manifest.json).'); 
+        alert('Σφάλμα: ' + err.message); 
       }
       e.target.value = '';
     };
