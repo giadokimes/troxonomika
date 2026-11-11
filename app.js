@@ -201,7 +201,7 @@
   };
   const migrate = (o) => upgrade(migrateBase(o));
 
-  // ---------- ΑΣΦΑΛΗΣ ΑΥΤΟΜΑΤΗ ΔΙΟΡΘΩΣΗ (Μόνο μπροστά, με βάση τις προθεσμίες) ----------
+  // ---------- ΑΣΦΑΛΗΣ ΑΥΤΟΜΑΤΗ ΔΙΟΡΘΩΣΗ ----------
   const repairAllCases = (silent = true) => {
     let repaired = 0;
     const today = todayStr();
@@ -479,18 +479,21 @@
     const pk = normPlate(c.plate), nO = (pc[pk] || 1) - 1;
     const multi = nO ? `<button class="linkbtn" data-p="${esc(pk)}">Άλλες υποθέσεις με την ίδια πινακίδα: ${nO}</button>` : '';
 
+    // Εδώ προσθέτουμε το τηλέφωνο στην κύρια κάρτα
+    const phoneHtml = c.phone ? `<div class="info" style="margin-top: 4px;"><a href="tel:${esc(c.phone)}" style="color: var(--warn); font-weight: 600; text-decoration: none;">Τηλέφωνο: ${esc(c.phone)}</a></div>` : '';
+
     const det = [
       c.folder && `<span><b>Φάκελος:</b> ${esc(c.folder)}</span>`,
       c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
       c.removalDays > 0 && `<span><b>Ημέρες αφαίρεσης:</b> ${esc(c.removalDays)}</span>`,
       c.violationType && `<span><b>Είδος παράβασης:</b> ${esc(c.violationType)}</span>`,
-      c.phone && `<span><b>Τηλέφωνο:</b> <a href="tel:${esc(c.phone)}" style="color: var(--warn); text-decoration: none; font-weight: bold;">${esc(c.phone)}</a></span>`,
       `<span><b>Τελευταία Ενέργεια:</b> ${esc(lastAction)}</span>`
     ].filter(Boolean).join('');
     
     return `<article class="card t-${s.t}">
       <div class="hd"><div><div class="pl">${esc(c.plate)}</div><div class="nm">${esc(c.name)}</div></div><span class="badge">${s.l}</span></div>
       ${infoLine(c) ? `<div class="info">${esc(infoLine(c))}</div>` : ''}
+      ${phoneHtml}
       ${multi}
       ${invHTML(c)}${c.moveTo ? `<div class="mv">Μετακίνηση φακέλου: <b>${esc(c.moveTo)}</b></div>` : ''}
       <div class="act">${act}</div>
