@@ -168,3 +168,6 @@ input:not([type="date"]):not([type="number"]):not([type="checkbox"]):not([type="
 .invs span b { color: var(--ink); font-weight: 600; }
 .mv { font-size: 13px; color: var(--warn); font-weight: 600; }
 .stat:nth-child(2) { cursor: pointer; }
+.tels { display: flex; flex-wrap: wrap; gap: 8px; }
+.tel { flex: 1 1 140px; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none; font-variant-numeric: tabular-nums; }
+.tl { color: var(--info); font-weight: 600; text-decoration: none; }

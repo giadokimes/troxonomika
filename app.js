@@ -62,6 +62,8 @@
   const todayStr = () => iso(new Date());
   const fmt = v => v ? new Date(v + 'T12:00:00').toLocaleDateString('el-GR') : '—';
   const sd = (v) => { if (!v) return '—'; const [y, m, d] = v.split('-'); return d + '/' + m + (y !== String(new Date().getFullYear()) ? '/' + y : ''); };
+  const telHref = (x) => 'tel:' + x.replace(/[^\d+]/g, '');
+  const phoneList = (p) => String(p || '').split(/[\/,;\n]+/).map(x => x.trim()).filter(x => x.replace(/\D/g, '').length >= 7);
   const plus = (s, n) => { const d = new Date(s + 'T12:00:00'); d.setDate(d.getDate() + n); return iso(d); };
   // Πινακίδες: μόνο ελληνικά γράμματα. Τα λατινικά ομόμορφα γράμματα μετατρέπονται σε ελληνικά.
   const LAT = { A:'Α', B:'Β', E:'Ε', Z:'Ζ', H:'Η', I:'Ι', K:'Κ', M:'Μ', N:'Ν', O:'Ο', P:'Ρ', T:'Τ', Y:'Υ', X:'Χ' };
@@ -468,7 +470,6 @@
   const card = (c) => {
     const s = ST[c.state] || ST.search, a = ACT[c.state];
     let act = '';
-    if (c.state === 'to_call' && c.phone) act += `<a class="btn ghost" href="tel:${esc(c.phone)}">Κλήση ${esc(c.phone)}</a>`;
     if (c.state === 'appointment') act += `<a class="btn ghost" target="_blank" rel="noopener" href="${esc(calLink(c))}">Google Calendar</a>`;
     if (a) act += `<button class="btn pri" data-a="${c.id}">${a[0]}</button>`;
     (ACT2[c.state] || []).forEach((x, i) => { act += `<button class="btn ghost" data-b="${c.id}|${i}">${x[0]}</button>`; });
@@ -479,10 +480,13 @@
     // Το κουμπί "Αντιγραφή Κειμένου" έχει αφαιρεθεί προσωρινά
     
     const tl = timeline(c), lastAction = tl.length ? evText(tl[tl.length - 1]) : '—';
+    const pls = c.state === 'closed' ? [] : phoneList(c.phone);
+    const tels = pls.length ? `<div class="tels">${pls.map(x => `<a class="tel" href="${esc(telHref(x))}">Κλήση ${esc(x)}</a>`).join('')}</div>` : '';
     const pk = normPlate(c.plate), nO = (pc[pk] || 1) - 1;
     const multi = nO ? `<button class="linkbtn" data-p="${esc(pk)}">Άλλες υποθέσεις με την ίδια πινακίδα: ${nO}</button>` : '';
 
     const det = [
+      c.phone && `<span><b>Τηλέφωνο:</b> ${phoneList(c.phone).map(x => `<a class="tl" href="${esc(telHref(x))}">${esc(x)}</a>`).join(' · ') || esc(c.phone)}</span>`,
       c.folder && `<span><b>Φάκελος:</b> ${esc(c.folder)}</span>`,
       c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
       c.removalDays > 0 && `<span><b>Ημέρες αφαίρεσης:</b> ${esc(c.removalDays)}</span>`,
@@ -492,6 +496,7 @@
     
     return `<article class="card t-${s.t}">
       <div class="hd"><div><div class="pl">${esc(c.plate)}</div><div class="nm">${esc(c.name)}</div></div><span class="badge">${s.l}</span></div>
+      ${tels}
       ${infoLine(c) ? `<div class="info">${esc(infoLine(c))}</div>` : ''}
       ${multi}
       ${invHTML(c)}${c.moveTo ? `<div class="mv">Μετακίνηση φακέλου: <b>${esc(c.moveTo)}</b></div>` : ''}
