@@ -171,3 +171,21 @@ input:not([type="date"]):not([type="number"]):not([type="checkbox"]):not([type="
 .tels { display: flex; flex-wrap: wrap; gap: 8px; }
 .tel { flex: 1 1 140px; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none; font-variant-numeric: tabular-nums; }
 .tl { color: var(--info); font-weight: 600; text-decoration: none; }
+
+/* --- Συμπαγής κάρτα: πορεία, επόμενη ενέργεια --- */
+.card.u { border-left: 3px solid var(--warn); }
+.card.o { border-left: 3px solid var(--bad); }
+.next { display: flex; flex-direction: column; gap: 2px; }
+.next small { font-size: 11px; color: var(--mut); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.next strong { font-size: 16px; font-weight: 600; }
+.next span { font-size: 13px; color: var(--mut); }
+.card.o .next span { color: var(--bad); }
+.steps { display: flex; flex-direction: column; gap: 6px; }
+.steps .bar { display: flex; gap: 4px; }
+.steps .bar i { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
+.steps .bar i.d { background: var(--mut); }
+.steps .bar i.c { background: var(--ink); }
+.steps span { font-size: 12px; color: var(--mut); }
+.tel { min-height: 40px; padding: 8px 14px; font-size: 14px; }
+.more .sec { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.more .sec .btn { min-height: 44px; font-size: 14px; }
