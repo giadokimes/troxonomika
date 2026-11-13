@@ -1,4 +1,4 @@
-const CACHE = "troxonomika-v42";
+const CACHE = "troxonomika-v43"; // Άλλαξα την έκδοση εδώ για να σπάσει η προηγούμενη μνήμη
 const FILES = ["./", "./index.html", "./style.css", "./app.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -18,7 +18,6 @@ self.addEventListener("fetch", e => {
   if (r.method !== "GET") return;
   const u = new URL(r.url);
   if (u.origin !== location.origin) return;
-  // HTML: network-first. Υπόλοιπα: από cache και ενημέρωση στο παρασκήνιο
   if (r.mode === "navigate" || u.pathname.endsWith(".html")) {
     e.respondWith(fetch(r).then(res => {
       const cp = res.clone(); caches.open(CACHE).then(c => c.put(r, cp)); return res;

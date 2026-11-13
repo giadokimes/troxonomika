@@ -33,7 +33,7 @@
   const BLANK_DATES = { phone:'', appt:'', susp:'', return:'', inv1Send:'', inv1Proof:'', inv2Send:'', inv2Proof:'', inv3Send:'', inv3Proof:'', inv1Create:'', inv2Create:'', inv3Create:'', returned:'', closed:'', closedKind:'', callRes:'', searchNone:'', docRecv:'', polRem:'', polRet:'', oos:'', oosDest:'', oosReason:'' };
 
   let cases = [];
-  let currentView = 'today'; // 'today' | 'cases' | 'menu' | 'detail'
+  let currentView = 'today';
   let currentDetailId = null;
   let folderF = 'all', stateF = 'all', q = '';
 
@@ -87,10 +87,7 @@
 
   // ---------- Αποθήκευση & Migration ----------
   let locked = false;
-  const save = () => {
-    if (locked) return;
-    localStorage.setItem(KEY, JSON.stringify(cases));
-  };
+  const save = () => { if (!locked) localStorage.setItem(KEY, JSON.stringify(cases)); };
   const get = (id) => cases.find(x => x.id === id);
   const stripNo = (f) => String(f || '').replace(/^[0-9]\.\s*/, '');
 
@@ -152,7 +149,6 @@
   };
   
   const step3 = (c) => { c.ev = buildEv(c); c.schema = 3; return step4(c); };
-  
   const step4 = (c) => {
     const D = c.dates, evs = c.ev || [], last = (p) => evs.filter(p).pop();
     c._old = c.state;
@@ -203,23 +199,13 @@
   const load = () => {
     try {
       const cur = localStorage.getItem(KEY);
-      if (cur) { 
-        cases = (JSON.parse(cur) || []).map(migrate);
-        tick();
-        return; 
-      }
+      if (cur) { cases = (JSON.parse(cur) || []).map(migrate); tick(); return; }
     } catch (e) {}
     for (const k of OLD) {
       let arr = null;
       try { arr = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { continue; }
       if (!Array.isArray(arr) || !arr.length) continue;
-      try {
-        const out = arr.map(migrate);
-        cases = out; save();
-        tick();
-      } catch (e) {
-        locked = true; cases = [];
-      }
+      try { const out = arr.map(migrate); cases = out; save(); tick(); } catch (e) { locked = true; cases = []; }
       return;
     }
     cases = [];
@@ -415,7 +401,7 @@
     const wt = whenText(c);
     const badgeClass = s.t === 'bad' ? 'bad' : s.t === 'warn' ? 'warn' : '';
     return `
-      <div class="card-mini ${alertClass}" onclick="openDetail('${c.id}')">
+      <div class="card-mini ${alertClass}" data-id="${c.id}">
         <div class="card-header">
           <div style="font-weight:700; font-size:16px;">${esc(c.plate)} <span style="font-weight:400; color:var(--mut); font-size:14px;">${esc(c.name)}</span></div>
           <div class="badge ${badgeClass}">${s.l}</div>
@@ -453,12 +439,8 @@
 
   const openDetail = (id) => {
     currentDetailId = id;
-    currentView = 'detail';
     goTo('detail');
   };
-
-  window.goTo = goTo;
-  window.openDetail = openDetail;
 
   // ---------- Render: ΣΗΜΕΡΑ ----------
   const renderToday = () => {
@@ -471,13 +453,11 @@
         polCases.push(c);
       } else {
         const due = dueOf(c);
-        // Εκκρεμότητες ή εκπρόθεσμα (to_return, transmittal, complaint, inv_create, inv_next, search, to_call)
         if (due && due <= tToday) urgentCases.push(c);
         else if (isSoon(c)) urgentCases.push(c);
       }
     });
 
-    // Sort urgent by priority: to_return > transmittal > inv_create > inv_next > search > to_call
     const prio = (c) => {
       const s = c.state;
       if (s === 'to_return') return 1;
@@ -502,17 +482,20 @@
   // ---------- Render: ΥΠΟΘΕΣΕΙΣ ----------
   const renderCases = () => {
     const fm = {}; cases.forEach(c => { const f = c.folder || '(χωρίς φάκελο)'; fm[f] = (fm[f] || 0) + 1; });
-    $('#folderFilters').innerHTML = `<button class="chip${folderF === 'all' ? ' on' : ''}" onclick="folderF='all';render()">Όλοι</button>` +
-      Object.keys(fm).sort().map(f => `<button class="chip${folderF === f ? ' on' : ''}" onclick="folderF='${f}';render()">${esc(f)}</button>`).join('');
+    
+    let fHtml = `<button class="chip${folderF === 'all' ? ' on' : ''}" data-folder="all">Όλοι</button>`;
+    fHtml += Object.keys(fm).sort().map(f => `<button class="chip${folderF === f ? ' on' : ''}" data-folder="${esc(f)}">${esc(f)}</button>`).join('');
+    $('#folderFilters').innerHTML = fHtml;
       
     const sc = {}; cases.forEach(c => sc[c.state] = (sc[c.state] || 0) + 1);
     const ic = { 1: 0, 2: 0, 3: 0 }; cases.forEach(c => { const n = invDone(c); if (n && c.state !== 'closed') ic[n]++; });
     
-    $('#stateFilters').innerHTML = `<button class="chip${stateF === 'all' ? ' on' : ''}" onclick="stateF='all';render()">Όλα</button>` +
-      `<button class="chip${stateF === 'today' ? ' on' : ''}" onclick="stateF='today';render()">Σήμερα</button>` +
-      `<button class="chip${stateF === 'pol' ? ' on' : ''}" onclick="stateF='pol';render()">POL</button>` +
-      [1, 2, 3].filter(n => ic[n]).map(n => `<button class="chip${stateF === 'inv:' + n ? ' on' : ''}" onclick="stateF='inv:${n}';render()">${n} Πρόσκληση</button>`).join('') +
-      Object.keys(ST).filter(k => sc[k]).map(k => `<button class="chip${stateF === k ? ' on' : ''}" onclick="stateF='${k}';render()">${ST[k].l}</button>`).join('');
+    let sHtml = `<button class="chip${stateF === 'all' ? ' on' : ''}" data-state="all">Όλα</button>`;
+    sHtml += `<button class="chip${stateF === 'today' ? ' on' : ''}" data-state="today">Σήμερα</button>`;
+    sHtml += `<button class="chip${stateF === 'pol' ? ' on' : ''}" data-state="pol">POL</button>`;
+    sHtml += [1, 2, 3].filter(n => ic[n]).map(n => `<button class="chip${stateF === 'inv:' + n ? ' on' : ''}" data-state="inv:${n}">${n} Πρόσκληση</button>`).join('');
+    sHtml += Object.keys(ST).filter(k => sc[k]).map(k => `<button class="chip${stateF === k ? ' on' : ''}" data-state="${k}">${ST[k].l}</button>`).join('');
+    $('#stateFilters').innerHTML = sHtml;
 
     const ql = fold(q).trim();
     const stOk = (c) => stateF === 'all' || (stateF === 'today' ? (c.state === 'pol_rem' || c.state === 'pol_ret' || dueOf(c) <= todayStr()) : stateF === 'pol' ? (c.state === 'pol_rem' || c.state === 'pol_ret')
@@ -524,8 +507,6 @@
 
     $('#casesList').innerHTML = list.map(c => cardMini(c)).join('') || '<div class="empty">Δεν βρέθηκαν υποθέσεις.</div>';
   };
-  window.folderF = 'all'; window.stateF = 'all';
-  $('#searchInput').oninput = (e) => { q = e.target.value; renderCases(); };
 
   // ---------- Render: ΛΕΠΤΟΜΕΡΕΙΕΣ ----------
   const renderDetail = () => {
@@ -537,11 +518,11 @@
     const pls = c.state === 'closed' ? [] : phoneList(c.phone);
     
     let actionsHTML = '';
-    if (a) actionsHTML += `<button class="btn-action primary" onclick="ACT['${c.state}'][1](get('${c.id}'))">${a[0]}</button>`;
+    if (a) actionsHTML += `<button class="btn-action primary" data-act="${c.state}" data-id="${c.id}">${a[0]}</button>`;
     (ACT2[c.state] || []).filter(x => !x[2] || x[2](c)).forEach((x, i) => {
-      actionsHTML += `<button class="btn-action secondary" onclick="(ACT2['${c.state}']||[]).filter(x=>!x[2]||x[2](get('${c.id}')))[${i}][1](get('${c.id}'))">${x[0]}</button>`;
+      actionsHTML += `<button class="btn-action secondary" data-act2="${i}" data-id="${c.id}">${x[0]}</button>`;
     });
-    if (c.state !== 'closed' && !c.dates.oos) actionsHTML += `<button class="btn-action secondary" onclick="actOOS(get('${c.id}'))">Εκτός αρμοδιότητας</button>`;
+    if (c.state !== 'closed' && !c.dates.oos) actionsHTML += `<button class="btn-action secondary" data-oos="${c.id}">Εκτός αρμοδιότητας</button>`;
 
     const tl = timeline(c);
     
@@ -587,10 +568,58 @@
       </div>
       
       <div class="section">
-        <button class="btn ghost full" onclick="openForm('${c.id}')">Επεξεργασία Στοιχείων</button>
+        <button class="btn ghost full" data-edit="${c.id}">Επεξεργασία Στοιχείων</button>
       </div>
     `;
   };
+
+  // ---------- Global Event Delegation ----------
+  document.body.addEventListener('click', (e) => {
+    // Bottom Nav
+    const nav = e.target.closest('.nav-item');
+    if (nav) { goTo(nav.dataset.view); return; }
+
+    // Back button
+    if (e.target.closest('#btnBack')) { goTo('cases'); return; }
+
+    // Open Card
+    const card = e.target.closest('.card-mini');
+    if (card && card.dataset.id) { openDetail(card.dataset.id); return; }
+
+    // Filter Chips
+    const fChip = e.target.closest('[data-folder]');
+    if (fChip) { folderF = fChip.dataset.folder; renderCases(); return; }
+    const sChip = e.target.closest('[data-state]');
+    if (sChip) { stateF = sChip.dataset.state; renderCases(); return; }
+
+    // Detail Actions
+    const btnAct = e.target.closest('[data-act]');
+    if (btnAct) {
+      const c = get(btnAct.dataset.id);
+      const act = ACT[btnAct.dataset.act];
+      if (c && act) act[1](c);
+      return;
+    }
+    const btnAct2 = e.target.closest('[data-act2]');
+    if (btnAct2) {
+      const c = get(btnAct2.dataset.id);
+      const arr = (ACT2[c.state] || []).filter(x => !x[2] || x[2](c));
+      const act = arr[Number(btnAct2.dataset.act2)];
+      if (c && act) act[1](c);
+      return;
+    }
+    const btnOos = e.target.closest('[data-oos]');
+    if (btnOos) {
+      const c = get(btnOos.dataset.oos);
+      if (c) actOOS(c);
+      return;
+    }
+    const btnEdit = e.target.closest('[data-edit]');
+    if (btnEdit) {
+      openForm(btnEdit.dataset.edit);
+      return;
+    }
+  });
 
   // ---------- Φόρμα & Modals ----------
   const F = $('#caseForm'), dlgF = $('#dlgForm'), E = F.elements;
@@ -667,7 +696,6 @@
     toggles();
     dlgF.showModal();
   };
-  window.openForm = openForm;
 
   F.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -736,6 +764,8 @@
   };
 
   // ---------- Init ----------
+  $('#searchInput').oninput = (e) => { q = e.target.value; if (currentView === 'cases') renderCases(); };
+  
   load(); render();
   setInterval(() => { tick(); render(); }, 60000);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
