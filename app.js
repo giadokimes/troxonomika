@@ -510,7 +510,7 @@
     if (/_next$/.test(s)) return 'δημιουργήθηκε ' + sd(d);
     if (s === 'appointment') return 'ραντεβού ' + sd(d) + (k > 0 ? ' · πριν ' + k + ' ημ.' : k === 0 ? ' · σήμερα' : ' · σε ' + (-k) + ' ημ.');
     if (s === 'suspended') return 'απόδοση ' + sd(d) + ' · σε ' + (-k) + ' ημ.';
-    if (URG.includes(s)) return (k > 0 ? 'εκκρεμεί από ' + sd(d) + ' · ' + k + ' ημ.' : 'από σήμερα');
+    if (URG.includes(s)) return (k > 0 ? 'από ' + sd(d) + ' · ' + k + ' ημ.' : 'από σήμερα');
     return (k === 0 ? 'σήμερα' : 'έως ' + sd(d) + (k < 0 ? ' · σε ' + (-k) + ' ημ.' : ''));
   };
   const nextLabel = (c) => {
@@ -520,6 +520,13 @@
     if (c.state === 'suspended') return 'Αναμονή λήξης αφαίρεσης';
     if (/_wait$/.test(c.state)) return 'Αναμονή 10 ημερών για την επόμενη πρόσκληση';
     return c.state === 'closed' ? 'Καμία' : '';
+  };
+  const pendingLabel = (c) => {
+    const s = c.state, m = /^inv(\d)_(create|next|sent|wait)$/.exec(s);
+    if (m) return { create: 'Εκκρεμεί δημιουργία ' + m[1] + 'ης πρόσκλησης', next: 'Εκκρεμεί αποστολή ' + m[1] + 'ης πρόσκλησης', sent: 'Αναμονή ' + m[1] + 'ου αποδεικτικού', wait: 'Αναμονή 10 ημερών από το ' + m[1] + 'ο αποδεικτικό' }[m[2]];
+    if (s === 'appointment') return c.removalDays > 0 ? 'Εκκρεμεί αφαίρεση διπλώματος' : 'Εκκρεμεί παραλαβή εγγράφου';
+    return { search: 'Εκκρεμεί αναζήτηση τηλεφώνου', to_call: 'Εκκρεμεί κλήση', informed: 'Αναμονή κλήσης από τον πολίτη', pol_rem: 'Εκκρεμεί POL αφαίρεσης', pol_ret: 'Εκκρεμεί POL απόδοσης',
+      suspended: 'Αναμονή λήξης αφαίρεσης', to_return: 'Εκκρεμεί απόδοση διπλώματος', transmittal: 'Εκκρεμεί διαβιβαστικό', complaint: 'Εκκρεμεί μήνυση', closed: '' }[s] || '';
   };
   const stepInfo = (c) => {
     const rem = c.removalDays > 0 || !!c.dates.susp;
@@ -549,7 +556,7 @@
     const s = ST[c.state] || { l: 'Άγνωστη κατάσταση', t: 'bad' };
     const pls = c.state === 'closed' ? [] : phoneList(c.phone);
     const cls = hotState(c) ? 'o' : urgent(c) ? 'u' : '', n = invDone(c);
-    const txt = badge ? [whenText(c)] : [nextLabel(c), whenText(c)];
+    const txt = badge ? [whenText(c)] : [pendingLabel(c), whenText(c)];
     return `<div class="rc ${cls}" data-open="${c.id}">
       <div class="rc-m">
         <div class="rc-t"><b>${esc(c.plate)}</b><span>${esc(c.name)}</span>${n ? `<em>${n}/3</em>` : ''}</div>
@@ -619,7 +626,7 @@
     const s = ST[c.state] || { l: 'Άγνωστη κατάσταση', t: 'bad' }, a = ACT[c.state];
     const cls = hotState(c) ? 'o' : urgent(c) ? 'u' : '';
     const pls = c.state === 'closed' ? [] : phoneList(c.phone);
-    const nl = nextLabel(c), wt = whenText(c);
+    const nl = pendingLabel(c), wt = whenText(c);
     const tl = timeline(c);
     const nO = (pc[normPlate(c.plate)] || 1) - 1;
     let sec = '';

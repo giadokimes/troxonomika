@@ -286,3 +286,5 @@ main { padding-top: 4px; display: block; }
 #dlgWizard .dlg, #dlgPick .dlg, #dlgHistory .dlg { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 
 .more-btn { display: block; width: 100%; text-align: center; padding: 12px; font-size: 14px; min-height: 44px; }
+
+.newbar { width: 100%; min-height: 54px; font-size: 16px; }
