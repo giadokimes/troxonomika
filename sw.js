@@ -1,4 +1,4 @@
-const CACHE = "troxonomika-v49"; // Άλλαξα την έκδοση εδώ για να σπάσει η προηγούμενη μνήμη
+const CACHE = "troxonomika-v50"; // Άλλαξα την έκδοση εδώ για να σπάσει η προηγούμενη μνήμη
 const FILES = ["./", "./index.html", "./style.css", "./app.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
