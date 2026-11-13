@@ -402,18 +402,49 @@
   };
 
   // ---------- UI Components ----------
+  const pendingLabel = (c) => {
+    const s = c.state;
+    if (s === 'closed') return '';
+    if (s === 'search') return 'Εκκρεμεί αναζήτηση τηλεφώνου';
+    if (s === 'to_call') return 'Εκκρεμεί κλήση';
+    if (s === 'informed') return 'Αναμονή 5 ημερών για πρόσκληση';
+    if (s === 'appointment') return c.removalDays > 0 ? 'Εκκρεμεί αφαίρεση διπλώματος' : 'Εκκρεμεί παραλαβή εγγράφου';
+    if (s === 'suspended') return 'Αναμονή λήξης αφαίρεσης';
+    if (s === 'to_return') return 'Εκκρεμεί απόδοση διπλώματος';
+    if (s === 'pol_rem') return 'Εκκρεμεί καταχώρηση POL (αφαίρεση)';
+    if (s === 'pol_ret') return 'Εκκρεμεί καταχώρηση POL (απόδοση)';
+    
+    const m = /^inv(\d)_(create|next|sent|wait)$/.exec(s);
+    if (m) {
+      const n = m[1], type = m[2];
+      if (type === 'create') return `Εκκρεμεί δημιουργία ${n}ης πρόσκλησης`;
+      if (type === 'next') return `Εκκρεμεί αποστολή ${n}ης πρόσκλησης`;
+      if (type === 'sent') return `Εκκρεμεί παραλαβή ${n}ου αποδεικτικού`;
+      if (type === 'wait') return `Αναμονή 10ημ. (${n}ο)`;
+    }
+    
+    if (s === 'transmittal') return 'Εκκρεμεί διαβιβαστικό';
+    if (s === 'complaint') return 'Εκκρεμεί μήνυση';
+    return (ST[s] || {}).l || '';
+  };
+
   const cardMini = (c, alertClass = '') => {
-    const s = ST[c.state] || { l: 'Άγνωστη', t: 'bad' }, a = ACT[c.state];
-    const nl = a ? a[0] : '';
+    const s = ST[c.state] || { l: 'Άγνωστη', t: 'bad' };
+    const nl = pendingLabel(c);
     const wt = whenText(c);
     const badgeClass = s.t === 'bad' ? 'bad' : s.t === 'warn' ? 'warn' : '';
     return `
       <div class="card-mini ${alertClass}" data-id="${c.id}">
-        <div class="card-header">
+        <div class="card-header" style="margin-bottom: 8px;">
           <div style="font-weight:700; font-size:16px;">${esc(c.plate)} <span style="font-weight:400; color:var(--mut); font-size:14px;">${esc(c.name)}</span></div>
           <div class="badge ${badgeClass}">${s.l}</div>
         </div>
-        ${nl ? `<div class="next-action">${esc(nl)} <span>${esc(wt)}</span></div>` : (wt ? `<div class="next-action"><span>${esc(wt)}</span></div>` : '')}
+        ${nl ? `<div class="next-action">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap: 8px;">
+            <strong style="font-weight:500; color:var(--ink); font-size:14px;">${esc(nl)}</strong>
+            <span style="color:var(--mut); font-size:13px; text-align:right; white-space:nowrap;">${esc(wt)}</span>
+          </div>
+        </div>` : (wt ? `<div class="next-action"><span>${esc(wt)}</span></div>` : '')}
       </div>
     `;
   };
