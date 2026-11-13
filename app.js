@@ -311,9 +311,9 @@
     appointment: ['Πραγματοποιήθηκε αφαίρεση', actRemoval],
     pol_rem: ['Επιβεβαίωση POL (αφαίρεση)', actPolRem], pol_ret: ['Επιβεβαίωση POL (απόδοση)', actPolRet],
     to_return: ['Απόδοση διπλώματος', actDeliver],
-    inv1_create: ['Δημιουργία 1ης', c => createInv(c, 1)], inv1_next: ['Αποστολή 1ης', c => invite(c, 1)], inv1_sent: ['Παραλαβή 1ου αποδεικτικού', c => proof(c, 1)],
-    inv2_create: ['Δημιουργία 2ης', c => createInv(c, 2)], inv2_next: ['Αποστολή 2ης', c => invite(c, 2)], inv2_sent: ['Παραλαβή 2ου αποδεικτικού', c => proof(c, 2)],
-    inv3_create: ['Δημιουργία 3ης', c => createInv(c, 3)], inv3_next: ['Αποστολή 3ης', c => invite(c, 3)], inv3_sent: ['Παραλαβή 3ου αποδεικτικού', c => proof(c, 3)],
+    inv1_create: ['Δημιουργία 1ης', c => createInv(c, 1)], inv1_next: ['Αποστολή 1ης', c => invite(c, 1)], inv1_sent: ['Παραλαβή 1ου αποδεικτικού', c => proof(c, 1)], inv1_wait: ['Καταχώρηση 1ου αποδεικτικού', c => proof(c, 1)],
+    inv2_create: ['Δημιουργία 2ης', c => createInv(c, 2)], inv2_next: ['Αποστολή 2ης', c => invite(c, 2)], inv2_sent: ['Παραλαβή 2ου αποδεικτικού', c => proof(c, 2)], inv2_wait: ['Καταχώρηση 2ου αποδεικτικού', c => proof(c, 2)],
+    inv3_create: ['Δημιουργία 3ης', c => createInv(c, 3)], inv3_next: ['Αποστολή 3ης', c => invite(c, 3)], inv3_sent: ['Παραλαβή 3ου αποδεικτικού', c => proof(c, 3)], inv3_wait: ['Καταχώρηση 3ου αποδεικτικού', c => proof(c, 3)],
     transmittal: ['Δημιουργήθηκε το διαβιβαστικό', actTransmit], complaint: ['Υποβλήθηκε η μήνυση', actComplaint]
   };
   const ACT2 = { appointment: [['Παρέλαβε έγγραφο (χωρίς αφαίρεση)', actReceived, c => !(c.removalDays > 0)]] };
@@ -395,46 +395,18 @@
   };
 
   // ---------- UI Components ----------
-  const phoneIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3.1-8.7A2 2 0 014 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L8 9.9a16 16 0 006 6l1.5-1.1a2 2 0 012.1-.4c.8.3 1.7.5 2.6.6A2 2 0 0122 16.9z"/></svg>`;
-
-  const cardMini = (c, alertClass = '', withAct = false) => {
+  const cardMini = (c, alertClass = '') => {
     const s = ST[c.state] || { l: 'Άγνωστη', t: 'bad' }, a = ACT[c.state];
     const nl = a ? a[0] : '';
     const wt = whenText(c);
-    const badgeClass = s.t === 'bad' ? 'bad' : s.t === 'warn' ? 'warn' : s.t === 'ok' ? 'ok' : '';
-    const phones = phoneList(c.phone);
-    const call = phones.length
-      ? `<a class="call-btn" href="${telHref(phones[0])}" data-stop="1" aria-label="Κλήση">${phoneIcon}</a>`
-      : '';
-    const stepCap = (() => {
-      const rem = c.removalDays > 0 || !!c.dates.susp;
-      const total = rem ? 6 : 4;
-      const M = { search: 0, to_call: 0, informed: 0, pol_rem: 3, pol_ret: 4, appointment: 2, suspended: 3, to_return: 4, transmittal: 5, complaint: 5 };
-      let i = /^inv/.test(c.state) ? 1 : (M[c.state] === undefined ? 0 : M[c.state]);
-      if (!rem && i > 3) i = 3;
-      if (c.state === 'closed') i = total - 1;
-      return `βήμα ${Math.min(i + 1, total)}/${total}` + (/^inv/.test(c.state) || invDone(c) ? ` · ${invDone(c)}/3` : '');
-    })();
-    const actBtn = (withAct && a)
-      ? `<button type="button" class="btn-card" data-act="${c.state}" data-id="${c.id}" data-stop="1">${esc(a[0])}</button>`
-      : '';
+    const badgeClass = s.t === 'bad' ? 'bad' : s.t === 'warn' ? 'warn' : '';
     return `
       <div class="card-mini ${alertClass}" data-id="${c.id}">
-        <div class="card-top">
-          <div class="card-id">
-            <div class="pl-mini">${esc(c.plate)}</div>
-            <div class="nm-mini">${esc(c.name)}</div>
-          </div>
-          <div class="card-tools">
-            ${call}
-            <div class="badge ${badgeClass}">${esc(s.l)}</div>
-          </div>
+        <div class="card-header">
+          <div style="font-weight:700; font-size:16px;">${esc(c.plate)} <span style="font-weight:400; color:var(--mut); font-size:14px;">${esc(c.name)}</span></div>
+          <div class="badge ${badgeClass}">${s.l}</div>
         </div>
-        ${nl ? `<div class="next-action">${esc(nl)}${wt ? `<span class="when">${esc(wt)}</span>` : ''}</div>` : ''}
-        <div class="card-foot">
-          <span class="step-mini">${esc(stepCap)}</span>
-          ${actBtn}
-        </div>
+        ${nl ? `<div class="next-action">${esc(nl)} <span>${esc(wt)}</span></div>` : ''}
       </div>
     `;
   };
@@ -454,13 +426,11 @@
     });
     $('#headerTitle').textContent = currentView === 'today' ? 'Σήμερα' : currentView === 'cases' ? 'Υποθέσεις' : currentView === 'menu' ? 'Μενού' : 'Υπόθεση';
     $('#btnBack').classList.toggle('hidden', currentView !== 'detail');
-    const fab = $('#btnFab');
-    if (fab) fab.classList.toggle('hidden', currentView === 'detail' || currentView === 'menu');
   };
 
   const goTo = (v) => {
     currentView = v;
-    if (v !== 'detail') currentDetailId = null; // <--- ΤΟ ΔΙΟΡΘΩΣΑ ΕΔΩ
+    if (v !== 'detail') currentDetailId = null; 
     document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
     if (v === 'detail') $('#view-detail').classList.remove('hidden');
     else $(`#view-${v}`).classList.remove('hidden');
@@ -492,7 +462,7 @@
       const s = c.state;
       if (s === 'to_return') return 1;
       if (s === 'transmittal' || s === 'complaint') return 2;
-      if (/^inv\d_(create|next)$/.test(s)) return 3;
+      if (/^inv\d_(create|next)/.test(s)) return 3;
       if (s === 'search' || s === 'to_call') return 4;
       return 5;
     };
@@ -501,10 +471,10 @@
     $('#statTodayTitle').textContent = (polCases.length + urgentCases.length) + ' ενέργειες';
     
     $('#today-pol-section').classList.toggle('hidden', polCases.length === 0);
-    $('#today-pol-list').innerHTML = polCases.map(c => cardMini(c, 'pol-alert', true)).join('');
+    $('#today-pol-list').innerHTML = polCases.map(c => cardMini(c, 'pol-alert')).join('');
 
     $('#today-actions-section').classList.toggle('hidden', urgentCases.length === 0);
-    $('#today-actions-list').innerHTML = urgentCases.map(c => cardMini(c, 'urgent-alert', true)).join('');
+    $('#today-actions-list').innerHTML = urgentCases.map(c => cardMini(c, 'urgent-alert')).join('');
     
     $('#today-empty').classList.toggle('hidden', polCases.length > 0 || urgentCases.length > 0);
   };
@@ -544,9 +514,8 @@
     if (!c) { goTo('cases'); return; }
     
     const s = ST[c.state] || { l: 'Άγνωστη', t: 'bad' }, a = ACT[c.state];
-    const badgeClass = s.t === 'bad' ? 'bad' : s.t === 'warn' ? 'warn' : s.t === 'ok' ? 'ok' : '';
+    const badgeClass = s.t === 'bad' ? 'bad' : s.t === 'warn' ? 'warn' : '';
     const pls = c.state === 'closed' ? [] : phoneList(c.phone);
-    const wt = whenText(c);
     
     let actionsHTML = '';
     if (a) actionsHTML += `<button class="btn-action primary" data-act="${c.state}" data-id="${c.id}">${a[0]}</button>`;
@@ -556,22 +525,18 @@
     if (c.state !== 'closed' && !c.dates.oos) actionsHTML += `<button class="btn-action secondary" data-oos="${c.id}">Εκτός αρμοδιότητας</button>`;
 
     const tl = timeline(c);
-    const phoneHtml = pls.length
-      ? pls.map(x => `<a href="${telHref(x)}">${esc(x)}</a>`).join('<br>')
-      : '—';
     
     $('#detailContent').innerHTML = `
       <div class="detail-header">
         <h1 class="detail-plate">${esc(c.plate)}</h1>
         <h2 class="detail-name">${esc(c.name)}</h2>
-        <div class="detail-badge ${badgeClass}">${esc(s.l)}</div>
-        ${wt ? `<div class="detail-when">${esc(wt)}</div>` : ''}
+        <div class="detail-badge ${badgeClass}">${s.l}</div>
       </div>
       
       <div class="detail-info">
         <div class="detail-info-item">
           <small>Τηλέφωνο</small>
-          <strong>${phoneHtml}</strong>
+          <strong>${pls.length ? pls.map(x => `<a href="${telHref(x)}" style="color:var(--warn); text-decoration:none;">${esc(x)}</a>`).join(', ') : '—'}</strong>
         </div>
         <div class="detail-info-item">
           <small>Φάκελος</small>
@@ -603,27 +568,22 @@
       </div>
       
       <div class="section">
-        <button class="btn ghost full" data-edit="${c.id}">Επεξεργασία στοιχείων</button>
+        <button class="btn ghost full" data-edit="${c.id}">Επεξεργασία Στοιχείων</button>
       </div>
     `;
   };
 
   // ---------- Global Event Delegation ----------
   document.body.addEventListener('click', (e) => {
-    // Bottom Nav
     const nav = e.target.closest('.nav-item');
     if (nav) { goTo(nav.dataset.view); return; }
-
-    // Back button
     if (e.target.closest('#btnBack')) { goTo('cases'); return; }
-
-    // Filter Chips
+    const card = e.target.closest('.card-mini');
+    if (card && card.dataset.id) { openDetail(card.dataset.id); return; }
     const fChip = e.target.closest('[data-folder]');
     if (fChip) { folderF = fChip.dataset.folder; renderCases(); return; }
     const sChip = e.target.closest('[data-state]');
     if (sChip) { stateF = sChip.dataset.state; renderCases(); return; }
-
-    // Primary / secondary actions (before card open)
     const btnAct = e.target.closest('[data-act]');
     if (btnAct) {
       const c = get(btnAct.dataset.id);
@@ -648,13 +608,6 @@
     const btnEdit = e.target.closest('[data-edit]');
     if (btnEdit) {
       openForm(btnEdit.dataset.edit);
-      return;
-    }
-
-    // Open Card (ignore interactive controls)
-    const card = e.target.closest('.card-mini');
-    if (card && card.dataset.id && !e.target.closest('a,button,[data-stop]')) {
-      openDetail(card.dataset.id);
       return;
     }
   });
