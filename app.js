@@ -311,14 +311,21 @@
     appointment: ['Πραγματοποιήθηκε αφαίρεση', actRemoval],
     pol_rem: ['Επιβεβαίωση POL (αφαίρεση)', actPolRem], pol_ret: ['Επιβεβαίωση POL (απόδοση)', actPolRet],
     to_return: ['Απόδοση διπλώματος', actDeliver],
-    inv1_create: ['Δημιουργία 1ης', c => createInv(c, 1)], inv1_next: ['Αποστολή 1ης', c => invite(c, 1)], inv1_sent: ['Παραλαβή 1ου αποδεικτικού', c => proof(c, 1)], inv1_wait: ['Καταχώρηση 1ου αποδεικτικού', c => proof(c, 1)],
-    inv2_create: ['Δημιουργία 2ης', c => createInv(c, 2)], inv2_next: ['Αποστολή 2ης', c => invite(c, 2)], inv2_sent: ['Παραλαβή 2ου αποδεικτικού', c => proof(c, 2)], inv2_wait: ['Καταχώρηση 2ου αποδεικτικού', c => proof(c, 2)],
-    inv3_create: ['Δημιουργία 3ης', c => createInv(c, 3)], inv3_next: ['Αποστολή 3ης', c => invite(c, 3)], inv3_sent: ['Παραλαβή 3ου αποδεικτικού', c => proof(c, 3)], inv3_wait: ['Καταχώρηση 3ου αποδεικτικού', c => proof(c, 3)],
+    inv1_create: ['Δημιουργία 1ης', c => createInv(c, 1)], inv1_next: ['Αποστολή 1ης', c => invite(c, 1)], inv1_sent: ['Παραλαβή 1ου αποδεικτικού', c => proof(c, 1)],
+    inv2_create: ['Δημιουργία 2ης', c => createInv(c, 2)], inv2_next: ['Αποστολή 2ης', c => invite(c, 2)], inv2_sent: ['Παραλαβή 2ου αποδεικτικού', c => proof(c, 2)],
+    inv3_create: ['Δημιουργία 3ης', c => createInv(c, 3)], inv3_next: ['Αποστολή 3ης', c => invite(c, 3)], inv3_sent: ['Παραλαβή 3ου αποδεικτικού', c => proof(c, 3)],
     transmittal: ['Δημιουργήθηκε το διαβιβαστικό', actTransmit], complaint: ['Υποβλήθηκε η μήνυση', actComplaint]
   };
+  
   const ACT2 = { appointment: [['Παρέλαβε έγγραφο (χωρίς αφαίρεση)', actReceived, c => !(c.removalDays > 0)]] };
-  ['inv1_create','inv1_next','inv1_sent','inv1_wait','inv2_create','inv2_next','inv2_sent','inv2_wait','inv3_create','inv3_next','inv3_sent','inv3_wait']
+  
+  ['inv1_create','inv1_next','inv1_sent','inv2_create','inv2_next','inv2_sent','inv3_create','inv3_next','inv3_sent']
     .forEach(k => { ACT2[k] = [['Ο πολίτης επικοινώνησε', actContact]]; });
+    
+  ACT2['inv1_wait'] = [['Ο πολίτης επικοινώνησε', actContact], ['Διόρθωση 1ου αποδεικτικού', c => proof(c, 1)]];
+  ACT2['inv2_wait'] = [['Ο πολίτης επικοινώνησε', actContact], ['Διόρθωση 2ου αποδεικτικού', c => proof(c, 2)]];
+  ACT2['inv3_wait'] = [['Ο πολίτης επικοινώνησε', actContact], ['Διόρθωση 3ου αποδεικτικού', c => proof(c, 3)]];
+  
   ACT2.closed = [['Άνοιγμα υπόθεσης', c => { if (confirm('Να ανοίξει ξανά η υπόθεση;')) go(c, '', { closed: '', closedKind: '' }); }]];
 
   // ---------- Render Logic ----------
@@ -406,7 +413,7 @@
           <div style="font-weight:700; font-size:16px;">${esc(c.plate)} <span style="font-weight:400; color:var(--mut); font-size:14px;">${esc(c.name)}</span></div>
           <div class="badge ${badgeClass}">${s.l}</div>
         </div>
-        ${nl ? `<div class="next-action">${esc(nl)} <span>${esc(wt)}</span></div>` : ''}
+        ${nl ? `<div class="next-action">${esc(nl)} <span>${esc(wt)}</span></div>` : (wt ? `<div class="next-action"><span>${esc(wt)}</span></div>` : '')}
       </div>
     `;
   };
