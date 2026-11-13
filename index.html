@@ -11,57 +11,93 @@
 </head>
 <body>
 
-<header>
-  <h1>Υποθέσεις</h1>
-  <div class="top">
-    <button id="btnPrint" class="btn-top">Εκτύπωση</button>
-    <button id="btnExport" class="btn-top">Backup</button>
-    <button id="btnImport" class="btn-top">Επαναφορά</button>
-    <input type="file" id="importFile" accept=".json" hidden>
+<!-- Top Header -->
+<header id="appHeader">
+  <div style="display:flex; align-items:center; gap:12px;">
+    <button id="btnBack" class="btn-icon hidden" onclick="goTo('cases')">←</button>
+    <h1 id="headerTitle">Σήμερα</h1>
   </div>
 </header>
 
-<div id="backupWarning" class="backup-warning" style="display:none;">
-  <span>Έχουν περάσει 7 ημέρες από το τελευταίο Backup. Παρακαλώ κάντε λήψη.</span>
-  <button onclick="document.getElementById('backupWarning').style.display='none'">X</button>
+<!-- Views Container -->
+<div id="appContainer">
+
+  <!-- View: ΣΗΜΕΡΑ -->
+  <section id="view-today" class="view">
+    <div class="stats-header">
+      <h2 id="statTodayTitle">0 ενέργειες</h2>
+      <p>Απαιτούν την προσοχή σου</p>
+    </div>
+    
+    <div id="today-pol-section" class="section hidden">
+      <h3 class="section-title text-bad">Εκκρεμότητες POL</h3>
+      <div id="today-pol-list" class="list"></div>
+    </div>
+
+    <div id="today-actions-section" class="section hidden">
+      <h3 class="section-title text-warn">Ενέργειες</h3>
+      <div id="today-actions-list" class="list"></div>
+    </div>
+    
+    <div id="today-empty" class="empty hidden">Δεν υπάρχουν εκκρεμότητες για σήμερα.</div>
+  </section>
+
+  <!-- View: ΥΠΟΘΕΣΕΙΣ -->
+  <section id="view-cases" class="view hidden">
+    <div class="tools">
+      <input type="search" id="searchInput" placeholder="Αναζήτηση: πινακίδα, όνομα, τηλέφωνο..." autocomplete="off">
+      <button class="btn pri full mt-12" onclick="openForm(null)">+ Νέα Υπόθεση</button>
+      
+      <div class="chips-container mt-16">
+        <div class="chips" id="stateFilters"></div>
+        <div class="chips mt-8" id="folderFilters"></div>
+      </div>
+    </div>
+    <div id="casesList" class="list"></div>
+  </section>
+
+  <!-- View: ΛΕΠΤΟΜΕΡΕΙΕΣ -->
+  <section id="view-detail" class="view hidden">
+    <div id="detailContent"></div>
+  </section>
+
+  <!-- View: ΜΕΝΟΥ -->
+  <section id="view-menu" class="view hidden">
+    <div class="menu-group">
+      <h3>Διαχείριση Δεδομένων</h3>
+      <button class="btn ghost full" id="btnExport">Λήψη Backup (JSON)</button>
+      <button class="btn ghost full" id="btnImport">Επαναφορά από Backup</button>
+      <input type="file" id="importFile" accept=".json" hidden>
+    </div>
+    <div class="menu-group">
+      <h3>Εργαλεία</h3>
+      <button class="btn ghost full" id="btnPrint">Εκτύπωση Λίστας</button>
+    </div>
+    <div class="menu-group">
+      <h3>Πληροφορίες</h3>
+      <p class="muted">Η εφαρμογή υπολογίζει την κατάσταση αυτόματα με βάση τα δεδομένα και την τρέχουσα ημερομηνία.</p>
+    </div>
+  </section>
+
 </div>
 
-<!-- Dashboard Στατιστικών -->
-<div class="dashboard">
-  <div class="stat">
-    <strong id="statTotal">0</strong>
-    <span>Ενεργές Υποθέσεις</span>
-  </div>
-  <div class="stat">
-    <strong id="statDueToday">0</strong>
-    <span>Ενέργειες Σήμερα</span>
-  </div>
-  <div class="stat">
-    <strong id="statDueSoon">0</strong>
-    <span>Προθεσμίες Σύντομα</span>
-  </div>
-  <div class="stat">
-    <strong id="statWaiting">0</strong>
-    <span>Σε Αναμονή</span>
-  </div>
-</div>
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-view="today" onclick="goTo('today')">
+    <span class="icon">📅</span>
+    <span>Σήμερα</span>
+  </button>
+  <button class="nav-item" data-view="cases" onclick="goTo('cases')">
+    <span class="icon">📁</span>
+    <span>Υποθέσεις</span>
+  </button>
+  <button class="nav-item" data-view="menu" onclick="goTo('menu')">
+    <span class="icon">⚙️</span>
+    <span>Μενού</span>
+  </button>
+</nav>
 
-<div class="tools">
-  <input type="search" id="searchInput" placeholder="Αναζήτηση: όνομα, πινακίδα, φάκελος, ημερομηνία..." autocomplete="off">
-  
-  <div class="lbl">Κατάσταση</div>
-  <div class="chips" id="stateFilters"></div>
-  
-  <div class="lbl">Φάκελος</div>
-  <div class="chips" id="folderFilters"></div>
-</div>
-
-<div id="banners" class="banners-container"></div>
-<main id="casesList"></main>
-
-<button class="fab" id="btnNew" aria-label="Νέα Υπόθεση">+</button>
-
-<!-- Modal Φόρμας -->
+<!-- Modals (Φόρμα, Wizard, Ιστορικό) -->
 <dialog id="dlgForm">
   <form id="caseForm" class="dlg">
     <h2 id="formTitle">Νέα Υπόθεση</h2>
@@ -96,15 +132,18 @@
     <details class="adv">
       <summary>Προχωρημένη Διόρθωση (Κατάσταση & Ημερομηνίες)</summary>
       <div class="grid">
-        <label class="full">Χειροκίνητη Κατάσταση<select name="manualState"></select></label>
+        <label class="full" hidden>Χειροκίνητη Κατάσταση<select name="manualState"></select></label>
         <label>Τηλεφώνημα<input type="date" name="d_phone"></label>
         <label>Ραντεβού<input type="date" name="d_appt"></label>
         <label>Αφαίρεση<input type="date" name="d_susp"></label>
         <label>Απόδοση (auto)<input type="date" name="d_return" readonly></label>
+        <label>1η Δημιουργία<input type="date" name="d_inv1Create"></label>
         <label>1η Αποστολή<input type="date" name="d_inv1Send"></label>
         <label>1ο Αποδεικτικό<input type="date" name="d_inv1Proof"></label>
+        <label>2η Δημιουργία<input type="date" name="d_inv2Create"></label>
         <label>2η Αποστολή<input type="date" name="d_inv2Send"></label>
         <label>2ο Αποδεικτικό<input type="date" name="d_inv2Proof"></label>
+        <label>3η Δημιουργία<input type="date" name="d_inv3Create"></label>
         <label>3η Αποστολή<input type="date" name="d_inv3Send"></label>
         <label>3ο Αποδεικτικό<input type="date" name="d_inv3Proof"></label>
       </div>
@@ -118,7 +157,6 @@
   </form>
 </dialog>
 
-<!-- Modal Wizard (Βήμα-Βήμα Ενέργειες) -->
 <dialog id="dlgWizard">
   <div class="dlg">
     <h2 id="wT"></h2>
@@ -128,7 +166,6 @@
   </div>
 </dialog>
 
-<!-- Modal Ιστορικού -->
 <dialog id="dlgHistory">
   <div class="dlg">
     <h2>Ιστορικό Ενεργειών</h2>

@@ -1,191 +1,182 @@
-/* =========================================
-   ULTRA DARK MODE - MATERIAL YOU STYLE
-   ========================================= */
-:root {
-  --bg: #000000;
-  --card: #1c1c1e;
-  --surface: #2c2c2e;
-  --line: #38383a;
-  --ink: #ffffff;
-  --mut: #8e8e93;
-  
-  --pri: #ffffff;
-  --pri-text: #000000;
-  --warn: #ff9f0a;
-  --warn-bg: rgba(255, 159, 10, 0.15);
-  --bad: #ff453a;
-  --bad-bg: rgba(255, 69, 58, 0.15);
-  --ok: #32d74b;
-  --ok-bg: rgba(50, 215, 75, 0.15);
-  --info: #0a84ff;
-  --r: 16px;
-}
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Διαχείριση Υποθέσεων</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html { -webkit-text-size-adjust: 100%; }
-html, body { max-width: 100%; overflow-x: clip; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: 96px; }
-button, input, select, textarea { font: inherit; color: inherit; }
+<!-- Top Header -->
+<header id="appHeader">
+  <div style="display:flex; align-items:center; gap:12px;">
+    <button id="btnBack" class="btn-icon hidden" onclick="goTo('cases')">←</button>
+    <h1 id="headerTitle">Σήμερα</h1>
+  </div>
+</header>
 
-/* Header */
-header {
-  position: sticky; top: 0; z-index: 50;
-  background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  border-bottom: 1px solid var(--line);
-}
-header h1 { font-size: 18px; margin: 0; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.top { display: flex; gap: 6px; flex: none; }
-.btn-top { background: var(--surface); color: var(--ink); border: 0; border-radius: 8px; padding: 8px 9px; font-size: 12px; white-space: nowrap; font-weight: 600; cursor: pointer; }
+<!-- Views Container -->
+<div id="appContainer">
 
-/* Backup Warning */
-.backup-warning { background: var(--warn-bg); color: var(--warn); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--line); }
-.backup-warning button { background: transparent; border: 0; color: var(--warn); cursor: pointer; font-weight: bold; }
+  <!-- View: ΣΗΜΕΡΑ -->
+  <section id="view-today" class="view">
+    <div class="stats-header">
+      <h2 id="statTodayTitle">0 ενέργειες</h2>
+      <p>Απαιτούν την προσοχή σου</p>
+    </div>
+    
+    <div id="today-pol-section" class="section hidden">
+      <h3 class="section-title text-bad">Εκκρεμότητες POL</h3>
+      <div id="today-pol-list" class="list"></div>
+    </div>
 
-/* Dashboard */
-.dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 16px; padding: 24px 16px; max-width: 760px; margin: 0 auto; }
-.stat { display: flex; flex-direction: column; gap: 4px; }
-.stat strong { font-size: 38px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
-.stat span { font-size: 13px; color: var(--mut); font-weight: 500; }
-.stat:nth-child(2) strong { color: var(--bad); }
-.stat:nth-child(3) strong { color: var(--warn); }
+    <div id="today-actions-section" class="section hidden">
+      <h3 class="section-title text-warn">Ενέργειες</h3>
+      <div id="today-actions-list" class="list"></div>
+    </div>
+    
+    <div id="today-empty" class="empty hidden">Δεν υπάρχουν εκκρεμότητες για σήμερα.</div>
+  </section>
 
-/* Filters */
-.tools { padding: 0 16px 16px; max-width: 760px; margin: 0 auto; }
-.tools input[type=search] { width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); outline: none; color: var(--ink); font-size: 15px; }
-.tools input[type=search]:focus { border-color: var(--mut); }
-.lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--mut); margin: 16px 4px 8px; font-weight: 700; }
-.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-.chips::-webkit-scrollbar { display: none; }
-.chip { flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
-.chip b { margin-left: 6px; color: var(--mut); font-weight: 600; }
-.chip.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
-.chip.on b { color: var(--bg); }
+  <!-- View: ΥΠΟΘΕΣΕΙΣ -->
+  <section id="view-cases" class="view hidden">
+    <div class="tools">
+      <input type="search" id="searchInput" placeholder="Αναζήτηση: πινακίδα, όνομα, τηλέφωνο..." autocomplete="off">
+      <button class="btn pri full mt-12" onclick="openForm(null)">+ Νέα Υπόθεση</button>
+      
+      <div class="chips-container mt-16">
+        <div class="chips" id="stateFilters"></div>
+        <div class="chips mt-8" id="folderFilters"></div>
+      </div>
+    </div>
+    <div id="casesList" class="list"></div>
+  </section>
 
-/* Smart Inbox Banners */
-.banners-container, main { max-width: 760px; margin: 0 auto; padding: 0 16px; }
-#banners { padding-top: 8px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
-.banner { display: block; width: 100%; text-align: left; background: var(--bad-bg); color: var(--bad); border: 1px solid rgba(255, 69, 58, 0.3); border-radius: 14px; padding: 14px 16px; cursor: pointer; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.banner.w { background: var(--warn-bg); color: var(--warn); border-color: rgba(255, 159, 10, 0.3); }
-.banner span { display: block; font-size: 13px; font-weight: 400; opacity: .8; margin-top: 2px; }
+  <!-- View: ΛΕΠΤΟΜΕΡΕΙΕΣ -->
+  <section id="view-detail" class="view hidden">
+    <div id="detailContent"></div>
+  </section>
 
-/* Case Cards */
-main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 16px; }
-.card { background: var(--card); border-radius: var(--r); border: 1px solid var(--line); padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.hd { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.hd > div { display: flex; flex-direction: column-reverse; gap: 2px; min-width: 0; }
-.pl { font: 700 20px system-ui, -apple-system, sans-serif; color: var(--ink); margin: 0; letter-spacing: -0.01em; }
-.nm { font-weight: 400; font-size: 15px; color: var(--ink); margin: 0; opacity: 0.9; }
-.badge { flex: 0 1 auto; max-width: 55%; text-align: center; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: var(--surface); color: var(--ink); text-transform: none; }
-.t-warn .badge { background: var(--warn-bg); color: var(--warn); }
-.t-bad .badge { background: var(--bad-bg); color: var(--bad); }
-.t-ok .badge { background: var(--ok-bg); color: var(--ok); }
+  <!-- View: ΜΕΝΟΥ -->
+  <section id="view-menu" class="view hidden">
+    <div class="menu-group">
+      <h3>Διαχείριση Δεδομένων</h3>
+      <button class="btn ghost full" id="btnExport">Λήψη Backup (JSON)</button>
+      <button class="btn ghost full" id="btnImport">Επαναφορά από Backup</button>
+      <input type="file" id="importFile" accept=".json" hidden>
+    </div>
+    <div class="menu-group">
+      <h3>Εργαλεία</h3>
+      <button class="btn ghost full" id="btnPrint">Εκτύπωση Λίστας</button>
+    </div>
+    <div class="menu-group">
+      <h3>Πληροφορίες</h3>
+      <p class="muted">Η εφαρμογή υπολογίζει την κατάσταση αυτόματα με βάση τα δεδομένα και την τρέχουσα ημερομηνία.</p>
+    </div>
+  </section>
 
-.info { font-size: 14px; color: var(--mut); display: flex; justify-content: space-between; align-items: center; }
-.info strong, .info b { color: var(--ink); font-weight: 600; }
-.t-bad .info { color: var(--mut); font-weight: 400; }
+</div>
 
-/* Next Action */
-.act { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
-.act > div > small, .act small { display: block; font-size: 11px; color: var(--mut); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 4px; }
-.act > div > strong, .act strong { display: block; font-size: 15px; color: var(--ink); font-weight: 600; }
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-view="today" onclick="goTo('today')">
+    <span class="icon">📅</span>
+    <span>Σήμερα</span>
+  </button>
+  <button class="nav-item" data-view="cases" onclick="goTo('cases')">
+    <span class="icon">📁</span>
+    <span>Υποθέσεις</span>
+  </button>
+  <button class="nav-item" data-view="menu" onclick="goTo('menu')">
+    <span class="icon">⚙️</span>
+    <span>Μενού</span>
+  </button>
+</nav>
 
-/* Buttons */
-.btn { display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 20px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; text-decoration: none; cursor: pointer; text-align: center; font-size: 15px; transition: opacity 0.2s; }
-.btn:active { opacity: 0.7; }
-.btn.pri { background: var(--pri); border-color: var(--pri); color: var(--pri-text); }
-.btn.ok { background: var(--ok); border-color: var(--ok); color: #000; }
-.btn.bad { background: transparent; border-color: var(--bad); color: var(--bad); }
-.btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+<!-- Modals (Φόρμα, Wizard, Ιστορικό) -->
+<dialog id="dlgForm">
+  <form id="caseForm" class="dlg">
+    <h2 id="formTitle">Νέα Υπόθεση</h2>
+    <div class="grid">
+      <label class="full">Πινακίδα *
+        <input name="plate" required autocomplete="off" style="text-transform:uppercase">
+        <div id="plateWarning" class="warn-text" style="display:none;"></div>
+      </label>
+      <label class="full">Ονοματεπώνυμο *<input name="name" required autocomplete="off"></label>
+      <label>Υπηρεσία<input name="service"></label>
+      <label>Τηλέφωνο<input name="phone" type="tel"></label>
+      <label>Ημ. Παραλαβής *<input type="date" name="receivedDate" required></label>
+      <label>Θέση Φακέλου<select name="folderSelect" id="fFolder"></select></label>
+      <label class="full" id="fFolderCustomWrap" hidden>Νέος Φάκελος<input name="folderCustom"></label>
+      <label class="full">Είδος Παράβασης
+        <select name="violationType" id="fViol">
+          <option value="">—</option>
+          <option>Υπερβολική ταχύτητα</option>
+          <option>ΚΤΕΟ</option>
+          <option>Διόδια</option>
+          <option>Στάθμευση</option>
+          <option>Απόφαση</option>
+          <option value="custom">Άλλο (ελεύθερο κείμενο)...</option>
+        </select>
+      </label>
+      <label class="full" id="fViolCustomWrap" hidden>Περιγραφή<input name="violationOther"></label>
+      <label>Πρόστιμο (€)<input type="number" name="fine" min="0" step="0.01"></label>
+      <label class="full">Ημέρες αφαίρεσης (προαιρετικό)<input type="number" name="removalDays" min="1" placeholder="π.χ. 30"></label>
+      <label class="full">Παρατηρήσεις<textarea name="notes" rows="2"></textarea></label>
+    </div>
+    
+    <details class="adv">
+      <summary>Προχωρημένη Διόρθωση (Κατάσταση & Ημερομηνίες)</summary>
+      <div class="grid">
+        <label class="full" hidden>Χειροκίνητη Κατάσταση<select name="manualState"></select></label>
+        <label>Τηλεφώνημα<input type="date" name="d_phone"></label>
+        <label>Ραντεβού<input type="date" name="d_appt"></label>
+        <label>Αφαίρεση<input type="date" name="d_susp"></label>
+        <label>Απόδοση (auto)<input type="date" name="d_return" readonly></label>
+        <label>1η Δημιουργία<input type="date" name="d_inv1Create"></label>
+        <label>1η Αποστολή<input type="date" name="d_inv1Send"></label>
+        <label>1ο Αποδεικτικό<input type="date" name="d_inv1Proof"></label>
+        <label>2η Δημιουργία<input type="date" name="d_inv2Create"></label>
+        <label>2η Αποστολή<input type="date" name="d_inv2Send"></label>
+        <label>2ο Αποδεικτικό<input type="date" name="d_inv2Proof"></label>
+        <label>3η Δημιουργία<input type="date" name="d_inv3Create"></label>
+        <label>3η Αποστολή<input type="date" name="d_inv3Send"></label>
+        <label>3ο Αποδεικτικό<input type="date" name="d_inv3Proof"></label>
+      </div>
+    </details>
 
-/* Details Toggle */
-.more { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
-.more summary { cursor: pointer; color: var(--mut); font-size: 13px; font-weight: 500; list-style: none; }
-.more summary::-webkit-details-marker { display: none; }
-.det { display: grid; gap: 8px; margin: 12px 0; font-size: 14px; color: var(--mut); }
-.notes { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; font-size: 13px; white-space: pre-wrap; color: var(--ink); }
-.row { display: flex; gap: 8px; margin-top: 12px; }
-.row .btn { flex: 1; min-height: 44px; font-size: 13px; }
-.empty { text-align: center; color: var(--mut); padding: 40px 0; font-size: 14px; }
+    <div class="acts">
+      <button type="button" class="btn ghost" id="btnFormCancel">Άκυρο</button>
+      <button type="button" class="btn bad" id="btnFormDelete" hidden>Διαγραφή</button>
+      <button type="submit" class="btn pri">Αποθήκευση</button>
+    </div>
+  </form>
+</dialog>
 
-/* FAB */
-.fab { position: fixed; right: 20px; bottom: calc(24px + env(safe-area-inset-bottom)); width: 64px; height: 64px; border-radius: 50%; border: 0; background: var(--ink); color: var(--bg); font-size: 32px; font-weight: 300; box-shadow: 0 8px 24px rgba(0,0,0,0.6); cursor: pointer; display: grid; place-items: center; z-index: 10; }
-.fab:active { transform: scale(0.95); }
+<dialog id="dlgWizard">
+  <div class="dlg">
+    <h2 id="wT"></h2>
+    <p id="wD" class="muted"></p>
+    <div id="wB"></div>
+    <div class="acts col" id="wA"></div>
+  </div>
+</dialog>
 
-/* Dialogs */
-dialog { border: 1px solid var(--line); border-radius: 20px; padding: 0; width: min(560px, calc(100% - 24px)); max-height: 90vh; background: var(--card); color: var(--ink); box-shadow: 0 10px 40px rgba(0,0,0,0.8); margin: auto; }
-dialog::backdrop { background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-.dlg { padding: 24px; display: block; }
-.dlg h2 { margin: 0 0 16px; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
-.muted { color: var(--mut); margin: 0 0 16px; font-size: 14px; }
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.grid > * { min-width: 0; }
-.grid .full { grid-column: 1 / -1; }
-label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; color: var(--mut); }
-label[hidden] { display: none; }
-label.chk { flex-direction: row; align-items: center; gap: 10px; color: var(--ink); font-size: 15px; font-weight: 500; margin-top: 8px; }
-label.chk input { width: 20px; height: 20px; accent-color: var(--ink); }
+<dialog id="dlgHistory">
+  <div class="dlg">
+    <h2>Ιστορικό Ενεργειών</h2>
+    <div id="histBody" class="hist"></div>
+    <div class="acts">
+      <button type="button" class="btn ghost" id="btnHistoryClose">Κλείσιμο</button>
+    </div>
+  </div>
+</dialog>
 
-input:not([type=checkbox]), select, textarea { width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 16px; color: var(--ink); outline: none; appearance: none; -webkit-appearance: none; }
-input:focus, select:focus, textarea:focus { border-color: var(--mut); box-shadow: 0 0 0 2px rgba(255,255,255,0.1); }
-input[readonly] { opacity: .6; }
-.warn-text { color: var(--warn); font-size: 13px; font-weight: 500; margin-top: 4px; }
-
-#wB input { text-align: center; margin-bottom: 12px; font-size: 20px; font-weight: 600; }
-.adv { margin: 20px 0; border: 1px dashed var(--line); border-radius: 12px; padding: 12px 16px; }
-.adv summary { cursor: pointer; font-size: 14px; font-weight: 500; color: var(--mut); outline: none; }
-.adv .grid { margin-top: 16px; }
-.acts { display: flex; gap: 12px; margin-top: 24px; }
-.acts .btn { flex: 1; }
-.acts.col { flex-direction: column; }
-.hist { display: grid; gap: 8px; max-height: 50vh; overflow: auto; padding-right: 4px; }
-.hi { display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--bg); border-radius: 12px; font-size: 14px; border: 1px solid var(--line); }
-.hi time { color: var(--mut); white-space: nowrap; font-family: monospace; font-size: 13px; }
-
-/* Print */
-#printArea { display: none; }
-@media print {
-  @page { size: A4 landscape; margin: 8mm; }
-  body > *:not(#printArea) { display: none !important; }
-  body { background: #fff; padding: 0; color: #000; }
-  #printArea { display: block; color: #000; font: 8pt Arial, sans-serif; }
-  #printArea h1 { font-size: 14pt; margin: 0 0 3mm; border-bottom: 1.5pt solid #000; padding-bottom: 2mm; }
-  #printArea table { width: 100%; border-collapse: collapse; }
-  #printArea th, #printArea td { border: 1px solid #000; padding: 1.5mm; text-align: left; font-size: 8pt; }
-  #printArea th { background: #eee; text-align: center; }
-}
-
-/* --- ΑΥΤΟΜΑΤΑ ΚΕΦΑΛΑΙΑ ΣΕ ΟΛΑ ΤΑ ΠΕΔΙΑ ΕΙΣΑΓΩΓΗΣ --- */
-input:not([type="date"]):not([type="number"]):not([type="checkbox"]):not([type="radio"]), textarea {
-  text-transform: uppercase;
-}
-
-.pl, .nm, .info, .det, .notes, .banner, .btn { overflow-wrap: anywhere; }
-.linkbtn { align-self: flex-start; background: none; border: 0; padding: 0; color: var(--info); font-size: 13px; font-weight: 500; text-align: left; cursor: pointer; }
-.invs { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--mut); }
-.invs > b { flex: 0 0 100%; color: var(--ink); font-weight: 600; }
-.invs span b { color: var(--ink); font-weight: 600; }
-.mv { font-size: 13px; color: var(--warn); font-weight: 600; }
-.stat:nth-child(2) { cursor: pointer; }
-.tels { display: flex; flex-wrap: wrap; gap: 8px; }
-.tel { flex: 1 1 140px; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none; font-variant-numeric: tabular-nums; }
-.tl { color: var(--info); font-weight: 600; text-decoration: none; }
-
-/* --- Συμπαγής κάρτα: πορεία, επόμενη ενέργεια --- */
-.card.u { border-left: 3px solid var(--warn); }
-.card.o { border-left: 3px solid var(--bad); }
-.next { display: flex; flex-direction: column; gap: 2px; }
-.next small { font-size: 11px; color: var(--mut); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
-.next strong { font-size: 16px; font-weight: 600; }
-.next span { font-size: 13px; color: var(--mut); }
-.card.o .next span { color: var(--bad); }
-.steps { display: flex; flex-direction: column; gap: 6px; }
-.steps .bar { display: flex; gap: 4px; }
-.steps .bar i { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
-.steps .bar i.d { background: var(--mut); }
-.steps .bar i.c { background: var(--ink); }
-.steps span { font-size: 12px; color: var(--mut); }
-.tel { min-height: 40px; padding: 8px 14px; font-size: 14px; }
-.more .sec { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
-.more .sec .btn { min-height: 44px; font-size: 14px; }
+<section id="printArea"></section>
+<script src="./app.js"></script>
+</body>
+</html>

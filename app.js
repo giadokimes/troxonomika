@@ -8,42 +8,21 @@
   const ST = {
     search:      { l: 'Προς Αναζήτηση', t: 'info', a: 'Εκκρεμεί αναζήτηση τηλεφώνου' },
     to_call:     { l: 'Προς Κλήση', t: 'info', a: '' },
-    informed:    { l: 'Ενημερώθηκε', t: 'warn', a: 'Αναμονή 5 ημερών για πρόσκληση' },
-    appointment: { l: 'Κλεισμένο Ραντεβού', t: 'info', a: '' },
-    no_show:     { l: 'Μη Προσέλευση', t: 'bad', a: 'Δεν προσήλθε στο ραντεβού' },
+    informed:    { l: 'Ενημερώθηκε', t: 'warn', a: 'Αναμονή 5 ημερών' },
+    appointment: { l: 'Ραντεβού', t: 'info', a: '' },
+    no_show:     { l: 'Μη Προσέλευση', t: 'bad', a: '' },
     suspended:   { l: 'Σε Αφαίρεση', t: 'info', a: '' },
-    to_return:   { l: 'Προς Απόδοση', t: 'bad', a: 'Έληξε η αφαίρεση' },
-    inv1_create: { l: 'Προς δημιουργία 1η Πρόσκλησης', t: 'warn', a: 'Δημιουργία 1ης πρόσκλησης' },
-    inv1_next:   { l: 'Προς αποστολή 1η Πρόσκλησης', t: 'warn', a: 'Αποστολή 1ης' },
-    inv1_sent:   { l: 'Αναμονή 1ου Αποδεικτικού', t: 'warn', a: 'Καταχώρηση αποδεικτικού' },
-    inv1_wait:   { l: 'Αναμονή 10ημ. (1ο Αποδ.)', t: 'warn', a: '' },
-    inv2_create: { l: 'Προς δημιουργία 2η Πρόσκλησης', t: 'warn', a: 'Δημιουργία 2ης πρόσκλησης' },
-    inv2_next:   { l: 'Προς αποστολή 2η Πρόσκλησης', t: 'warn', a: 'Αποστολή 2ης' },
-    inv2_sent:   { l: 'Αναμονή 2ου Αποδεικτικού', t: 'warn', a: 'Καταχώρηση αποδεικτικού' },
-    inv2_wait:   { l: 'Αναμονή 10ημ. (2ο Αποδ.)', t: 'warn', a: '' },
-    inv3_create: { l: 'Προς δημιουργία 3η Πρόσκλησης', t: 'warn', a: 'Δημιουργία 3ης πρόσκλησης' },
-    inv3_next:   { l: 'Προς αποστολή 3η Πρόσκλησης', t: 'warn', a: 'Αποστολή 3ης' },
-    inv3_sent:   { l: 'Αναμονή 3ου Αποδεικτικού', t: 'warn', a: 'Καταχώρηση αποδεικτικού' },
-    inv3_wait:   { l: 'Αναμονή 10ημ. (3ο Αποδ.)', t: 'warn', a: '' },
-    transmittal: { l: 'Προς διαβίβαση στην Υπηρεσία', t: 'bad', a: 'Δημιουργία διαβιβαστικού και αποστολή στην Υπηρεσία' },
+    to_return:   { l: 'Προς Απόδοση', t: 'bad', a: '' },
+    inv1_create: { l: 'Προς δημιουργία 1ης', t: 'warn', a: '' }, inv1_next: { l: 'Προς αποστολή 1ης', t: 'warn', a: '' }, inv1_sent: { l: 'Αναμονή 1ου Αποδεικτικού', t: 'warn', a: '' }, inv1_wait: { l: 'Αναμονή 10ημ. (1ο)', t: 'warn', a: '' },
+    inv2_create: { l: 'Προς δημιουργία 2ης', t: 'warn', a: '' }, inv2_next: { l: 'Προς αποστολή 2ης', t: 'warn', a: '' }, inv2_sent: { l: 'Αναμονή 2ου Αποδεικτικού', t: 'warn', a: '' }, inv2_wait: { l: 'Αναμονή 10ημ. (2ο)', t: 'warn', a: '' },
+    inv3_create: { l: 'Προς δημιουργία 3ης', t: 'warn', a: '' }, inv3_next: { l: 'Προς αποστολή 3ης', t: 'warn', a: '' }, inv3_sent: { l: 'Αναμονή 3ου Αποδεικτικού', t: 'warn', a: '' }, inv3_wait: { l: 'Αναμονή 10ημ. (3ο)', t: 'warn', a: '' },
+    transmittal: { l: 'Προς διαβίβαση', t: 'bad', a: '' },
     pol_rem:     { l: 'Αφαίρεση — εκκρεμεί POL', t: 'bad', a: '' },
     pol_ret:     { l: 'Απόδοση — εκκρεμεί POL', t: 'bad', a: '' },
-    complaint:   { l: 'Προς Μήνυση', t: 'bad', a: 'Υποβολή μήνυσης' },
+    complaint:   { l: 'Προς Μήνυση', t: 'bad', a: '' },
     closed:      { l: 'Ολοκληρωμένη', t: 'ok', a: '' }
   };
-  const URG = ['pol_rem','pol_ret','to_return','transmittal','complaint','inv1_create','inv2_create','inv3_create','inv1_next','inv2_next','inv3_next'];
-  const BANNER = {
-    pol_rem: 'Καταχώρηση POL (αφαίρεση)',
-    pol_ret: 'Καταχώρηση POL (απόδοση)',
-    to_return: 'Προς απόδοση διπλώματος',
-    transmittal: 'Δημιουργία διαβιβαστικού',
-    complaint: 'Υποβολή μήνυσης',
-    inv1_create: 'Δημιουργία 1ης πρόσκλησης', inv2_create: 'Δημιουργία 2ης πρόσκλησης', inv3_create: 'Δημιουργία 3ης πρόσκλησης',
-    inv1_next: 'Αποστολή 1ης πρόσκλησης', inv2_next: 'Αποστολή 2ης πρόσκλησης', inv3_next: 'Αποστολή 3ης πρόσκλησης',
-    move: 'Μετακίνηση φακέλου',
-    soon: 'Επικείμενη απόδοση διπλώματος (έως 3 ημ.)',
-    'flag:pol_rem': 'Καταχώρηση POL (αφαίρεση)', 'flag:pol_ret': 'Καταχώρηση POL (απόδοση)'
-  };
+  
   const FOLDERS = {
     'Τηλέφωνα': ['Με ραντεβού', 'Χωρίς ραντεβού'],
     'Προσκλήσεις': ['1η πρόσκληση', '2η πρόσκληση', '3η πρόσκληση'],
@@ -53,7 +32,10 @@
   const VIOL = ['Υπερβολική ταχύτητα','ΚΤΕΟ','Διόδια','Στάθμευση','Απόφαση'];
   const BLANK_DATES = { phone:'', appt:'', susp:'', return:'', inv1Send:'', inv1Proof:'', inv2Send:'', inv2Proof:'', inv3Send:'', inv3Proof:'', inv1Create:'', inv2Create:'', inv3Create:'', returned:'', closed:'', closedKind:'', callRes:'', searchNone:'', docRecv:'', polRem:'', polRet:'', oos:'', oosDest:'', oosReason:'' };
 
-  let cases = [], folderF = 'all', stateF = 'all', q = '';
+  let cases = [];
+  let currentView = 'today'; // 'today' | 'cases' | 'menu' | 'detail'
+  let currentDetailId = null;
+  let folderF = 'all', stateF = 'all', q = '';
 
   // ---------- Utilities ----------
   const $ = s => document.querySelector(s);
@@ -82,7 +64,6 @@
     date.setDate(date.getDate() + 13);
     return date;
   };
-
   const isHoliday = (dateStr) => {
     const d = new Date(dateStr + 'T12:00:00');
     const y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
@@ -93,10 +74,8 @@
     if ([-48, -2, 1, 50].includes(diff)) return true;
     return false;
   };
-
   const isWeekend = (dateStr) => { const w = new Date(dateStr + 'T12:00:00').getDay(); return w === 0 || w === 6; };
   const isNonWorking = (dateStr) => isWeekend(dateStr) || isHoliday(dateStr);
-
   const shiftForward = (dateStr) => { let d = new Date(dateStr + 'T12:00:00'); while (isNonWorking(iso(d))) d.setDate(d.getDate() + 1); return iso(d); };
   const shiftBackward = (dateStr) => { let d = new Date(dateStr + 'T12:00:00'); while (isNonWorking(iso(d))) d.setDate(d.getDate() - 1); return iso(d); };
   const addDays = (dateStr, days, dir = 'forward') => {
@@ -109,7 +88,7 @@
   // ---------- Αποθήκευση & Migration ----------
   let locked = false;
   const save = () => {
-    if (locked) { alert('Η εφαρμογή είναι μόνο για ανάγνωση επειδή απέτυχε η μεταφορά δεδομένων. Δεν αποθηκεύτηκε τίποτα.'); return; }
+    if (locked) return;
     localStorage.setItem(KEY, JSON.stringify(cases));
   };
   const get = (id) => cases.find(x => x.id === id);
@@ -117,11 +96,7 @@
 
   const mapOld = (o) => {
     const s = (o.status || '').toLowerCase();
-    const m = { search:'search', to_call:'to_call', informed:'informed', called:'informed',
-      appointment:'appointment', appt:'appointment', removed:'suspended', suspended:'suspended',
-      to_return:'to_return', inv1_sent:'inv1_sent', invite1:'inv1_sent', inv1_proof:'inv2_next',
-      inv2_sent:'inv2_sent', invite2:'inv2_sent', inv2_proof:'inv3_next', inv3_sent:'inv3_sent',
-      invite3:'inv3_sent', inv3_proof:'return_service', return_service:'return_service', closed:'closed', done:'closed' };
+    const m = { search:'search', to_call:'to_call', informed:'informed', called:'informed', appointment:'appointment', appt:'appointment', removed:'suspended', suspended:'suspended', to_return:'to_return', inv1_sent:'inv1_sent', invite1:'inv1_sent', inv1_proof:'inv2_next', inv2_sent:'inv2_sent', invite2:'inv2_sent', inv2_proof:'inv3_next', inv3_sent:'inv3_sent', invite3:'inv3_sent', inv3_proof:'return_service', return_service:'return_service', closed:'closed', done:'closed' };
     if (s === 'new') return o.phone ? 'to_call' : 'search';
     return m[s] || (o.phone ? 'to_call' : 'search');
   };
@@ -142,21 +117,13 @@
       requiresLicense: o.requiresLicense !== false && o.hasRemoval !== false,
       removalDays: o.removalDays || o.suspDays || 30, notes: o.notes || '',
       state: mapOld(o), history: o.history || [],
-      dates: { ...BLANK_DATES,
-        phone: o.phoneDate || o.callDate || '', appt: o.apptDate || o.appointmentDate || '',
-        susp: o.suspDate || o.removalDate || o.arrivedDate || '', return: o.returnDate || '',
-        inv1Send: o.inv1Send || o.invite1Date || o.invite1 || '', inv1Proof: o.inv1Proof || o.proof1 || '',
-        inv2Send: o.inv2Send || o.invite2Date || o.invite2 || '', inv2Proof: o.inv2Proof || o.proof2 || '',
-        inv3Send: o.inv3Send || o.invite3Date || o.invite3 || '', inv3Proof: o.inv3Proof || o.proof3 || '',
-        closed: o.closedDate || '' }
+      dates: { ...BLANK_DATES, phone: o.phoneDate || o.callDate || '', appt: o.apptDate || o.appointmentDate || '', susp: o.suspDate || o.removalDate || o.arrivedDate || '', return: o.returnDate || '', inv1Send: o.inv1Send || o.invite1Date || o.invite1 || '', inv1Proof: o.inv1Proof || o.proof1 || '', inv2Send: o.inv2Send || o.invite2Date || o.invite2 || '', inv2Proof: o.inv2Proof || o.proof2 || '', inv3Send: o.inv3Send || o.invite3Date || o.invite3 || '', inv3Proof: o.inv3Proof || o.proof3 || '', closed: o.closedDate || '' }
     };
     if (c.dates.susp && c.removalDays && !c.dates.return) c.dates.return = addDays(c.dates.susp, c.removalDays);
     return c;
   };
 
-  const mig = { plates: 0, inv: 0, ret: 0, rem: 0, svc: 0, back: [] };
   const endState = (c) => c.violationType === 'Απόφαση' ? 'complaint' : 'transmittal';
-  const ev = (c, d, t, r) => { c.ev = c.ev || []; c.ev.push({ d: d || todayStr(), t, r: r || '' }); };
   const parseFmt = (a) => { const m = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(a || ''); return m ? m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0') : ''; };
   
   const buildEv = (c) => {
@@ -185,7 +152,7 @@
   };
   
   const step3 = (c) => { c.ev = buildEv(c); c.schema = 3; return step4(c); };
-  // Σχήμα 4: τα γεγονότα καταγράφονται ως δεδομένα· η φάση και το ιστορικό προκύπτουν από αυτά
+  
   const step4 = (c) => {
     const D = c.dates, evs = c.ev || [], last = (p) => evs.filter(p).pop();
     c._old = c.state;
@@ -216,22 +183,21 @@
     if (c.schema === 2) return step3(c);
     c.flags = c.flags || []; c.history = c.history || [];
     const np = normPlate(c.plate);
-    if (np !== c.plate) { c.plate = np; mig.plates++; }
+    if (np !== c.plate) { c.plate = np; }
     const m = { inv1_next: 'inv1_create', inv2_next: 'inv2_create', inv3_next: 'inv3_create' };
-    if (m[c.state]) { c.state = m[c.state]; mig.inv++; }
-    if (c.state === 'return_service') { c.state = endState(c); mig.svc++; }
+    if (m[c.state]) { c.state = m[c.state]; }
+    if (c.state === 'return_service') { c.state = endState(c); }
     if (c.dates.susp && c.removalDays) {
       const r = addDays(c.dates.susp, c.removalDays);
-      if (r !== c.dates.return) { c.dates.return = r; mig.ret++; }
+      if (r !== c.dates.return) { c.dates.return = r; }
     }
-    if (c.state === 'to_return' && c.dates.return && !isDue(c.dates.return)) { c.state = 'suspended'; mig.back.push(c.plate + ' ' + c.name); }
-    if (!c.dates.susp && c.removalDays === 30 && c.state !== 'suspended' && c.state !== 'to_return') { c.removalDays = 0; c.requiresLicense = false; mig.rem++; }
+    if (c.state === 'to_return' && c.dates.return && !isDue(c.dates.return)) { c.state = 'suspended'; }
+    if (!c.dates.susp && c.removalDays === 30 && c.state !== 'suspended' && c.state !== 'to_return') { c.removalDays = 0; c.requiresLicense = false; }
     c.schema = 2;
     return step3(c);
   };
-  // Καταργημένες καταστάσεις -> τρέχουσα πορεία (η 2η κλήση δεν υπάρχει πια)
   const RETIRED = { recall: 'inv1_create' };
-  const fixState = (c) => { if (RETIRED[c.state]) { c.state = RETIRED[c.state]; setMove(c); } return c; };
+  const fixState = (c) => { if (RETIRED[c.state]) { c.state = RETIRED[c.state]; } return c; };
   const migrate = (o) => fixState(upgrade(migrateBase(o)));
 
   const load = () => {
@@ -239,7 +205,7 @@
       const cur = localStorage.getItem(KEY);
       if (cur) { 
         cases = (JSON.parse(cur) || []).map(migrate);
-        tick(); reportMig();
+        tick();
         return; 
       }
     } catch (e) {}
@@ -249,27 +215,17 @@
       if (!Array.isArray(arr) || !arr.length) continue;
       try {
         const out = arr.map(migrate);
-        if (out.length !== arr.length) throw new Error('count');
         cases = out; save();
-        tick(); reportMig();
-        const t = ['Μεταφέρθηκαν ' + out.length + ' υποθέσεις. Τα παλιά δεδομένα δεν διαγράφηκαν.'];
-        setTimeout(() => alert(t.join('\n')), 400);
+        tick();
       } catch (e) {
         locked = true; cases = [];
-        setTimeout(() => alert('Η μεταφορά δεδομένων απέτυχε. Δεν διαγράφηκε τίποτα και δεν θα αποθηκευτεί τίποτα νέο μέχρι να διορθωθεί.'), 400);
       }
       return;
     }
     cases = [];
   };
 
-  const checkBackup = () => {
-    const last = localStorage.getItem('last_backup');
-    const warn = $('#backupWarning');
-    warn.style.display = (!last || (Date.now() - Number(last)) > 7 * 86400000) ? 'flex' : 'none';
-  };
-
-  // ---------- Φάση υπόθεσης: υπολογίζεται από τα δεδομένα και την τρέχουσα ημερομηνία ----------
+  // ---------- Φάση υπόθεσης ----------
   const invDates = (D) => [1, 2, 3].flatMap(n => [D['inv' + n + 'Create'], D['inv' + n + 'Send'], D['inv' + n + 'Proof']]).filter(Boolean);
   const lastSent = (D) => [3, 2, 1].find(n => D['inv' + n + 'Send']) || 0;
   const derive = (c) => {
@@ -296,24 +252,14 @@
     if (!phoneList(c.phone).length) return D.searchNone ? 'inv1_create' : 'search';
     return 'to_call';
   };
-  const flagsOf = () => [];
   const reconcile = (c) => {
     const D = c.dates; let ch = false;
     if (D.susp && c.removalDays) { const r = addDays(D.susp, c.removalDays); if (r !== D.return) { D.return = r; ch = true; } }
-    const fl = flagsOf(c), st = derive(c);
-    if (JSON.stringify(c.flags || []) !== JSON.stringify(fl)) { c.flags = fl; ch = true; }
+    const st = derive(c);
     if (c.state !== st) { c.state = st; ch = true; }
-    if (ch) setMove(c);
     return ch;
   };
   const tick = () => { let ch = false; cases.forEach(c => { if (reconcile(c)) ch = true; }); if (ch) save(); };
-  const reportMig = () => {
-    if (!cases.some(c => c._old !== undefined)) return;
-    const nm = (x) => (ST[x] || {}).l || x;
-    const moved = cases.filter(c => c._old !== undefined && c._old !== c.state).map(c => c.plate + ': ' + nm(c._old) + ' -> ' + nm(c.state));
-    cases.forEach(c => { delete c._old; }); save();
-    if (moved.length) setTimeout(() => alert('Η φάση κάθε υπόθεσης υπολογίζεται πλέον από τα δεδομένα. ' + moved.length + ' υποθέσεις άλλαξαν φάση:\n' + moved.slice(0, 12).join('\n')), 500);
-  };
   const go = (c, _s, extra) => { Object.assign(c.dates, extra || {}); reconcile(c); save(); render(); };
 
   // ---------- Wizard ----------
@@ -334,14 +280,11 @@
     });
     if (!dlgW.open) dlgW.showModal();
   };
-  
   const dateWiz = (title, desc, cb) => wiz(title, desc, `<input type="date" id="wV" value="${todayStr()}">`,
     [{ t: 'Αποθήκευση', c: 'pri', v: () => $('#wV').value, f: () => cb($('#wV').value) }]);
 
-  // ---------- Ενέργειες: καταγράφουν δεδομένα, η φάση υπολογίζεται αυτόματα ----------
+  // ---------- Ενέργειες ----------
   const T = () => todayStr();
-  const nextN = (c) => Math.min(3, lastSent(c.dates) + 1);
-  const blocked = (c, fl, msg) => { if ((c.flags || []).includes(fl)) { alert(msg); return true; } return false; };
   const actSearch = (c) => wiz('Αναζήτηση τηλεφώνου', 'Βρέθηκε τηλέφωνο;', '', [
     { t: 'Όχι, δεν βρέθηκε', c: 'bad', f: () => go(c, '', { searchNone: T() }) },
     { t: 'Ναι', c: 'ok', f: () => wiz('Εισαγωγή τηλεφώνου', 'Πληκτρολογήστε τον αριθμό:', '<input type="tel" id="wV">',
@@ -380,23 +323,27 @@
   const ACT = {
     search: ['Αναζήτηση τηλεφώνου', actSearch], to_call: ['Καταχώρηση κλήσης', actCall], informed: ['Κλείσιμο ραντεβού', actAppt],
     appointment: ['Πραγματοποιήθηκε αφαίρεση', actRemoval],
-    pol_rem: ['Επιβεβαίωση καταχώρησης POL (αφαίρεση)', actPolRem], pol_ret: ['Επιβεβαίωση καταχώρησης POL (απόδοση)', actPolRet],
+    pol_rem: ['Επιβεβαίωση POL (αφαίρεση)', actPolRem], pol_ret: ['Επιβεβαίωση POL (απόδοση)', actPolRet],
     to_return: ['Απόδοση διπλώματος', actDeliver],
-    inv1_create: ['Δημιουργία 1ης πρόσκλησης', c => createInv(c, 1)], inv1_next: ['Αποστολή 1ης πρόσκλησης', c => invite(c, 1)], inv1_sent: ['Παραλαβή 1ου αποδεικτικού', c => proof(c, 1)],
-    inv2_create: ['Δημιουργία 2ης πρόσκλησης', c => createInv(c, 2)], inv2_next: ['Αποστολή 2ης πρόσκλησης', c => invite(c, 2)], inv2_sent: ['Παραλαβή 2ου αποδεικτικού', c => proof(c, 2)],
-    inv3_create: ['Δημιουργία 3ης πρόσκλησης', c => createInv(c, 3)], inv3_next: ['Αποστολή 3ης πρόσκλησης', c => invite(c, 3)], inv3_sent: ['Παραλαβή 3ου αποδεικτικού', c => proof(c, 3)],
-    transmittal: ['Δημιουργήθηκε και στάλθηκε το διαβιβαστικό', actTransmit], complaint: ['Υποβλήθηκε η μήνυση', actComplaint]
+    inv1_create: ['Δημιουργία 1ης', c => createInv(c, 1)], inv1_next: ['Αποστολή 1ης', c => invite(c, 1)], inv1_sent: ['Παραλαβή 1ου αποδεικτικού', c => proof(c, 1)],
+    inv2_create: ['Δημιουργία 2ης', c => createInv(c, 2)], inv2_next: ['Αποστολή 2ης', c => invite(c, 2)], inv2_sent: ['Παραλαβή 2ου αποδεικτικού', c => proof(c, 2)],
+    inv3_create: ['Δημιουργία 3ης', c => createInv(c, 3)], inv3_next: ['Αποστολή 3ης', c => invite(c, 3)], inv3_sent: ['Παραλαβή 3ου αποδεικτικού', c => proof(c, 3)],
+    transmittal: ['Δημιουργήθηκε το διαβιβαστικό', actTransmit], complaint: ['Υποβλήθηκε η μήνυση', actComplaint]
   };
   const ACT2 = { appointment: [['Παρέλαβε έγγραφο (χωρίς αφαίρεση)', actReceived, c => !(c.removalDays > 0)]] };
   ['inv1_create','inv1_next','inv1_sent','inv1_wait','inv2_create','inv2_next','inv2_sent','inv2_wait','inv3_create','inv3_next','inv3_sent','inv3_wait']
     .forEach(k => { ACT2[k] = [['Ο πολίτης επικοινώνησε', actContact]]; });
   ACT2.closed = [['Άνοιγμα υπόθεσης', c => { if (confirm('Να ανοίξει ξανά η υπόθεση;')) go(c, '', { closed: '', closedKind: '' }); }]];
-  const FLAG = {};
 
-  // ---------- Render ----------
-  let pc = {};
+  // ---------- Render Logic ----------
+  const invDone = (c) => {
+    const m = /^inv(\d)_(create|next|sent|wait)$/.exec(c.state);
+    const fromState = m ? (m[2] === 'sent' || m[2] === 'wait' ? Number(m[1]) : Number(m[1]) - 1) : 0;
+    const fromDates = [1, 2, 3].filter(n => c.dates['inv' + n + 'Send']).length;
+    return Math.min(3, Math.max(fromState, fromDates));
+  };
   const isSoon = (c) => c.state === 'suspended' && !!c.dates.return && plus(todayStr(), 3) >= c.dates.return;
-  const urgent = (c) => URG.includes(c.state) || isSoon(c) || (c.flags || []).length > 0;
+  
   const timeline = (c) => {
     const D = c.dates, rows = [], add = (d, k, t, res, note) => { if (d) rows.push({ d, k, t, res, note }); };
     add(c.receivedDate, 0, 'Παραλαβή εγγράφου');
@@ -404,13 +351,13 @@
     const CR = { noanswer: 'δεν απάντησε', informed: 'ενημερώθηκε, θα καλέσει ο ίδιος', booked: D.appt ? 'ραντεβού στις ' + sd(D.appt) : 'ραντεβού', refused: 'αρνήθηκε ή αναβάλλει' };
     if (D.callRes) add(D.phone, 5, 'Κλήση', CR[D.callRes]);
     if (D.appt && D.callRes !== 'booked') add(D.appt, 6, 'Ραντεβού');
-    if (D.appt && todayStr() > D.appt && !D.susp && !D.docRecv) add(D.appt, 7, 'Δεν προσήλθε στο ραντεβού (πληροφορία)');
+    if (D.appt && todayStr() > D.appt && !D.susp && !D.docRecv) add(D.appt, 7, 'Δεν προσήλθε στο ραντεβού');
     [1, 2, 3].forEach(n => {
       add(D['inv' + n + 'Create'], 10, `Δημιουργία ${n}ης πρόσκλησης`);
       add(D['inv' + n + 'Send'], 11, `Αποστολή ${n}ης πρόσκλησης`);
       add(D['inv' + n + 'Proof'], 12, `Αποδεικτικό ${n}ης πρόσκλησης`);
     });
-    add(D.docRecv, 15, 'Παραλαβή εγγράφου από τον πολίτη (χωρίς αφαίρεση)');
+    add(D.docRecv, 15, 'Παραλαβή εγγράφου (χωρίς αφαίρεση)');
     add(D.susp, 20, 'Αφαίρεση διπλώματος', '', c.removalDays ? c.removalDays + ' ημέρες, απόδοση ' + sd(D.return) : '');
     add(D.polRem, 21, 'Καταχώρηση POL (αφαίρεση)');
     add(D.returned, 22, 'Απόδοση διπλώματος');
@@ -419,73 +366,8 @@
     add(D.closed, 30, D.closedKind === 'complaint' ? 'Μήνυση' : 'Διαβιβαστικό προς την Υπηρεσία');
     return rows.sort((a, b) => a.d.localeCompare(b.d) || a.k - b.k);
   };
-  const evText = (r) => `${r.t} στις ${sd(r.d)}` + (r.res ? ` (Αποτέλεσμα: ${r.res})` : '') + (r.note ? ` (${r.note})` : '');
-  const isTodo = (c) => urgent(c) || !!c.moveTo || c.state === 'search' || c.state === 'to_call';
-  const prio = (c) => {
-    const s = c.state;
-    if (s === 'pol_rem' || s === 'pol_ret') return 0;
-    if (s === 'to_return') return 1;
-    if (isSoon(c) || s === 'complaint') return 2;
-    if (s === 'transmittal') return 3;
-    if (/^inv\d_(create|next)$/.test(s)) return 4;
-    if ((c.flags || []).length) return 5;
-    if (c.moveTo) return 6;
-    if (s === 'to_call') return 7;
-    return 8;
-  };
-  const SUGGEST = (c) => {
-    const s = c.state;
-    if (s === 'closed') return '';
-    if (s === 'pol_rem' || s === 'pol_ret') return 'Εκκρεμότητες - Καταχώρηση POL';
-    if (s === 'search') return 'Εκκρεμότητες - Αναζήτηση τηλεφώνου';
-    if (['to_call', 'informed'].includes(s)) return 'Τηλέφωνα - Χωρίς ραντεβού';
-    if (s === 'appointment') return 'Τηλέφωνα - Με ραντεβού';
-    if (s === 'no_show' || /^inv\d_(create|next)$/.test(s)) return 'Εκκρεμότητες - Αποστολή πρόσκλησης';
-    if (/^inv\d_sent$/.test(s)) return 'Αναμονή αποδεικτικού';
-    const m = /^inv(\d)_wait$/.exec(s); if (m) return 'Προσκλήσεις - ' + m[1] + 'η πρόσκληση';
-    if (s === 'transmittal') return 'Εκκρεμότητες - Διαβίβαση σε Υπηρεσία';
-    return '';
-  };
-  const setMove = (c) => { const sf = SUGGEST(c); c.moveTo = (sf && sf !== c.folder) ? sf : ''; };
-  const invDone = (c) => {
-    const m = /^inv(\d)_(create|next|sent|wait)$/.exec(c.state);
-    const fromState = m ? (m[2] === 'sent' || m[2] === 'wait' ? Number(m[1]) : Number(m[1]) - 1) : 0;
-    const fromDates = [1, 2, 3].filter(n => c.dates['inv' + n + 'Send']).length;
-    return Math.min(3, Math.max(fromState, fromDates));
-  };
-  const invHTML = (c) => {
-    const D = c.dates, done = invDone(c);
-    const rows = [1, 2, 3].map(n => {
-      const t = D['inv' + n + 'Proof'] ? 'αποδεικτικό ' + fmt(D['inv' + n + 'Proof']) : D['inv' + n + 'Send'] ? 'στάλθηκε ' + fmt(D['inv' + n + 'Send']) : D['inv' + n + 'Create'] ? 'δημιουργήθηκε ' + fmt(D['inv' + n + 'Create']) : '';
-      return t ? `<span><b>${n}η:</b> ${t}</span>` : '';
-    }).filter(Boolean);
-    if (!done && !rows.length && !/^inv\d_/.test(c.state) && c.state !== 'no_show') return '';
-    return `<div class="invs"><b>Προσκλήσεις: ${done} από 3 έχουν σταλεί</b>${rows.join('')}</div>`;
-  };
-  const calLink = (c) => {
-    if (!c.dates.appt) return '#';
-    const d = c.dates.appt.replace(/-/g, '');
-    return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(`Ραντεβού: ${c.name} (${c.plate})`) +
-      `&dates=${d}T090000/${d}T093000&ctz=Europe/Athens&details=` + encodeURIComponent(`Τηλ: ${c.phone || '—'} | Φάκελος: ${c.folder || '—'}`);
-  };
   
-  const chip = (k, v, l, n, on) => `<button class="chip${on ? ' on' : ''}" data-${k}="${esc(v)}">${esc(l)}${n != null ? ' <b>' + n + '</b>' : ''}</button>`;
-
-  const infoLine = (c) => {
-    const D = c.dates;
-    switch (c.state) {
-      case 'informed': return 'Αναμονή 5 ημερών έως ' + fmt(addDays(D.phone, 5));
-      case 'appointment': return `Ραντεβού ${fmt(D.appt)} · έλεγχος ${fmt(addDays(D.appt, 5))}`;
-      case 'suspended': {
-        const n = D.return ? Math.round((new Date(D.return + 'T12:00:00') - new Date(todayStr() + 'T12:00:00')) / 86400000) : null;
-        return `Σε αφαίρεση (${c.removalDays} ημ.) · απόδοση ${fmt(D.return)}` + (isSoon(c) && n != null ? ` · σε ${n} ημ.` : '');
-      }
-      case 'inv1_wait': case 'inv2_wait': case 'inv3_wait': {
-        const n = c.state[3]; return `Αναμονή 10 ημερών από το αποδεικτικό, έως ${fmt(addDays(D['inv' + n + 'Proof'], 10))}`;
-      }
-      default: return (ST[c.state] || {}).a || '';
-    }
-  };
+  const evText = (r) => `${r.t} στις ${sd(r.d)}` + (r.res ? ` (${r.res})` : '') + (r.note ? ` (${r.note})` : '');
 
   const dayDiff = (a, b) => Math.round((new Date(a + 'T12:00:00') - new Date(b + 'T12:00:00')) / 86400000);
   const dueOf = (c) => {
@@ -510,17 +392,10 @@
     if (/_next$/.test(s)) return 'δημιουργήθηκε ' + sd(d);
     if (s === 'appointment') return 'ραντεβού ' + sd(d) + (k > 0 ? ' · πριν ' + k + ' ημ.' : k === 0 ? ' · σήμερα' : ' · σε ' + (-k) + ' ημ.');
     if (s === 'suspended') return 'απόδοση ' + sd(d) + ' · σε ' + (-k) + ' ημ.';
-    if (URG.includes(s)) return (k > 0 ? 'εκκρεμεί από ' + sd(d) + ' · ' + k + ' ημ.' : 'από σήμερα');
+    if (['pol_rem','pol_ret','to_return','transmittal','complaint'].includes(s)) return (k > 0 ? 'εκκρεμεί από ' + sd(d) + ' · ' + k + ' ημ.' : 'από σήμερα');
     return (k === 0 ? 'σήμερα' : 'έως ' + sd(d) + (k < 0 ? ' · σε ' + (-k) + ' ημ.' : ''));
   };
-  const nextLabel = (c) => {
-    if ((c.flags || []).includes('pol_rem')) return 'Καταχώρηση POL (αφαίρεση)';
-    if ((c.flags || []).includes('pol_ret')) return 'Καταχώρηση POL (απόδοση)';
-    if (ACT[c.state]) return ACT[c.state][0];
-    if (c.state === 'suspended') return 'Αναμονή λήξης αφαίρεσης';
-    if (/_wait$/.test(c.state)) return 'Αναμονή 10 ημερών για την επόμενη πρόσκληση';
-    return c.state === 'closed' ? 'Καμία' : '';
-  };
+  
   const stepper = (c) => {
     const rem = c.removalDays > 0 || !!c.dates.susp;
     const S = rem ? ['Επικοινωνία', 'Πρόσκληση', 'Ραντεβού', 'Αφαίρεση', 'Απόδοση', 'Διαβίβαση'] : ['Επικοινωνία', 'Πρόσκληση', 'Ραντεβού', 'Διαβίβαση'];
@@ -529,122 +404,195 @@
     if (!rem && i > 3) i = 3;
     if (c.state === 'closed') i = S.length;
     const bar = S.map((l, k) => `<i class="${k < i ? 'd' : k === i ? 'c' : ''}"></i>`).join('');
-    const cap = c.state === 'closed' ? 'Ολοκληρώθηκε' : (i + 1) + '/' + S.length + ' · ' + S[i] + (i === 1 ? ' · προσκλήσεις ' + invDone(c) + '/3' : '');
+    const cap = c.state === 'closed' ? 'Ολοκληρώθηκε' : (i + 1) + '/' + S.length + ' · ' + S[i] + (i === 1 ? ' (' + invDone(c) + '/3)' : '');
     return `<div class="steps"><div class="bar">${bar}</div><span>${esc(cap)}</span></div>`;
   };
 
-  const card = (c) => {
-    const s = ST[c.state] || { l: 'Άγνωστη κατάσταση', t: 'bad' }, a = ACT[c.state];
-    const tl = timeline(c), lastAction = tl.length ? evText(tl[tl.length - 1]) : '—';
-    const pk = normPlate(c.plate), nO = (pc[pk] || 1) - 1;
-    const multi = nO ? `<button class="linkbtn" data-p="${esc(pk)}">Άλλες υποθέσεις με την ίδια πινακίδα: ${nO}</button>` : '';
-    const pls = c.state === 'closed' ? [] : phoneList(c.phone);
-    const tels = pls.length ? `<div class="tels">${pls.map(x => `<a class="tel" href="${esc(telHref(x))}">Κλήση ${esc(x)}</a>`).join('')}</div>` : '';
-    const hot = (c.flags || []).length || ['pol_rem', 'pol_ret', 'to_return', 'transmittal', 'complaint'].includes(c.state);
-    const cls = hot ? ' o' : urgent(c) ? ' u' : '';
-    let act = '';
-    (c.flags || []).forEach(f => { act += `<button class="btn bad" data-fl="${c.id}|${f}">${FLAG[f] || f}</button>`; });
-    if (a) act += `<button class="btn pri" data-a="${c.id}">${a[0]}</button>`;
-    if (c.moveTo) act += `<button class="btn ghost" data-mv="${c.id}">Μετακινήθηκε στο φάκελο</button>`;
-    let sec = '';
-    if (c.state === 'appointment') sec += `<a class="btn ghost" target="_blank" rel="noopener" href="${esc(calLink(c))}">Google Calendar</a><button class="btn ghost" data-r="${c.id}">Αλλαγή ραντεβού</button>`;
-    (ACT2[c.state] || []).filter(x => !x[2] || x[2](c)).forEach((x, i) => { sec += `<button class="btn ghost" data-b="${c.id}|${i}">${x[0]}</button>`; });
-    if (c.state !== 'closed' && !c.dates.oos) sec += `<button class="btn ghost" data-oos="${c.id}">Εκτός αρμοδιότητας</button>`;
-    const det = [
-      c.phone && `<span><b>Τηλέφωνο:</b> ${phoneList(c.phone).map(x => `<a class="tl" href="${esc(telHref(x))}">${esc(x)}</a>`).join(' · ') || esc(c.phone)}</span>`,
-      c.folder && `<span><b>Φάκελος:</b> ${esc(c.folder)}</span>`,
-      c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
-      c.removalDays > 0 && `<span><b>Αφαίρεση:</b> ${esc(c.removalDays)} ημέρες</span>`,
-      c.violationType && `<span><b>Είδος παράβασης:</b> ${esc(c.violationType)}</span>`,
-      `<span><b>Τελευταία ενέργεια:</b> ${esc(lastAction)}</span>`
-    ].filter(Boolean).join('');
-    const nl = nextLabel(c), wt = whenText(c);
-    return `<article class="card t-${s.t}${cls}">
-      <div class="hd"><div><div class="pl">${esc(c.plate)}</div><div class="nm">${esc(c.name)}</div></div><span class="badge">${s.l}</span></div>
-      ${tels}
-      ${nl ? `<div class="next"><small>Επόμενη ενέργεια</small><strong>${esc(nl)}</strong>${wt ? `<span>${esc(wt)}</span>` : ''}</div>` : ''}
-      ${stepper(c)}
-      ${c.moveTo ? `<div class="mv">Μετακίνηση φακέλου: <b>${esc(c.moveTo)}</b></div>` : ''}
-      <div class="act">${act}</div>
-      <details class="more"><summary>Περισσότερα</summary>
-        ${sec ? `<div class="sec">${sec}</div>` : ''}${invHTML(c)}${multi}
-        <div class="det">${det}</div>${c.notes ? `<div class="notes">${esc(c.notes)}</div>` : ''}
-        <div class="row"><button class="btn" data-e="${c.id}">Επεξεργασία</button><button class="btn" data-h="${c.id}">Ιστορικό (${tl.length})</button></div>
-      </details></article>`;
+  // ---------- UI Components ----------
+  const cardMini = (c, alertClass = '') => {
+    const s = ST[c.state] || { l: 'Άγνωστη', t: 'bad' }, a = ACT[c.state];
+    const nl = a ? a[0] : '';
+    const wt = whenText(c);
+    const badgeClass = s.t === 'bad' ? 'bad' : s.t === 'warn' ? 'warn' : '';
+    return `
+      <div class="card-mini ${alertClass}" onclick="openDetail('${c.id}')">
+        <div class="card-header">
+          <div style="font-weight:700; font-size:16px;">${esc(c.plate)} <span style="font-weight:400; color:var(--mut); font-size:14px;">${esc(c.name)}</span></div>
+          <div class="badge ${badgeClass}">${s.l}</div>
+        </div>
+        ${nl ? `<div class="next-action">${esc(nl)} <span>${esc(wt)}</span></div>` : ''}
+      </div>
+    `;
   };
 
+  // ---------- Render Router ----------
   const render = () => {
     tick();
-    
-    let total = 0, dueToday = 0, dueSoon = 0, waiting = 0;
-    const tToday = todayStr(), tSoon = plus(tToday, 5);
-    pc = {}; cases.forEach(c => { const k = normPlate(c.plate); pc[k] = (pc[k] || 0) + 1; });
-    cases.forEach(c => {
-      if (isTodo(c)) dueToday++;
-      if (c.state === 'closed') return;
-      total++;
-      const dueDate = getCaseDueDate(c);
-      if (dueDate && dueDate > tToday && dueDate <= tSoon && !isSoon(c)) dueSoon++;
-      if (['informed', 'inv1_wait', 'inv2_wait', 'inv3_wait', 'inv1_sent', 'inv2_sent', 'inv3_sent'].includes(c.state)) waiting++;
-    });
-    $('#statTotal').textContent = total;
-    $('#statDueToday').textContent = dueToday;
-    $('#statDueSoon').textContent = dueSoon;
-    $('#statWaiting').textContent = waiting;
+    updateNav();
+    if (currentView === 'today') renderToday();
+    if (currentView === 'cases') renderCases();
+    if (currentView === 'detail') renderDetail();
+  };
 
+  const updateNav = () => {
+    document.querySelectorAll('.nav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.view === currentView);
+    });
+    $('#headerTitle').textContent = currentView === 'today' ? 'Σήμερα' : currentView === 'cases' ? 'Υποθέσεις' : currentView === 'menu' ? 'Μενού' : 'Υπόθεση';
+    $('#btnBack').classList.toggle('hidden', currentView !== 'detail');
+  };
+
+  const goTo = (v) => {
+    currentView = v;
+    currentDetailId = null;
+    document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
+    if (v === 'detail') $('#view-detail').classList.remove('hidden');
+    else $(`#view-${v}`).classList.remove('hidden');
+    render();
+  };
+
+  const openDetail = (id) => {
+    currentDetailId = id;
+    currentView = 'detail';
+    goTo('detail');
+  };
+
+  window.goTo = goTo;
+  window.openDetail = openDetail;
+
+  // ---------- Render: ΣΗΜΕΡΑ ----------
+  const renderToday = () => {
+    const tToday = todayStr();
+    const polCases = [], urgentCases = [];
+    
+    cases.forEach(c => {
+      if (c.state === 'closed') return;
+      if (c.state === 'pol_rem' || c.state === 'pol_ret') {
+        polCases.push(c);
+      } else {
+        const due = dueOf(c);
+        // Εκκρεμότητες ή εκπρόθεσμα (to_return, transmittal, complaint, inv_create, inv_next, search, to_call)
+        if (due && due <= tToday) urgentCases.push(c);
+        else if (isSoon(c)) urgentCases.push(c);
+      }
+    });
+
+    // Sort urgent by priority: to_return > transmittal > inv_create > inv_next > search > to_call
+    const prio = (c) => {
+      const s = c.state;
+      if (s === 'to_return') return 1;
+      if (s === 'transmittal' || s === 'complaint') return 2;
+      if (/^inv\d_(create|next)$/.test(s)) return 3;
+      if (s === 'search' || s === 'to_call') return 4;
+      return 5;
+    };
+    urgentCases.sort((a,b) => prio(a) - prio(b));
+
+    $('#statTodayTitle').textContent = (polCases.length + urgentCases.length) + ' ενέργειες';
+    
+    $('#today-pol-section').classList.toggle('hidden', polCases.length === 0);
+    $('#today-pol-list').innerHTML = polCases.map(c => cardMini(c, 'pol-alert')).join('');
+
+    $('#today-actions-section').classList.toggle('hidden', urgentCases.length === 0);
+    $('#today-actions-list').innerHTML = urgentCases.map(c => cardMini(c, 'urgent-alert')).join('');
+    
+    $('#today-empty').classList.toggle('hidden', polCases.length > 0 || urgentCases.length > 0);
+  };
+
+  // ---------- Render: ΥΠΟΘΕΣΕΙΣ ----------
+  const renderCases = () => {
     const fm = {}; cases.forEach(c => { const f = c.folder || '(χωρίς φάκελο)'; fm[f] = (fm[f] || 0) + 1; });
-    $('#folderFilters').innerHTML = chip('f', 'all', 'Όλοι', cases.length, folderF === 'all') +
-      Object.keys(fm).sort().map(f => chip('f', f, f, fm[f], folderF === f)).join('');
+    $('#folderFilters').innerHTML = `<button class="chip${folderF === 'all' ? ' on' : ''}" onclick="folderF='all';render()">Όλοι</button>` +
+      Object.keys(fm).sort().map(f => `<button class="chip${folderF === f ? ' on' : ''}" onclick="folderF='${f}';render()">${esc(f)}</button>`).join('');
       
     const sc = {}; cases.forEach(c => sc[c.state] = (sc[c.state] || 0) + 1);
     const ic = { 1: 0, 2: 0, 3: 0 }; cases.forEach(c => { const n = invDone(c); if (n && c.state !== 'closed') ic[n]++; });
-    $('#stateFilters').innerHTML = chip('s', 'all', 'Όλα', null, stateF === 'all') +
-      chip('s', 'today', 'Τι κάνω σήμερα', dueToday, stateF === 'today') +
-      [1, 2, 3].filter(n => ic[n]).map(n => chip('s', 'inv:' + n, n === 1 ? 'Με 1 πρόσκληση' : 'Με ' + n + ' προσκλήσεις', ic[n], stateF === 'inv:' + n)).join('') +
-      Object.keys(ST).filter(k => sc[k]).map(k => chip('s', k, ST[k].l, sc[k], stateF === k)).join('');
-
-    const grp = {};
-    cases.forEach(c => {
-      if (URG.includes(c.state)) grp[c.state] = (grp[c.state] || 0) + 1;
-      if (isSoon(c)) grp.soon = (grp.soon || 0) + 1;
-      if (c.moveTo) grp.move = (grp.move || 0) + 1;
-      (c.flags || []).forEach(f => { grp['flag:' + f] = (grp['flag:' + f] || 0) + 1; });
-    });
-    const bannerHTML = Object.keys(grp).map(st => {
-      return `<button class="banner${/_next$|_create$|^soon$|^flag:|^move$/.test(st) ? ' w' : ''}" data-bf="${esc(st)}">
-        <b>${grp[st]} ${esc(BANNER[st] || st)}</b>
-        <span>Κλικ για προβολή</span>
-      </button>`;
-    }).join('');
-    $('#banners').innerHTML = bannerHTML;
+    
+    $('#stateFilters').innerHTML = `<button class="chip${stateF === 'all' ? ' on' : ''}" onclick="stateF='all';render()">Όλα</button>` +
+      `<button class="chip${stateF === 'today' ? ' on' : ''}" onclick="stateF='today';render()">Σήμερα</button>` +
+      `<button class="chip${stateF === 'pol' ? ' on' : ''}" onclick="stateF='pol';render()">POL</button>` +
+      [1, 2, 3].filter(n => ic[n]).map(n => `<button class="chip${stateF === 'inv:' + n ? ' on' : ''}" onclick="stateF='inv:${n}';render()">${n} Πρόσκληση</button>`).join('') +
+      Object.keys(ST).filter(k => sc[k]).map(k => `<button class="chip${stateF === k ? ' on' : ''}" onclick="stateF='${k}';render()">${ST[k].l}</button>`).join('');
 
     const ql = fold(q).trim();
-    const stOk = (c) => stateF === 'all' || (stateF === 'today' ? isTodo(c) : stateF === 'soon' ? isSoon(c) : stateF === 'move' ? !!c.moveTo
-      : stateF.startsWith('inv:') ? (c.state !== 'closed' && invDone(c) === Number(stateF.slice(4)))
-      : stateF.startsWith('flag:') ? (c.flags || []).includes(stateF.slice(5)) : c.state === stateF);
+    const stOk = (c) => stateF === 'all' || (stateF === 'today' ? (c.state === 'pol_rem' || c.state === 'pol_ret' || dueOf(c) <= todayStr()) : stateF === 'pol' ? (c.state === 'pol_rem' || c.state === 'pol_ret')
+      : stateF.startsWith('inv:') ? (c.state !== 'closed' && invDone(c) === Number(stateF.slice(4))) : c.state === stateF);
     const hay = (c) => fold([c.name, c.plate, c.folder, c.phone, c.service, fmt(c.receivedDate), ...Object.values(c.dates || {}).filter(v => /^\d{4}-\d{2}-\d{2}$/.test(v)).map(fmt)].join(' '));
-    const list = cases.filter(c =>
-      (folderF === 'all' || (c.folder || '(χωρίς φάκελο)') === folderF) && stOk(c) && (!ql || hay(c).includes(ql))
-    ).sort((a, b) => (stateF === 'today' ? prio(a) - prio(b) : urgent(b) - urgent(a)) || (b.receivedDate || '').localeCompare(a.receivedDate || ''));
     
-    const safeCard = (c) => { try { return card(c); } catch (err) { console.error(err); return `<article class="card t-bad"><div class="hd"><div><div class="pl">${esc(c.plate)}</div><div class="nm">${esc(c.name)}</div></div><span class="badge">Σφάλμα εμφάνισης</span></div><div class="act"><button class="btn" data-e="${c.id}">Επεξεργασία</button></div></article>`; } };
-    $('#casesList').innerHTML = list.map(safeCard).join('') || '<div class="empty">Δεν βρέθηκαν υποθέσεις.</div>';
+    const list = cases.filter(c => (folderF === 'all' || (c.folder || '(χωρίς φάκελο)') === folderF) && stOk(c) && (!ql || hay(c).includes(ql)))
+      .sort((a, b) => (b.receivedDate || '').localeCompare(a.receivedDate || ''));
+
+    $('#casesList').innerHTML = list.map(c => cardMini(c)).join('') || '<div class="empty">Δεν βρέθηκαν υποθέσεις.</div>';
+  };
+  window.folderF = 'all'; window.stateF = 'all';
+  $('#searchInput').oninput = (e) => { q = e.target.value; renderCases(); };
+
+  // ---------- Render: ΛΕΠΤΟΜΕΡΕΙΕΣ ----------
+  const renderDetail = () => {
+    const c = get(currentDetailId);
+    if (!c) { goTo('cases'); return; }
     
-    checkBackup();
+    const s = ST[c.state] || { l: 'Άγνωστη', t: 'bad' }, a = ACT[c.state];
+    const badgeClass = s.t === 'bad' ? 'bad' : s.t === 'warn' ? 'warn' : '';
+    const pls = c.state === 'closed' ? [] : phoneList(c.phone);
+    
+    let actionsHTML = '';
+    if (a) actionsHTML += `<button class="btn-action primary" onclick="ACT['${c.state}'][1](get('${c.id}'))">${a[0]}</button>`;
+    (ACT2[c.state] || []).filter(x => !x[2] || x[2](c)).forEach((x, i) => {
+      actionsHTML += `<button class="btn-action secondary" onclick="(ACT2['${c.state}']||[]).filter(x=>!x[2]||x[2](get('${c.id}')))[${i}][1](get('${c.id}'))">${x[0]}</button>`;
+    });
+    if (c.state !== 'closed' && !c.dates.oos) actionsHTML += `<button class="btn-action secondary" onclick="actOOS(get('${c.id}'))">Εκτός αρμοδιότητας</button>`;
+
+    const tl = timeline(c);
+    
+    $('#detailContent').innerHTML = `
+      <div class="detail-header">
+        <h1 class="detail-plate">${esc(c.plate)}</h1>
+        <h2 class="detail-name">${esc(c.name)}</h2>
+        <div class="detail-badge ${badgeClass}">${s.l}</div>
+      </div>
+      
+      <div class="detail-info">
+        <div class="detail-info-item">
+          <small>Τηλέφωνο</small>
+          <strong>${pls.length ? pls.map(x => `<a href="${telHref(x)}" style="color:var(--warn); text-decoration:none;">${esc(x)}</a>`).join(', ') : '—'}</strong>
+        </div>
+        <div class="detail-info-item">
+          <small>Φάκελος</small>
+          <strong>${esc(c.folder || '—')}</strong>
+        </div>
+        <div class="detail-info-item">
+          <small>Πρόστιμο</small>
+          <strong>${c.fine ? esc(c.fine) + ' €' : '—'}</strong>
+        </div>
+        <div class="detail-info-item">
+          <small>Αφαίρεση</small>
+          <strong>${c.removalDays ? c.removalDays + ' ημέρες' : '—'}</strong>
+        </div>
+      </div>
+
+      <div class="stepper-wrap">
+        ${stepper(c)}
+      </div>
+
+      <div class="detail-actions">
+        ${actionsHTML}
+      </div>
+
+      <div class="section">
+        <h3 class="section-title">Ιστορικό</h3>
+        <div class="hist">
+          ${tl.map(r => `<div class="hi">${esc(evText(r))}</div>`).join('') || '<div class="empty">Καμία ενέργεια.</div>'}
+        </div>
+      </div>
+      
+      <div class="section">
+        <button class="btn ghost full" onclick="openForm('${c.id}')">Επεξεργασία Στοιχείων</button>
+      </div>
+    `;
   };
 
-  const getCaseDueDate = (c) => {
-    const D = c.dates, s = c.state;
-    if (s === 'informed') return addDays(D.phone, 5);
-    if (s === 'appointment') return addDays(D.appt, 5);
-    if (s === 'suspended') return D.return;
-    if (s === 'inv1_wait') return addDays(D.inv1Proof, 10);
-    if (s === 'inv2_wait') return addDays(D.inv2Proof, 10);
-    if (s === 'inv3_wait') return addDays(D.inv3Proof, 10);
-    return null;
-  };
-
-  // ---------- Φόρμα ----------
+  // ---------- Φόρμα & Modals ----------
   const F = $('#caseForm'), dlgF = $('#dlgForm'), E = F.elements;
   
   const folderOpts = (cur) => {
@@ -676,44 +624,31 @@
     if (v && others.length) {
       const act = others.filter(c => c.state !== 'closed').length;
       msg = (others.length === 1 ? 'Υπάρχει ήδη 1 άλλη υπόθεση' : 'Υπάρχουν ήδη ' + others.length + ' άλλες υποθέσεις') + ' με αυτή την πινακίδα (' + act + ' ενεργές).';
-    } else if (v && !/^[ΑΒΕΖΗΙΚΜΝΟΡΤΥΧ]{3}[0-9]{4}$/.test(v)) msg = 'Η πινακίδα δεν έχει τη μορφή ΑΑΑ1234. Έλεγξέ την.';
+    } else if (v && !/^[ΑΒΕΖΗΙΚΜΝΟΡΤΥΧ]{3}[0-9]{4}$/.test(v)) msg = 'Η πινακίδα δεν έχει τη μορφή ΑΑΑ1234.';
     w.textContent = msg; w.style.display = msg ? 'block' : 'none';
   };
   E.plate.addEventListener('input', (e) => {
-    const el = e.target, p = el.selectionStart, before = el.value.length;
-    el.value = normPlate(el.value);
-    const np = Math.max(0, p - (before - el.value.length)); el.setSelectionRange(np, np);
-    checkPlate(el.value);
-  });
-  E.phone.addEventListener('input', () => {
-    if (!F.dataset.id) {
-      const cur = E.manualState.value;
-      if (cur === 'search' || cur === 'to_call') {
-        E.manualState.value = E.phone.value.trim() ? 'to_call' : 'search';
-      }
-    }
+    const el = e.target; el.value = normPlate(el.value); checkPlate(el.value);
   });
 
   const DF = { phone:'d_phone', appt:'d_appt', susp:'d_susp', return:'d_return', inv1Create:'d_inv1Create', inv1Send:'d_inv1Send', inv1Proof:'d_inv1Proof', inv2Create:'d_inv2Create', inv2Send:'d_inv2Send', inv2Proof:'d_inv2Proof', inv3Create:'d_inv3Create', inv3Send:'d_inv3Send', inv3Proof:'d_inv3Proof', searchNone:'d_searchNone', callRes:'d_callRes', docRecv:'d_docRecv', returned:'d_returned', polRem:'d_polRem', polRet:'d_polRet', closed:'d_closed', closedKind:'d_closedKind', oos:'d_oos', oosDest:'d_oosDest', oosReason:'d_oosReason' };
   (() => {
     const adv = E.d_phone.closest('.grid');
     const mk = (name, label, opts) => { if (E[name]) return; const l = document.createElement('label'); l.innerHTML = label + (opts === 'text' ? `<input type="text" name="${name}">` : opts ? `<select name="${name}">${opts.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('')}</select>` : `<input type="date" name="${name}">`); adv.appendChild(l); };
-    mk('d_callRes', 'Αποτέλεσμα κλήσης', [['', '—'], ['noanswer', 'Δεν απάντησε'], ['informed', 'Ενημερώθηκε (θα καλέσει ο ίδιος)'], ['booked', 'Έκλεισε ραντεβού'], ['refused', 'Αρνήθηκε ή αναβάλλει']]);
-    mk('d_searchNone', 'Δεν βρέθηκε τηλέφωνο (ημερομηνία)');
-    [1, 2, 3].forEach(n => mk('d_inv' + n + 'Create', n + 'η Δημιουργία πρόσκλησης'));
+    mk('d_callRes', 'Αποτέλεσμα κλήσης', [['', '—'], ['noanswer', 'Δεν απάντησε'], ['informed', 'Ενημερώθηκε'], ['booked', 'Έκλεισε ραντεβού'], ['refused', 'Αρνήθηκε']]);
+    mk('d_searchNone', 'Δεν βρέθηκε τηλέφωνο (ημ.)');
+    [1, 2, 3].forEach(n => mk('d_inv' + n + 'Create', n + 'η Δημιουργία'));
     mk('d_docRecv', 'Παραλαβή εγγράφου (χωρίς αφαίρεση)'); mk('d_returned', 'Απόδοση διπλώματος');
     mk('d_polRem', 'POL αφαίρεσης'); mk('d_polRet', 'POL απόδοσης'); mk('d_closed', 'Κλείσιμο υπόθεσης');
     mk('d_closedKind', 'Είδος κλεισίματος', [['', '—'], ['transmittal', 'Διαβιβαστικό'], ['complaint', 'Μήνυση']]);
-    mk('d_oos', 'Εκτός αρμοδιότητας (ημερομηνία)'); mk('d_oosDest', 'Υπηρεσία προορισμού', 'text'); mk('d_oosReason', 'Αιτιολογία', 'text');
-    E.manualState.closest('label').hidden = true;
+    mk('d_oos', 'Εκτός αρμοδιότητας (ημ.)'); mk('d_oosDest', 'Υπηρεσία προορισμού', 'text'); mk('d_oosReason', 'Αιτιολογία', 'text');
   })();
+
   const openForm = (id) => {
     const c = id ? get(id) : null;
     F.reset(); F.dataset.id = id || '';
-    $('#formTitle').textContent = c ? 'Επεξεργασία υπόθεσης' : 'Νέα υπόθεση';
+    $('#formTitle').textContent = c ? 'Επεξεργασία' : 'Νέα Υπόθεση';
     $('#btnFormDelete').hidden = !c;
-    
-    E.manualState.innerHTML = Object.keys(ST).map(k => `<option value="${k}">${ST[k].l}</option>`).join('');
     folderOpts(c ? c.folder : '');
     
     if (c) {
@@ -721,183 +656,87 @@
       E.receivedDate.value = c.receivedDate;
       if (VIOL.includes(c.violationType)) E.violationType.value = c.violationType;
       else if (c.violationType) { E.violationType.value = 'custom'; E.violationOther.value = c.violationType; }
-      E.fine.value = c.fine || '';
-      E.removalDays.value = c.removalDays || ''; E.notes.value = c.notes || '';
-      E.manualState.value = c.state;
-      
-      Object.entries(DF).forEach(([k, n]) => { E[n].value = c.dates[k] || ''; });
-      
+      E.fine.value = c.fine || ''; E.removalDays.value = c.removalDays || ''; E.notes.value = c.notes || '';
+      Object.entries(DF).forEach(([k, n]) => { if (E[n]) E[n].value = c.dates[k] || ''; });
       if (c.folder && $('#fFolder').value === '') { $('#fFolder').value = 'custom'; E.folderCustom.value = c.folder; }
       checkPlate(c.plate);
     } else {
       E.receivedDate.value = todayStr();
       $('#plateWarning').style.display = 'none';
-      E.manualState.value = 'search';
     }
     toggles();
-    F.dataset.id = id || '';
     dlgF.showModal();
   };
+  window.openForm = openForm;
 
   F.addEventListener('submit', (e) => {
     e.preventDefault();
     const id = F.dataset.id || uid(), old = get(id);
-    
     const folder = E.folderSelect.value === 'custom' ? E.folderCustom.value.trim().toUpperCase() : E.folderSelect.value;
     const days = Number(E.removalDays.value) || 0, req = days > 0;
+    
     const D = { ...(old ? old.dates : BLANK_DATES) };
-    if (old) Object.entries(DF).forEach(([k, n]) => { D[k] = E[n].value; });
-    if (D.susp && !days) { alert('Για ημερομηνία αφαίρεσης συμπλήρωσε τις ημέρες αφαίρεσης.'); return; }
-    if (D.returned && !D.susp) { alert('Η απόδοση διπλώματος προϋποθέτει ημερομηνία αφαίρεσης.'); return; }
-    if (D.polRem && !D.susp) { alert('Το POL αφαίρεσης προϋποθέτει ημερομηνία αφαίρεσης.'); return; }
-    if (D.polRet && !D.returned) { alert('Το POL απόδοσης προϋποθέτει ημερομηνία απόδοσης.'); return; }
-    if (D.oos && !String(D.oosDest || '').trim()) { alert('Συμπλήρωσε την υπηρεσία προορισμού για το «Εκτός αρμοδιότητας».'); return; }
+    if (old) Object.entries(DF).forEach(([k, n]) => { if (E[n]) D[k] = E[n].value; });
+    
+    if (D.susp && !days) { alert('Συμπλήρωσε τις ημέρες αφαίρεσης.'); return; }
+    if (D.returned && !D.susp) { alert('Η απόδοση προϋποθέτει αφαίρεση.'); return; }
+    if (D.polRem && !D.susp) { alert('Το POL αφαίρεσης προϋποθέτει αφαίρεση.'); return; }
+    if (D.polRet && !D.returned) { alert('Το POL απόδοσης προϋποθέτει απόδοση.'); return; }
+    if (D.oos && !String(D.oosDest || '').trim()) { alert('Συμπλήρωσε την υπηρεσία προορισμού.'); return; }
     D.closedKind = D.closed ? (D.closedKind || 'transmittal') : '';
     if (D.susp && days) D.return = addDays(D.susp, days);
     
     const rec = {
-      id, 
-      plate: normPlate(E.plate.value), 
-      name: E.name.value.trim().toUpperCase(), 
-      service: E.service.value.trim().toUpperCase(),
-      phone: E.phone.value.trim(), 
-      receivedDate: E.receivedDate.value, 
-      folder,
+      id, plate: normPlate(E.plate.value), name: E.name.value.trim().toUpperCase(), service: E.service.value.trim().toUpperCase(),
+      phone: E.phone.value.trim(), receivedDate: E.receivedDate.value, folder,
       violationType: E.violationType.value === 'custom' ? E.violationOther.value.trim().toUpperCase() : E.violationType.value,
-      fine: E.fine.value.trim(), 
-      requiresLicense: req, 
-      removalDays: days, 
-      notes: E.notes.value.trim().toUpperCase(),
-      state: old ? old.state : 'search',
-      history: old ? (old.history || []) : [], ev: old ? (old.ev || []) : [], 
+      fine: E.fine.value.trim(), requiresLicense: req, removalDays: days, notes: E.notes.value.trim().toUpperCase(),
+      state: old ? old.state : 'search', history: old ? (old.history || []) : [], ev: old ? (old.ev || []) : [], 
       dates: D, flags: old ? (old.flags || []) : [], schema: 4
     };
-    
-    rec.moveTo = old ? (old.moveTo || '') : '';
     reconcile(rec);
-    if (rec.moveTo && rec.moveTo === rec.folder) rec.moveTo = '';
-    if (old) {
-      cases[cases.indexOf(old)] = rec;
-    } else {
-      cases.unshift(rec);
-    }
-    save(); render(); dlgF.close();
+    if (old) cases[cases.indexOf(old)] = rec;
+    else cases.unshift(rec);
+    save(); dlgF.close(); render();
   });
 
-  // ---------- Events ----------
-  $('#casesList').addEventListener('click', (e) => {
-    const t = e.target.closest('[data-a],[data-r],[data-e],[data-h]'); 
-    if (!t) return;
-    const id = t.dataset.a || t.dataset.r || t.dataset.e || t.dataset.h;
-    const c = get(id); if (!c) return;
-    
-    if (t.dataset.a) { const a = ACT[c.state]; if (a) a[1](c); }
-    else if (t.dataset.r) actAppt(c);
-    else if (t.dataset.e) openForm(c.id);
-    else { 
-      $('#histBody').innerHTML = timeline(c).map((r, i) => `<div class="hi"><span>${i + 1}. ${esc(evText(r))}</span></div>`).join('') || '<div class="empty">Καμία ενέργεια ακόμα.</div>'; 
-      $('#dlgHistory').showModal(); 
-    }
-  });
-
-  $('#banners').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-bf]'); if (!b) return;
-    stateF = b.dataset.bf; folderF = 'all'; q = ''; $('#searchInput').value = ''; render();
-    scrollTo({ top: 0, behavior: 'smooth' });
-  });
-
-  $('#casesList').addEventListener('click', (e) => {
-    const t = e.target.closest('[data-b],[data-fl],[data-p],[data-mv],[data-oos]'); if (!t) return;
-    if (t.dataset.oos) { const o = get(t.dataset.oos); if (o) actOOS(o); return; }
-    if (t.dataset.mv) {
-      const m = get(t.dataset.mv);
-      if (m && m.moveTo) { m.folder = m.moveTo; m.moveTo = ''; save(); render(); }
-      return;
-    }
-    if (t.dataset.p) { q = t.dataset.p; $('#searchInput').value = q; stateF = 'all'; folderF = 'all'; render(); scrollTo({ top: 0, behavior: 'smooth' }); return; }
-    const [id, k] = (t.dataset.b || t.dataset.fl).split('|'), c = get(id); if (!c) return;
-    if (t.dataset.b) { const x = (ACT2[c.state] || []).filter(x => !x[2] || x[2](c))[Number(k)]; if (x) x[1](c); }
-    else { go(c, '', { [k === 'pol_rem' ? 'polRem' : 'polRet']: todayStr() }); }
-  });
-  $('#folderFilters').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (b) { folderF = b.dataset.f; render(); } });
-  $('#stateFilters').addEventListener('click', (e) => { const b = e.target.closest('[data-s]'); if (b) { stateF = b.dataset.s; render(); } });
-  $('#searchInput').oninput = (e) => { q = e.target.value; render(); };
-  
-  $('#fFolder').onchange = toggles; $('#fViol').onchange = toggles;
-  $('#btnNew').onclick = () => openForm(null);
   $('#btnFormCancel').onclick = () => dlgF.close();
-  $('#btnHistoryClose').onclick = () => $('#dlgHistory').close();
-  $('#btnFormDelete').onclick = () => {
-    if (confirm('Οριστική διαγραφή υπόθεσης;')) {
-      cases = cases.filter(x => x.id !== F.dataset.id); save(); render(); dlgF.close();
-    }
-  };
-
+  $('#btnFormDelete').onclick = () => { if (confirm('Διαγραφή;')) { cases = cases.filter(x => x.id !== F.dataset.id); save(); dlgF.close(); goTo('cases'); } };
+  
   $('#btnExport').onclick = () => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([JSON.stringify(cases, null, 2)], { type: 'application/json' }));
-    a.download = 'ypotheseis_' + todayStr() + '.json'; 
-    a.click();
-    localStorage.setItem('last_backup', Date.now());
-    checkBackup();
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(cases, null, 2)], { type: 'application/json' }));
+    a.download = 'ypotheseis_' + todayStr() + '.json'; a.click(); localStorage.setItem('last_backup', Date.now());
   };
 
-  // ---------- ΔΙΟΡΘΩΜΕΝΗ ΕΙΣΑΓΩΓΗ (IMPORT) ----------
   $('#btnImport').onclick = () => $('#importFile').click();
   $('#importFile').onchange = (e) => {
-    const input = e.target, file = input.files[0]; if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     const r = new FileReader();
-    r.onerror = () => { alert('Δεν μπόρεσα να διαβάσω το αρχείο.'); input.value = ''; };
     r.onload = (ev) => {
-      const prev = localStorage.getItem(KEY);
       try {
         const text = String(ev.target.result || '').replace(/^\uFEFF/, '');
-        if (text.includes('"manifest_version"') || text.includes('"start_url"')) {
-          throw new Error('Επιλέξατε το manifest.json της εφαρμογής. Επιλέξτε το αρχείο Backup (π.χ. ypotheseis_2026-XX-XX.json).');
-        }
+        if (text.includes('"manifest_version"')) throw new Error('Επιλέξατε manifest.json.');
         const parsed = JSON.parse(text);
-        let arr = Array.isArray(parsed) ? parsed : null;
-        if (!arr && parsed && typeof parsed === 'object') arr = Object.values(parsed).find(Array.isArray) || null;
-        if (!arr) throw new Error('Το αρχείο δεν περιέχει λίστα υποθέσεων.');
-        arr = arr.filter(x => x && typeof x === 'object');
-        if (!arr.length) throw new Error('Το αρχείο δεν περιέχει υποθέσεις. Δεν έγινε επαναφορά.');
-        if (!confirm(`Βρέθηκαν ${arr.length} υποθέσεις στο αρχείο. Η επαναφορά θα αντικαταστήσει τις τρέχουσες. Συνέχεια;`)) { input.value = ''; return; }
-        if (prev) localStorage.setItem('troxonomika_before_restore', prev);
-        const orig = arr.map(x => x.state);
-        cases = arr.map(migrate);
-        tick(); reportMig(); save(); render();
-        const fixed = cases.filter((c, i) => c.state !== orig[i]).length;
-        alert('Επιτυχής επαναφορά: ' + cases.length + ' υποθέσεις.' + (fixed ? '\n' + fixed + ' ενημερώθηκαν αυτόματα με βάση τις ημερομηνίες.' : ''));
-      } catch (err) {
-        console.error(err);
-        if (prev) localStorage.setItem(KEY, prev); else localStorage.removeItem(KEY);
-        try { cases = prev ? JSON.parse(prev).map(migrate) : []; render(); } catch (e2) { console.error(e2); }
-        alert('Σφάλμα: ' + err.message + (prev ? '\nΤα προηγούμενα δεδομένα διατηρήθηκαν.' : ''));
-      }
-      input.value = '';
+        let arr = Array.isArray(parsed) ? parsed : Object.values(parsed).find(Array.isArray);
+        if (!arr || !arr.length) throw new Error('Δεν βρέθηκαν υποθέσεις.');
+        if (!confirm(`Επαναφορά ${arr.length} υποθέσεων;`)) return;
+        localStorage.setItem('troxonomika_before_restore', localStorage.getItem(KEY));
+        cases = arr.map(migrate); tick(); save(); render();
+        alert('Επιτυχής επαναφορά.');
+      } catch (err) { alert('Σφάλμα: ' + err.message); }
+      e.target.value = '';
     };
     r.readAsText(file);
   };
 
   $('#btnPrint').onclick = () => {
-    let h = `<h1>ΚΑΤΑΣΤΑΣΗ ΥΠΟΘΕΣΕΩΝ</h1><div style="font-size:10px; margin-bottom:8px">Ημερομηνία: ${fmt(todayStr())} | Σύνολο: ${cases.length}</div>` +
-      '<table><thead><tr><th>Α/Α</th><th>Πινακίδα</th><th>Ονοματεπώνυμο</th><th>Τηλέφωνο</th><th>Κατάσταση</th><th>Ραντεβού</th><th>Απόδοση</th><th>Προσκλ.</th><th>Φάκελος</th></tr></thead><tbody>';
-    cases.forEach((c, i) => { 
-      h += `<tr><td>${i + 1}</td><td><b>${esc(c.plate)}</b></td><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${(ST[c.state] || {}).l || '—'}</td><td>${fmt(c.dates.appt)}</td><td>${fmt(c.dates.return)}</td><td>${invDone(c)}/3</td><td>${esc(c.folder || '—')}</td></tr>`; 
-    });
-    $('#printArea').innerHTML = h + '</tbody></table>';
-    print();
+    let h = `<h1>ΚΑΤΑΣΤΑΣΗ ΥΠΟΘΕΣΕΩΝ</h1><table><thead><tr><th>Α/Α</th><th>Πινακίδα</th><th>Ονοματεπώνυμο</th><th>Τηλέφωνο</th><th>Κατάσταση</th><th>Φάκελος</th></tr></thead><tbody>`;
+    cases.forEach((c, i) => { h += `<tr><td>${i + 1}</td><td><b>${esc(c.plate)}</b></td><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${(ST[c.state] || {}).l || '—'}</td><td>${esc(c.folder || '—')}</td></tr>`; });
+    $('#printArea').innerHTML = h + '</tbody></table>'; print();
   };
 
   // ---------- Init ----------
-  if (navigator.storage && navigator.storage.persist) {
-    navigator.storage.persist().then(granted => { if (granted) console.log("Storage persisted"); });
-  }
-
-  $('#statDueToday').closest('.stat').onclick = () => { stateF = 'today'; folderF = 'all'; q = ''; $('#searchInput').value = ''; render(); };
   load(); render();
-  let lastDay = todayStr();
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { lastDay = todayStr(); tick(); render(); } });
-  setInterval(() => { if (todayStr() !== lastDay) { lastDay = todayStr(); tick(); render(); } }, 60000);
+  setInterval(() => { tick(); render(); }, 60000);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 })();
