@@ -430,7 +430,7 @@
 
   const goTo = (v) => {
     currentView = v;
-    currentDetailId = null;
+    if (v !== 'detail') currentDetailId = null; // <--- ΤΟ ΔΙΟΡΘΩΣΑ ΕΔΩ
     document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
     if (v === 'detail') $('#view-detail').classList.remove('hidden');
     else $(`#view-${v}`).classList.remove('hidden');
