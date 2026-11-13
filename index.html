@@ -3,97 +3,62 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0a0a0b">
-  <title>Υποθέσεις</title>
+  <meta name="theme-color" content="#000000">
+  <title>Διαχείριση Υποθέσεων</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="./icon-192.png">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
-<header id="appHeader">
-  <div style="display:flex; align-items:center; gap:10px;">
-    <button id="btnBack" class="btn-icon hidden" type="button" aria-label="Πίσω">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-    </button>
-    <h1 id="headerTitle">Σήμερα</h1>
-  </div>
+<header>
+  <button class="hb" id="btnBack" data-back hidden aria-label="Πίσω"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+  <h1 id="viewTitle">Σήμερα</h1>
+  <span class="hsub" id="viewSub"></span>
 </header>
 
-<div id="appContainer">
-
-  <section id="view-today" class="view">
-    <div class="stats-header">
-      <h2 id="statTodayTitle">0 ενέργειες</h2>
-      <p>Απαιτούν την προσοχή σου</p>
-    </div>
-
-    <div id="today-pol-section" class="section hidden">
-      <h3 class="section-title text-bad">Εκκρεμότητες POL</h3>
-      <div id="today-pol-list" class="list"></div>
-    </div>
-
-    <div id="today-actions-section" class="section hidden">
-      <h3 class="section-title text-warn">Ενέργειες</h3>
-      <div id="today-actions-list" class="list"></div>
-    </div>
-
-    <div id="today-empty" class="empty hidden">Δεν υπάρχουν εκκρεμότητες για σήμερα.</div>
-  </section>
-
-  <section id="view-cases" class="view hidden">
-    <div class="tools">
-      <input type="search" id="searchInput" placeholder="Πινακίδα, όνομα, τηλέφωνο, ημερομηνία" autocomplete="off">
-      <div class="chips-container">
-        <div class="chips" id="stateFilters"></div>
-        <div class="chips mt-8" id="folderFilters"></div>
-      </div>
-    </div>
-    <div id="casesList" class="list"></div>
-  </section>
-
-  <section id="view-detail" class="view hidden">
-    <div id="detailContent"></div>
-  </section>
-
-  <section id="view-menu" class="view hidden">
-    <div class="menu-group">
-      <h3>Διαχείριση δεδομένων</h3>
-      <button class="btn ghost full" id="btnExport" type="button">Λήψη Backup (JSON)</button>
-      <button class="btn ghost full" id="btnImport" type="button">Επαναφορά από Backup</button>
-      <input type="file" id="importFile" accept=".json" hidden>
-    </div>
-    <div class="menu-group">
-      <h3>Εργαλεία</h3>
-      <button class="btn ghost full" id="btnPrint" type="button">Εκτύπωση λίστας</button>
-    </div>
-    <div class="menu-group">
-      <h3>Πληροφορίες</h3>
-      <p class="muted">Η κατάσταση υπολογίζεται αυτόματα από τα δεδομένα και τη σημερινή ημερομηνία.</p>
-    </div>
-  </section>
-
+<div id="backupWarning" class="backup-warning" style="display:none;">
+  <span>Έχουν περάσει 7 ημέρες από το τελευταίο Backup. Κάντε λήψη από το Μενού.</span>
+  <button onclick="document.getElementById('backupWarning').style.display='none'">X</button>
 </div>
 
-<button type="button" class="fab" id="btnFab" onclick="openForm(null)" aria-label="Νέα υπόθεση">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-</button>
+<main>
+  <section class="view" id="view-today"><div id="todayList"></div></section>
 
-<nav class="bottom-nav">
-  <button class="nav-item active" data-view="today" type="button">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
-    <span class="nav-label">Σήμερα</span>
-  </button>
-  <button class="nav-item" data-view="cases" type="button">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7z"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>
-    <span class="nav-label">Υποθέσεις</span>
-  </button>
-  <button class="nav-item" data-view="menu" type="button">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
-    <span class="nav-label">Μενού</span>
-  </button>
+  <section class="view" id="view-cases" hidden>
+    <div class="tools2">
+      <input type="search" id="searchInput" placeholder="Πινακίδα, όνομα, τηλέφωνο, ημερομηνία" autocomplete="off">
+      <div class="fbar">
+        <button class="fsel" data-filter="state"><small>Φάση</small><span id="fsState">Όλες</span></button>
+        <button class="fsel" data-filter="folder"><small>Φάκελος</small><span id="fsFolder">Όλοι</span></button>
+        <button class="fsel" data-filter="inv"><small>Προσκλήσεις</small><span id="fsInv">Όλες</span></button>
+      </div>
+      <button class="linkbtn" data-clearf id="btnClearF" hidden>Καθαρισμός φίλτρων</button>
+    </div>
+    <div id="casesList"></div>
+  </section>
+
+  <section class="view" id="view-menu" hidden>
+    <div class="menu">
+      <button class="mrow" id="btnExport"><b>Backup</b><span id="lastBackup"></span></button>
+      <button class="mrow" id="btnImport"><b>Επαναφορά από αρχείο</b><span>Αντικαθιστά τις τρέχουσες υποθέσεις</span></button>
+      <button class="mrow" id="btnPrint"><b>Εκτύπωση λίστας</b><span>A4 οριζόντια</span></button>
+      <input type="file" id="importFile" accept=".json,application/json,text/plain" hidden>
+      <div class="msum" id="menuSum"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-case" hidden><div id="caseBody"></div></section>
+</main>
+
+<nav class="nav">
+  <button data-nav="today" class="on"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><i class="nb" id="nbToday" hidden></i><span>Σήμερα</span></button>
+  <button data-nav="cases"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Υποθέσεις</span></button>
+  <button id="btnNew" class="plus" aria-label="Νέα υπόθεση"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button data-nav="menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Μενού</span></button>
 </nav>
 
+<!-- Modal Φόρμας -->
 <dialog id="dlgForm">
   <form id="caseForm" class="dlg">
     <h2 id="formTitle">Νέα Υπόθεση</h2>
@@ -124,22 +89,19 @@
       <label class="full">Ημέρες αφαίρεσης (προαιρετικό)<input type="number" name="removalDays" min="1" placeholder="π.χ. 30"></label>
       <label class="full">Παρατηρήσεις<textarea name="notes" rows="2"></textarea></label>
     </div>
-
+    
     <details class="adv">
       <summary>Προχωρημένη Διόρθωση (Κατάσταση & Ημερομηνίες)</summary>
       <div class="grid">
-        <label class="full" hidden>Χειροκίνητη Κατάσταση<select name="manualState"></select></label>
+        <label class="full">Χειροκίνητη Κατάσταση<select name="manualState"></select></label>
         <label>Τηλεφώνημα<input type="date" name="d_phone"></label>
         <label>Ραντεβού<input type="date" name="d_appt"></label>
         <label>Αφαίρεση<input type="date" name="d_susp"></label>
         <label>Απόδοση (auto)<input type="date" name="d_return" readonly></label>
-        <label>1η Δημιουργία<input type="date" name="d_inv1Create"></label>
         <label>1η Αποστολή<input type="date" name="d_inv1Send"></label>
         <label>1ο Αποδεικτικό<input type="date" name="d_inv1Proof"></label>
-        <label>2η Δημιουργία<input type="date" name="d_inv2Create"></label>
         <label>2η Αποστολή<input type="date" name="d_inv2Send"></label>
         <label>2ο Αποδεικτικό<input type="date" name="d_inv2Proof"></label>
-        <label>3η Δημιουργία<input type="date" name="d_inv3Create"></label>
         <label>3η Αποστολή<input type="date" name="d_inv3Send"></label>
         <label>3ο Αποδεικτικό<input type="date" name="d_inv3Proof"></label>
       </div>
@@ -153,6 +115,7 @@
   </form>
 </dialog>
 
+<!-- Modal Wizard (Βήμα-Βήμα Ενέργειες) -->
 <dialog id="dlgWizard">
   <div class="dlg">
     <h2 id="wT"></h2>
@@ -162,6 +125,7 @@
   </div>
 </dialog>
 
+<!-- Modal Ιστορικού -->
 <dialog id="dlgHistory">
   <div class="dlg">
     <h2>Ιστορικό Ενεργειών</h2>
@@ -169,6 +133,15 @@
     <div class="acts">
       <button type="button" class="btn ghost" id="btnHistoryClose">Κλείσιμο</button>
     </div>
+  </div>
+</dialog>
+
+<!-- Επιλογή φίλτρου -->
+<dialog id="dlgPick">
+  <div class="dlg">
+    <h2 id="pickT"></h2>
+    <div id="pickB" class="pick"></div>
+    <div class="acts"><button type="button" class="btn ghost" onclick="document.getElementById('dlgPick').close()">Κλείσιμο</button></div>
   </div>
 </dialog>
 
