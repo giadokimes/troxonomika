@@ -11,15 +11,13 @@
 </head>
 <body>
 
-<!-- Top Header -->
 <header id="appHeader">
   <div style="display:flex; align-items:center; gap:12px;">
-    <button id="btnBack" class="btn-icon hidden" onclick="goTo('cases')">←</button>
+    <button id="btnBack" class="btn-icon hidden" onclick="goTo('cases')">&larr;</button>
     <h1 id="headerTitle">Σήμερα</h1>
   </div>
 </header>
 
-<!-- Views Container -->
 <div id="appContainer">
 
   <!-- View: ΣΗΜΕΡΑ -->
@@ -66,14 +64,14 @@
     <div class="menu-group">
       <h3>Διαχείριση Δεδομένων</h3>
       <button class="btn ghost full" id="btnExport">Λήψη Backup (JSON)</button>
-      <button class="btn ghost full" id="btnImport">Επαναφορά από Backup</button>
+      <button class="btn ghost full mt-8" id="btnImport">Επαναφορά από Backup</button>
       <input type="file" id="importFile" accept=".json" hidden>
     </div>
-    <div class="menu-group">
+    <div class="menu-group mt-16">
       <h3>Εργαλεία</h3>
       <button class="btn ghost full" id="btnPrint">Εκτύπωση Λίστας</button>
     </div>
-    <div class="menu-group">
+    <div class="menu-group mt-16">
       <h3>Πληροφορίες</h3>
       <p class="muted">Η εφαρμογή υπολογίζει την κατάσταση αυτόματα με βάση τα δεδομένα και την τρέχουσα ημερομηνία.</p>
     </div>
@@ -81,23 +79,20 @@
 
 </div>
 
-<!-- Bottom Navigation -->
+<!-- Bottom Navigation (Χωρίς Emojis) -->
 <nav class="bottom-nav">
   <button class="nav-item active" data-view="today" onclick="goTo('today')">
-    <span class="icon">📅</span>
-    <span>Σήμερα</span>
+    <span class="nav-label">Σήμερα</span>
   </button>
   <button class="nav-item" data-view="cases" onclick="goTo('cases')">
-    <span class="icon">📁</span>
-    <span>Υποθέσεις</span>
+    <span class="nav-label">Υποθέσεις</span>
   </button>
   <button class="nav-item" data-view="menu" onclick="goTo('menu')">
-    <span class="icon">⚙️</span>
-    <span>Μενού</span>
+    <span class="nav-label">Μενού</span>
   </button>
 </nav>
 
-<!-- Modals (Φόρμα, Wizard, Ιστορικό) -->
+<!-- Modals -->
 <dialog id="dlgForm">
   <form id="caseForm" class="dlg">
     <h2 id="formTitle">Νέα Υπόθεση</h2>
