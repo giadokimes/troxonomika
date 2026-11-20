@@ -1,7 +1,11 @@
 (() => {
-  const KEY = 'troxonomika_final_v24';
+  const KEY = 'troxonomika_final_v28';
   const OLD = [...Array(22)].map((_, i) => 'troxonomika_final_v' + (22 - i))
     .concat(['ypotheseis_pwa_v1','ypotheseis.v1','troxonomika.cases.v1','ypotheseis.v2','ypotheseis_gemini_v1']);
+  OLD.unshift('troxonomika_final_v27');
+  OLD.unshift('troxonomika_final_v26');
+  OLD.unshift('troxonomika_final_v25');
+  OLD.unshift('troxonomika_final_v24');
   OLD.unshift('troxonomika_final_v23');
 
   // ---------- Ρυθμίσεις & Σταθερές ----------
@@ -25,7 +29,7 @@
     inv3_next:   { l: 'Προς αποστολή 3η Πρόσκλησης', t: 'warn', a: 'Αποστολή 3ης' },
     inv3_sent:   { l: 'Αναμονή 3ου Αποδεικτικού', t: 'warn', a: 'Καταχώρηση αποδεικτικού' },
     inv3_wait:   { l: 'Αναμονή 10ημ. (3ο Αποδ.)', t: 'warn', a: '' },
-    transmittal: { l: 'Προς διαβίβαση στην Υπηρεσία', t: 'bad', a: 'Δημιουργία διαβιβαστικού και αποστολή στην Υπηρεσία' },
+    transmittal: { l: 'Έληξε 10ημ. 3ου αποδεικτικού — Άμεση διαβίβαση', t: 'bad', a: 'Άμεση επιστροφή στην υπηρεσία ανάθεσης. Δημιουργία διαβιβαστικού.' },
     pol_rem:     { l: 'Αφαίρεση — εκκρεμεί POL', t: 'bad', a: '' },
     pol_ret:     { l: 'Απόδοση — εκκρεμεί POL', t: 'bad', a: '' },
     complaint:   { l: 'Προς Μήνυση', t: 'bad', a: 'Υποβολή μήνυσης' },
@@ -36,7 +40,7 @@
     pol_rem: 'Καταχώρηση POL (αφαίρεση)',
     pol_ret: 'Καταχώρηση POL (απόδοση)',
     to_return: 'Προς απόδοση διπλώματος',
-    transmittal: 'Δημιουργία διαβιβαστικού',
+    transmittal: 'Έληξε προθεσμία 3ου αποδεικτικού — Δημιουργία διαβιβαστικού',
     complaint: 'Υποβολή μήνυσης',
     inv1_create: 'Δημιουργία 1ης πρόσκλησης', inv2_create: 'Δημιουργία 2ης πρόσκλησης', inv3_create: 'Δημιουργία 3ης πρόσκλησης',
     inv1_next: 'Αποστολή 1ης πρόσκλησης', inv2_next: 'Αποστολή 2ης πρόσκλησης', inv3_next: 'Αποστολή 3ης πρόσκλησης',
@@ -61,12 +65,62 @@
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const iso = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   const todayStr = () => iso(new Date());
+  const yy = () => String(new Date().getFullYear()).slice(-2);
+  const PROTO_PREFIXES = () => [
+    { v: '2515/11-' + yy() + '/', l: '2515/11-' + yy() + '/' },
+    { v: '2517/4-' + yy() + '/', l: '2517/4-' + yy() + '/' }
+  ];
+  const splitProtocol = (p) => {
+    p = String(p || '').trim().toUpperCase();
+    for (const pr of PROTO_PREFIXES()) {
+      if (p.startsWith(pr.v.toUpperCase())) return { prefix: pr.v, num: p.slice(pr.v.length) };
+    }
+    // fallback older years or free text
+    const m = p.match(/^(2515\/11-\d{2}\/|2517\/4-\d{2}\/)(.*)$/i);
+    if (m) return { prefix: m[1], num: m[2] };
+    return { prefix: '', num: p };
+  };
+  const buildProtocol = () => {
+    const pre = (E.protocolPrefix && E.protocolPrefix.value) || '';
+    const num = (E.protocolNum && E.protocolNum.value || '').trim().toUpperCase();
+    if (!pre && !num) return '';
+    if (!pre) return num;
+    return pre + num;
+  };
+  const serviceNorm = (s) => fold(s).replace(/[.,]/g, '').replace(/\s+/g, ' ').trim();
+  const serviceCanonical = (s) => {
+    const raw = toGreek(String(s || '').normalize('NFC')).toUpperCase().replace(/\s+/g, ' ').trim();
+    const n = serviceNorm(raw).toLowerCase();
+    const known = {
+      'τ τ λητης': 'Τ.Τ. ΛΗΤΗΣ', 'ττ λητης': 'Τ.Τ. ΛΗΤΗΣ', 'τ τ λητις': 'Τ.Τ. ΛΗΤΗΣ',
+      'τ τ θερμης': 'Τ.Τ. ΘΕΡΜΗΣ', 'ττ θερμης': 'Τ.Τ. ΘΕΡΜΗΣ',
+      'τ τ γρεβενων': 'Τ.Τ. ΓΡΕΒΕΝΩΝ', 'ττ γρεβενων': 'Τ.Τ. ΓΡΕΒΕΝΩΝ',
+      'τ τ παθε μαγνησιας': 'Τ.Τ. ΠΑΘΕ ΜΑΓΝΗΣΙΑΣ', 'ττ παθε μαγνησιας': 'Τ.Τ. ΠΑΘΕ ΜΑΓΝΗΣΙΑΣ',
+      'υδ νση': 'ΥΔ/ΝΣΗ', 'υδνση': 'ΥΔ/ΝΣΗ',
+      'τ τ χαλκηδονας': 'Τ.Τ. ΧΑΛΚΗΔΟΝΑΣ', 'ττ χαλκηδονας': 'Τ.Τ. ΧΑΛΚΗΔΟΝΑΣ',
+      'τ τ παθε φθιωτιδας': 'Τ.Τ. ΠΑΘΕ ΦΘΙΩΤΙΔΑΣ', 'ττ παθε φθιωτιδας': 'Τ.Τ. ΠΑΘΕ ΦΘΙΩΤΙΔΑΣ',
+      'τ τ βολου': 'Τ.Τ. ΒΟΛΟΥ', 'ττ βολου': 'Τ.Τ. ΒΟΛΟΥ',
+      'εισαγγελια χαλκιδικης': 'ΕΙΣΑΓΓΕΛΙΑ ΧΑΛΚΙΔΙΚΗΣ',
+      'τ τ ασπροβαλτας': 'Τ.Τ. ΑΣΠΡΟΒΑΛΤΑΣ', 'ττ ασπροβαλτας': 'Τ.Τ. ΑΣΠΡΟΒΑΛΤΑΣ',
+      'τ τ μουδανιων': 'Τ.Τ. ΜΟΥΔΑΝΙΩΝ', 'ττ μουδανιων': 'Τ.Τ. ΜΟΥΔΑΝΙΩΝ'
+    };
+    if (known[n]) return known[n];
+    return raw.replace(/\bT\.T\.?/g, 'Τ.Τ.').replace(/^ΤΤ\s*/,'Τ.Τ. ').replace(/^Τ\.Τ\s*/,'Τ.Τ. ').replace(/\s*\/\s*/g, '/').replace(/\s+/g, ' ').trim();
+  };
+  const fillServiceList = () => {
+    const list = $('#serviceList');
+    if (!list) return;
+    const set = new Set();
+    cases.forEach(c => { const s = serviceCanonical(c.service); if (s) set.add(s); });
+    list.innerHTML = [...set].sort().map(s => `<option value="${esc(s)}">`).join('');
+  };
+
   const fmt = v => v ? new Date(v + 'T12:00:00').toLocaleDateString('el-GR') : '—';
   const sd = (v) => { if (!v) return '—'; const [y, m, d] = v.split('-'); return d + '/' + m + (y !== String(new Date().getFullYear()) ? '/' + y : ''); };
   const telHref = (x) => 'tel:' + x.replace(/[^\d+]/g, '');
   const phoneList = (p) => String(p || '').split(/[\/,;\n]+/).map(x => x.trim()).filter(x => x.replace(/\D/g, '').length >= 7);
   const plus = (s, n) => { const d = new Date(s + 'T12:00:00'); d.setDate(d.getDate() + n); return iso(d); };
-  const LAT = { A:'Α', B:'Β', E:'Ε', Z:'Ζ', H:'Η', I:'Ι', K:'Κ', M:'Μ', N:'Ν', O:'Ο', P:'Ρ', T:'Τ', Y:'Υ', X:'Χ' };
+  const LAT = { A:'Α', B:'Β', E:'Ε', Z:'Ζ', H:'Η', I:'Ι', K:'Κ', L:'Λ', M:'Μ', N:'Ν', O:'Ο', P:'Ρ', T:'Τ', Y:'Υ', X:'Χ' };
   const toGreek = s => String(s ?? '').toUpperCase().replace(/[A-Z]/g, ch => LAT[ch] || ch);
   const normPlate = s => toGreek(s).replace(/[\s\-–.]/g, '');
   const fold = s => toGreek(String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
@@ -129,13 +183,20 @@
   const migrateBase = (o) => {
     if (o.state && o.dates) {
       o.folder = stripNo(o.folder);
+      o.service = serviceCanonical(o.service || '');
+      o.violationArticle = o.violationArticle || o.article || '';
+      o.violationDate = o.violationDate || o.offenceDate || o.violationDay || '';
+      o.violationLocation = o.violationLocation || o.violationStreet || o.location || '';
+      o.stateManual = !!o.stateManual;
       o.dates = { ...BLANK_DATES, ...o.dates };
       o.history = o.history || [];
       return o;
     }
     const c = {
       id: o.id || uid(), plate: o.plate || o.ref || '', name: o.name || o.fullName || '',
-      service: o.service || '', phone: o.phone || '',
+      protocol: o.protocol || '', address: o.address || '',
+      service: serviceCanonical(o.service || ''), phone: o.phone || '',
+      violationArticle: o.violationArticle || o.article || '', violationDate: o.violationDate || o.offenceDate || '', violationLocation: o.violationLocation || o.location || '',
       receivedDate: o.receivedDate || o.dateReceived || todayStr(),
       folder: stripNo(o.folder || o.folderLocation),
       violationType: o.violationType || '', fine: o.fine || o.fineAmount || '',
@@ -280,8 +341,9 @@
     if (D.returned || D.docRecv || D.oos) return 'transmittal';
     if (D.susp) return D.return && isDue(D.return) ? 'to_return' : 'suspended';
     const li = invDates(D).sort().pop() || '';
-    if (D.appt && D.appt > li) {
+    if (D.appt && D.appt > li && D.callRes !== 'noshow') {
       if (todayStr() <= D.appt) return 'appointment';
+      // Ραντεβού πέρασε χωρίς άλλη εξέλιξη → πρόσκληση
       return lastSent(D) >= 3 ? endState(c) : 'inv' + (lastSent(D) + 1) + '_create';
     }
     for (let n = 3; n >= 1; n--) {
@@ -291,7 +353,7 @@
       return se ? `inv${n}_sent` : `inv${n}_next`;
     }
     const r = D.callRes;
-    if (r === 'noanswer' || r === 'refused') return 'inv1_create';
+    if (r === 'noanswer' || r === 'refused' || r === 'noshow') return 'inv1_create';
     if (r === 'informed') return D.phone && !isDue(addDays(D.phone, 5)) ? 'informed' : 'inv1_create';
     if (!phoneList(c.phone).length) return D.searchNone ? 'inv1_create' : 'search';
     return 'to_call';
@@ -300,13 +362,25 @@
   const reconcile = (c) => {
     const D = c.dates; let ch = false;
     if (D.susp && c.removalDays) { const r = addDays(D.susp, c.removalDays); if (r !== D.return) { D.return = r; ch = true; } }
-    const fl = flagsOf(c), st = derive(c);
+    const fl = flagsOf(c), st = c.stateManual ? c.state : derive(c);
     if (JSON.stringify(c.flags || []) !== JSON.stringify(fl)) { c.flags = fl; ch = true; }
     if (c.state !== st) { c.state = st; ch = true; }
     if (ch) setMove(c);
     return ch;
   };
-  const tick = () => { let ch = false; cases.forEach(c => { if (reconcile(c)) ch = true; }); if (ch) save(); };
+  const tick = () => {
+    let ch = false;
+    cases.forEach(c => {
+      const beforeState = c.state, beforeDates = { ...c.dates };
+      const changed = reconcile(c);
+      if (changed) ch = true;
+      Object.keys(c.dates).forEach(k => {
+        if (beforeDates[k] !== c.dates[k]) { logAudit(c, `Αυτόματος υπολογισμός: ${DATE_LABEL[k] || k}`, `${beforeDates[k] || '—'} → ${c.dates[k] || '—'}`); ch = true; }
+      });
+      if (beforeState !== c.state) { logAudit(c, 'Αυτόματη μεταβολή κατάστασης', `${(ST[beforeState]||{}).l || beforeState} → ${(ST[c.state]||{}).l || c.state}`); ch = true; }
+    });
+    if (ch) save();
+  };
   const reportMig = () => {
     if (!cases.some(c => c._old !== undefined)) return;
     const nm = (x) => (ST[x] || {}).l || x;
@@ -314,7 +388,33 @@
     cases.forEach(c => { delete c._old; }); save();
     if (moved.length) setTimeout(() => alert('Η φάση κάθε υπόθεσης υπολογίζεται πλέον από τα δεδομένα. ' + moved.length + ' υποθέσεις άλλαξαν φάση:\n' + moved.slice(0, 12).join('\n')), 500);
   };
-  const go = (c, _s, extra) => { Object.assign(c.dates, extra || {}); reconcile(c); save(); render(); };
+  const logAudit = (c, action, details = '', eventDate = todayStr()) => {
+    c.history = c.history || [];
+    c.history.push({ date: eventDate || todayStr(), action, details: details || '', timestamp: new Date().toISOString(), kind: 'audit' });
+  };
+  const DATE_LABEL = {
+    phone:'Κλήση / επικοινωνία', appt:'Ραντεβού', susp:'Αφαίρεση διπλώματος', return:'Ημερομηνία λήξης αφαίρεσης',
+    inv1Create:'Δημιουργία 1ης πρόσκλησης', inv1Send:'Αποστολή 1ης πρόσκλησης', inv1Proof:'1ο αποδεικτικό',
+    inv2Create:'Δημιουργία 2ης πρόσκλησης', inv2Send:'Αποστολή 2ης πρόσκλησης', inv2Proof:'2ο αποδεικτικό',
+    inv3Create:'Δημιουργία 3ης πρόσκλησης', inv3Send:'Αποστολή 3ης πρόσκλησης', inv3Proof:'3ο αποδεικτικό',
+    returned:'Απόδοση διπλώματος', polRem:'POL αφαίρεσης', polRet:'POL απόδοσης', closed:'Ολοκλήρωση',
+    docRecv:'Παραλαβή εγγράφου χωρίς αφαίρεση', searchNone:'Αναζήτηση τηλεφώνου', callRes:'Αποτέλεσμα κλήσης', oos:'Εκτός αρμοδιότητας', oosDest:'Υπηρεσία προορισμού', oosReason:'Αιτιολογία εκτός αρμοδιότητας', closedKind:'Τρόπος ολοκλήρωσης'
+  };
+  const go = (c, _s, extra) => {
+    const beforeState = c.state, beforeDates = { ...c.dates }, changed = [];
+    Object.entries(extra || {}).forEach(([k, v]) => {
+      const old = c.dates[k]; if (old !== v) { c.dates[k] = v; changed.push([k, old, v]); }
+    });
+    changed.forEach(([k, old, v]) => logAudit(c, DATE_LABEL[k] || k, `${old || '—'} → ${v || '—'}`));
+    reconcile(c);
+    Object.keys(c.dates).forEach(k => {
+      if (beforeDates[k] !== c.dates[k] && !changed.some(x => x[0] === k)) logAudit(c, `Αυτόματος υπολογισμός: ${DATE_LABEL[k] || k}`, `${beforeDates[k] || '—'} → ${c.dates[k] || '—'}`);
+      else if (changed.some(x => x[0] === k) && changed.find(x => x[0] === k)[2] !== c.dates[k]) logAudit(c, `Διόρθωση από αυτόματο υπολογισμό: ${DATE_LABEL[k] || k}`, `${c.dates[k] || '—'}`);
+    });
+    if (beforeState !== c.state) logAudit(c, 'Μεταβολή κατάστασης', `${(ST[beforeState] || {}).l || beforeState} → ${(ST[c.state] || {}).l || c.state}`);
+    if (!changed.length && beforeState === c.state) logAudit(c, 'Καταχώρηση ενέργειας', 'Χωρίς αλλαγή δεδομένων');
+    save(); render();
+  };
 
   // ---------- Wizard ----------
   const dlgW = $('#dlgWizard');
@@ -345,7 +445,7 @@
   const actSearch = (c) => wiz('Αναζήτηση τηλεφώνου', 'Βρέθηκε τηλέφωνο;', '', [
     { t: 'Όχι, δεν βρέθηκε', c: 'bad', f: () => go(c, '', { searchNone: T() }) },
     { t: 'Ναι', c: 'ok', f: () => wiz('Εισαγωγή τηλεφώνου', 'Πληκτρολογήστε τον αριθμό:', '<input type="tel" id="wV">',
-      [{ t: 'Αποθήκευση', c: 'pri', v: () => $('#wV').value.trim(), f: () => { c.phone = $('#wV').value.trim(); go(c, '', { searchNone: '' }); } }]) }
+      [{ t: 'Αποθήκευση', c: 'pri', v: () => $('#wV').value.trim(), f: () => { const oldPhone = c.phone || ''; c.phone = $('#wV').value.trim(); logAudit(c, 'Καταχώρηση τηλεφώνου', `${oldPhone || '—'} → ${c.phone}`); go(c, '', { searchNone: '' }); } }]) }
   ]);
   const callOutcome = (c) => wiz('Αποτέλεσμα κλήσης', 'Τι απάντησε ο πολίτης;', '', [
     { t: 'Έκλεισε ραντεβού', c: 'ok', f: () => dateWiz('Ημερομηνία ραντεβού', 'Επιλέξτε ημερομηνία:', v => go(c, '', { appt: v, phone: T(), callRes: 'booked' })) },
@@ -360,13 +460,175 @@
   const actRemoval = (c) => wiz('Αφαίρεση διπλώματος', c.removalDays ? 'Ημερομηνία αφαίρεσης (' + c.removalDays + ' ημέρες):' : 'Ημερομηνία αφαίρεσης και ημέρες:',
     `<input type="date" id="wV" value="${T()}">` + (c.removalDays ? '' : '<input type="number" id="wN" min="1" placeholder="Ημέρες αφαίρεσης">'),
     [{ t: 'Αποθήκευση', c: 'pri', v: () => $('#wV').value && (c.removalDays || Number($('#wN').value) > 0), f: () => {
-      if (!c.removalDays) c.removalDays = Number($('#wN').value);
+      if (!c.removalDays) { c.removalDays = Number($('#wN').value); logAudit(c, 'Καταχώρηση ημερών αφαίρεσης', `${c.removalDays} ημέρες`); }
       c.requiresLicense = true; go(c, '', { susp: $('#wV').value });
     } }]);
   const actPolRem = (c) => dateWiz('POL αφαίρεσης', 'Ημερομηνία καταχώρησης στο POL:', v => go(c, '', { polRem: v }));
   const actPolRet = (c) => dateWiz('POL απόδοσης', 'Ημερομηνία καταχώρησης στο POL:', v => go(c, '', { polRet: v }));
   const actDeliver = (c) => dateWiz('Απόδοση διπλώματος', 'Ημερομηνία απόδοσης:', v => go(c, '', { returned: v }));
-  const createInv = (c, n) => dateWiz(`Δημιουργία ${n}ης πρόσκλησης`, 'Ημερομηνία δημιουργίας:', v => go(c, '', { ['inv' + n + 'Create']: v }));
+
+  // ---------- Δημιουργία πρόσκλησης σε .doc (Word-compatible HTML) ----------
+  const formatService = (s) => {
+    if (!s) return '_______________';
+    const u = String(s).toUpperCase().trim();
+    if (/ΥΔΝΣΗ|ΥΔ\/ΝΣΗ|ΥΠΟΔΙΕΥΘΥΝΣΗ|ΥΠΟΔ\/ΝΣΗ/.test(u)) return 'Υδ/νση Τροχαίας Θεσ/νικης';
+    if (/^ΑΤ\b|ΑΣΤΥΝΟΜΙΚΟ\s*ΤΜΗΜΑ/.test(u)) return u.replace(/ΑΣΤΥΝΟΜΙΚΟ\s*ΤΜΗΜΑ/gi, 'Α.Τ.').replace(/^ΑΤ\b/, 'Α.Τ.');
+    if (/^ΤΤ\b|ΤΜΗΜΑ\s*ΤΡΟΧΑΙΑΣ/.test(u)) return u.replace(/ΤΜΗΜΑ\s*ΤΡΟΧΑΙΑΣ/gi, 'Τ.Τ.').replace(/^ΤΤ\b/, 'Τ.Τ.');
+    return s;
+  };
+
+  const generateInvitation = (c, n) => {
+    const protocol = esc((c.protocol || '').trim() || '_______________');
+    const name = esc((c.name || '').trim() || '_______________');
+    const address = esc((c.address || '').trim() || '_______________');
+    const plate = esc((c.plate || '').trim() || '_______________');
+    const svc = esc(formatService(c.service));
+    const article = esc(c.violationArticle || '________________');
+    const violationDate = c.violationDate ? esc(fmt(c.violationDate)) : '____ / ____ / ______';
+    const violationLocation = esc(c.violationLocation || '________________________________');
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const invLabel = n === 1 ? '1ης' : n === 2 ? '2ης' : '3ης';
+
+    // Word-compatible HTML document (opens & edits cleanly in Microsoft Word)
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Πρόσκληση ${invLabel} - ${plate}</title>
+<!--[if gte mso 9]>
+<xml>
+  <w:WordDocument>
+    <w:View>Print</w:View>
+    <w:Zoom>100</w:Zoom>
+    <w:DoNotOptimizeForBrowser/>
+  </w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+  @page { size: A4; margin: 1.5cm 1.8cm 1.5cm 1.8cm; }
+  body { font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.25; color: #000; }
+  .header-table { width: 100%; border-collapse: collapse; margin-bottom: 8pt; }
+  .header-table td { vertical-align: top; }
+  .logo-cell { width: 70px; }
+  .logo-box { width: 60px; height: 70px; border: 1px dashed #999; text-align: center; font-size: 8pt; color: #666; padding-top: 18px; }
+  .left-head { font-size: 9.5pt; line-height: 1.2; }
+  .left-head b { font-size: 10pt; }
+  .right-head { text-align: right; font-size: 11pt; padding-top: 4pt; }
+  .title { text-align: center; font-size: 16pt; font-weight: bold; letter-spacing: 2pt; margin: 14pt 0 10pt 0; text-decoration: underline; }
+  .pros { font-weight: bold; margin-bottom: 2pt; }
+  .name-line { margin: 2pt 0 2pt 12pt; font-size: 12.5pt; }
+  .addr-line { margin: 0 0 8pt 12pt; }
+  .body-text { text-align: justify; margin: 6pt 0; }
+  .note { margin-top: 12pt; font-size: 11pt; }
+  .note b { text-decoration: underline; }
+  .signature { text-align: right; margin-top: 14pt; font-weight: bold; }
+  .proof-title { text-align: center; font-weight: bold; font-size: 13pt; margin: 22pt 0 8pt 0; text-decoration: underline; }
+  .proof-body { font-size: 11pt; text-align: justify; }
+  .sign-row { width: 100%; margin-top: 28pt; border-collapse: collapse; }
+  .sign-row td { width: 33%; text-align: center; font-size: 10pt; vertical-align: top; }
+  .underline { border-bottom: 1px solid #000; display: inline-block; min-width: 120px; }
+  .blank { border-bottom: 1px solid #000; display: inline-block; min-width: 80px; }
+  .small { font-size: 9.5pt; }
+</style>
+</head>
+<body>
+
+<table class="header-table">
+  <tr>
+    <td class="logo-cell">
+      <div class="logo-box">Λογότυπο<br>ΕΛ.ΑΣ.</div>
+    </td>
+    <td class="left-head">
+      <b>ΕΛΛΗΝΙΚΗ ΔΗΜΟΚΡΑΤΙΑ</b><br>
+      <b>ΕΛΛΗΝΙΚΗ ΑΣΤΥΝΟΜΙΑ</b><br>
+      ΔΙΕΥΘΥΝΣΗ ΑΣΤΥΝ. ΘΕΣ/ΝΙΚΗΣ<br>
+      <b>Α. Τ. ΚΑΛΑΜΑΡΙΑΣ</b><br>
+      <span class="small">ΤΑΧ. Δ/ΝΣΗ: Ταξιαρχών 1</span><br>
+      <span class="small">ΤΚ. 55132 &nbsp; Τηλ. 2310-029465</span><br>
+      <span class="small">Αρμόδιος: Αρχ/κας ΣΙΑΚΟΣ Φιλάρετος</span><br>
+      <b>Αριθ. Πρωτ: ${protocol}</b>
+    </td>
+    <td class="right-head">
+      ΚΑΛΑΜΑΡΙΑ &nbsp; ____ / ${month} / ${year}
+    </td>
+  </tr>
+</table>
+
+<div class="title">ΠΡΟΣΚΛΗΣΗ</div>
+
+<div class="pros">ΠΡΟΣ</div>
+<div class="name-line">Τον κ. <b>${name}</b></div>
+<div class="addr-line">Οδός <b>${address}</b></div>
+
+<p class="body-text">
+Παρακαλούμε όπως εντός τριών (3) ημερών και κατά τις ώρες <b>09:00 έως 13:00</b>
+Προσέλθετε στο Α.Τ. ΚΑΛΑΜΑΡΙΑΣ οδό Ταξιαρχών 1, φέροντας την παρούσα και αποτανθείτε
+στον Αρχ/κα ΣΙΑΚΟ Φιλάρετο που ανέλαβε τη διεκπεραίωση της υποθέσεως σας, που αφορά
+παράβαση του άρθρου <b>${article}</b> του Κ.Ο.Κ. που βεβαιώθηκε την <b>${violationDate}</b> στην οδό <b>${violationLocation}</b>
+από <b>${svc}</b>. Κατά την προσέλευση σας να φέρετε την αστυνομική σας ταυτότητα,
+τις άδειες οδηγήσεως και κυκλοφορίας καθώς και ΑΦΜ.
+Στοιχεία οχήματος <b>${plate}</b>
+</p>
+
+<div class="note">
+  <b>ΣΗΜΕΙΩΣΗ:</b><br>
+  Η εξυπηρέτηση γίνεται αποκλειστικά<br>
+  κατόπιν ραντεβού στο τηλ. <b>2310029465</b>
+</div>
+
+<div class="signature">ΤΟ ΓΡ. ΠΑΡΑΒΑΣΕΩΝ</div>
+
+<div class="proof-title">ΑΠΟΔΕΙΚΤΙΚΟ</div>
+
+<p class="proof-body">
+Στην Καλαμαριά την <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;</span> του μήνα <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+του έτους 20<span class="blank">&nbsp;&nbsp;</span> και ώρα <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;</span> : <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+ο υπογεγραμμένος <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+του Α.Τ. ΚΑΛΑΜΑΡΙΑΣ επέδωσε την υπ’ αριθμ. <b>${protocol}</b> από ____ / ${month} / ${year}
+πρόσκληση του Α.Τ. ΚΑΛΑΜΑΡΙΑΣ στον <b>${name}</b>
+κάτοικο Καλαμαριάς οδό <b>${address}</b> με την οποία καλείται να προσέλθει στο κατάστημα
+του Α.Τ. ΚΑΛΑΜΑΡΙΑΣ εντός τριών (3) ημερών και να αποτανθεί στον Αρχ/κα ΣΙΑΚΟ Φιλάρετο
+για υπόθεση που αφορά παράβαση του άρθρου <b>${article}</b> του Κ.Ο.Κ. που βεβαιώθηκε την <b>${violationDate}</b> στην οδό <b>${violationLocation}</b>
+από <b>${svc}</b> και μη ευρών αυτόν επέδωσα την πρόσκληση στον ________________
+(Έγινε θυροκόλληση στη πόρτα της οικίας του).
+</p>
+
+<p class="proof-body" style="margin-top:10pt;">
+Για βεβαίωση συντάχθηκε το παρόν και υπογράφεται ως ακολούθως.
+</p>
+
+<table class="sign-row">
+  <tr>
+    <td>Ο ΠΑΡΑΛΑΒΩΝ<br><br><br>____________________</td>
+    <td>Ο ΜΑΡΤΥΡΑΣ<br><br><br>____________________</td>
+    <td>Ο ΕΠΙΔΟΥΣ<br><br><br>____________________</td>
+  </tr>
+</table>
+
+</body>
+</html>`;
+
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ΠΡΟΣΚΛΗΣΗ_${n}η_${plate.replace(/[^Α-ΩA-Z0-9]/gi, '_')}_${(c.protocol || 'draft').replace(/[\/\\]/g, '-')}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+  };
+
+  const createInv = (c, n) => {
+    generateInvitation(c, n);
+    logAudit(c, `Παραγωγή αρχείου ${n}ης πρόσκλησης`, `Πινακίδα ${c.plate} · Πρωτόκολλο ${c.protocol || '—'}`);
+    save();
+    dateWiz(`Δημιουργία ${n}ης πρόσκλησης`, 'Το αρχείο .doc κατέβηκε. Επιβεβαιώστε την ημερομηνία δημιουργίας:', v => go(c, '', { ['inv' + n + 'Create']: v }));
+  };
+
   const invite = (c, n) => dateWiz(`Αποστολή ${n}ης πρόσκλησης`, 'Ημερομηνία αποστολής:', v => go(c, '', { ['inv' + n + 'Send']: v }));
   const proof = (c, n) => dateWiz(`Αποδεικτικό ${n}ης`, 'Ημερομηνία που αναγράφεται στο αποδεικτικό:', v => go(c, '', { ['inv' + n + 'Proof']: v }));
   const actContact = (c) => dateWiz('Ο πολίτης επικοινώνησε', 'Ημερομηνία ραντεβού:', v => go(c, '', { appt: v }));
@@ -377,17 +639,26 @@
     `<input type="date" id="wV" value="${T()}"><input type="text" id="wD" placeholder="Υπηρεσία προορισμού"><input type="text" id="wR" placeholder="Αιτιολογία">`,
     [{ t: 'Αποθήκευση', c: 'pri', v: () => $('#wV').value && $('#wD').value.trim(), f: () => go(c, '', { oos: $('#wV').value, oosDest: $('#wD').value.trim().toUpperCase(), oosReason: $('#wR').value.trim().toUpperCase() }) }]);
 
+  const actApptOutcome = (c) => wiz('Εξέλιξη ραντεβού', 'Τι έγινε στο ραντεβού;', '', [
+    { t: 'Προσήλθε — έγινε αφαίρεση', c: 'ok', f: () => actRemoval(c) },
+    { t: 'Προσήλθε — παρέλαβε έγγραφο (χωρίς αφαίρεση)', f: () => actReceived(c) },
+    { t: 'Δεν προσήλθε', c: 'bad', f: () => go(c, '', { callRes: 'noshow' }) }
+  ]);
   const ACT = {
     search: ['Αναζήτηση τηλεφώνου', actSearch], to_call: ['Καταχώρηση κλήσης', actCall], informed: ['Κλείσιμο ραντεβού', actAppt],
-    appointment: ['Πραγματοποιήθηκε αφαίρεση', actRemoval],
+    appointment: ['Εξέλιξη ραντεβού', actApptOutcome],
     pol_rem: ['Επιβεβαίωση καταχώρησης POL (αφαίρεση)', actPolRem], pol_ret: ['Επιβεβαίωση καταχώρησης POL (απόδοση)', actPolRet],
     to_return: ['Απόδοση διπλώματος', actDeliver],
     inv1_create: ['Δημιουργία 1ης πρόσκλησης', c => createInv(c, 1)], inv1_next: ['Αποστολή 1ης πρόσκλησης', c => invite(c, 1)], inv1_sent: ['Παραλαβή 1ου αποδεικτικού', c => proof(c, 1)],
     inv2_create: ['Δημιουργία 2ης πρόσκλησης', c => createInv(c, 2)], inv2_next: ['Αποστολή 2ης πρόσκλησης', c => invite(c, 2)], inv2_sent: ['Παραλαβή 2ου αποδεικτικού', c => proof(c, 2)],
     inv3_create: ['Δημιουργία 3ης πρόσκλησης', c => createInv(c, 3)], inv3_next: ['Αποστολή 3ης πρόσκλησης', c => invite(c, 3)], inv3_sent: ['Παραλαβή 3ου αποδεικτικού', c => proof(c, 3)],
-    transmittal: ['Δημιουργήθηκε και στάλθηκε το διαβιβαστικό', actTransmit], complaint: ['Υποβλήθηκε η μήνυση', actComplaint]
+    transmittal: ['Δημιουργία διαβιβαστικού', actTransmit], complaint: ['Υποβλήθηκε η μήνυση', actComplaint]
   };
-  const ACT2 = { appointment: [['Παρέλαβε έγγραφο (χωρίς αφαίρεση)', actReceived, c => !(c.removalDays > 0)]] };
+  const ACT2 = { appointment: [
+    ['Προσήλθε — αφαίρεση', actRemoval],
+    ['Προσήλθε — χωρίς αφαίρεση', actReceived, c => !(c.removalDays > 0)],
+    ['Δεν προσήλθε', c => go(c, '', { callRes: 'noshow' })]
+  ] };
   ['inv1_create','inv1_next','inv1_sent','inv1_wait','inv2_create','inv2_next','inv2_sent','inv2_wait','inv3_create','inv3_next','inv3_sent','inv3_wait']
     .forEach(k => { ACT2[k] = [['Ο πολίτης επικοινώνησε', actContact]]; });
   ACT2.closed = [['Άνοιγμα υπόθεσης', c => { if (confirm('Να ανοίξει ξανά η υπόθεση;')) go(c, '', { closed: '', closedKind: '' }); }]];
@@ -483,6 +754,13 @@
       case 'inv1_wait': case 'inv2_wait': case 'inv3_wait': {
         const n = c.state[3]; return `Αναμονή 10 ημερών από το αποδεικτικό, έως ${fmt(addDays(D['inv' + n + 'Proof'], 10))}`;
       }
+      case 'transmittal': {
+        if (D.inv3Proof) {
+          const end = addDays(D.inv3Proof, 10);
+          return `Έληξε η 10ήμερη προθεσμία από το 3ο αποδεικτικό (${fmt(end)}). Άμεση επιστροφή στην υπηρεσία ανάθεσης.`;
+        }
+        return (ST[c.state] || {}).a || '';
+      }
       default: return (ST[c.state] || {}).a || '';
     }
   };
@@ -524,7 +802,7 @@
   const pendingLabel = (c) => {
     const s = c.state, m = /^inv(\d)_(create|next|sent|wait)$/.exec(s);
     if (m) return { create: 'Εκκρεμεί δημιουργία ' + m[1] + 'ης πρόσκλησης', next: 'Εκκρεμεί αποστολή ' + m[1] + 'ης πρόσκλησης', sent: 'Αναμονή ' + m[1] + 'ου αποδεικτικού', wait: 'Αναμονή 10 ημερών από το ' + m[1] + 'ο αποδεικτικό' }[m[2]];
-    if (s === 'appointment') return c.removalDays > 0 ? 'Εκκρεμεί αφαίρεση διπλώματος' : 'Εκκρεμεί παραλαβή εγγράφου';
+    if (s === 'appointment') return 'Εκκρεμεί εξέλιξη ραντεβού (προσήλθε / δεν προσήλθε)';
     return { search: 'Εκκρεμεί αναζήτηση τηλεφώνου', to_call: 'Εκκρεμεί κλήση', informed: 'Αναμονή κλήσης από τον πολίτη', pol_rem: 'Εκκρεμεί POL αφαίρεσης', pol_ret: 'Εκκρεμεί POL απόδοσης',
       suspended: 'Αναμονή λήξης αφαίρεσης', to_return: 'Εκκρεμεί απόδοση διπλώματος', transmittal: 'Εκκρεμεί διαβιβαστικό', complaint: 'Εκκρεμεί μήνυση', closed: '' }[s] || '';
   };
@@ -574,12 +852,22 @@
     if (s === 'closed') return null;
     if (s === 'pol_rem' || s === 'pol_ret') return 'pol';
     if (['to_return', 'transmittal', 'complaint'].includes(s) || /_(create|next)$/.test(s)) return 'late';
+    // Ραντεβού σήμερα: ξεχωριστή ομάδα στην αρχική
+    if (s === 'appointment' && c.dates.appt === todayStr()) return 'appt';
     if (s === 'search' || s === 'to_call') return 'call';
     const d = dueOf(c), k = d ? dayDiff(d, todayStr()) : 99;
     if (k >= 0 && k <= 3) return 'soon';
     return c.moveTo ? 'folder' : 'wait';
   };
-  const GRP = [['pol', 'POL · κρίσιμο', 'bad'], ['late', 'Να γίνουν', 'warn'], ['soon', 'Σύντομα · έως 3 ημέρες', ''], ['call', 'Για κλήση ή αναζήτηση', ''], ['folder', 'Μετακίνηση φακέλου', ''], ['wait', 'Σε αναμονή', 'mut']];
+  const GRP = [
+    ['pol', 'POL · κρίσιμο', 'bad'],
+    ['late', 'Να γίνουν', 'warn'],
+    ['appt', 'Ραντεβού σήμερα', 'info'],
+    ['soon', 'Σύντομα · έως 3 ημέρες', ''],
+    ['call', 'Για κλήση ή αναζήτηση', ''],
+    ['folder', 'Μετακίνηση φακέλου', ''],
+    ['wait', 'Σε αναμονή', 'mut']
+  ];
   const sortKey = (c) => prio(c) * 1e0;
   const renderToday = () => {
     const g = {}; cases.forEach(c => { const k = groupOf(c); if (k) (g[k] = g[k] || []).push(c); });
@@ -607,7 +895,7 @@
     $('#fsInv').textContent = invF === 'all' ? 'Όλες' : invF === '0' ? 'Καμία' : invF;
     $('#btnClearF').hidden = stateF === 'all' && folderF === 'all' && invF === 'all' && !q;
     const ql = fold(q).trim();
-    const hay = (c) => fold([c.name, c.plate, c.folder, c.phone, c.service, fmt(c.receivedDate), ...Object.values(c.dates || {}).filter(v => /^\d{4}-\d{2}-\d{2}$/.test(v)).map(fmt)].join(' '));
+    const hay = (c) => fold([c.name, c.plate, c.protocol, c.address, c.folder, c.phone, c.service, fmt(c.receivedDate), ...Object.values(c.dates || {}).filter(v => /^\d{4}-\d{2}-\d{2}$/.test(v)).map(fmt)].join(' '));
     const list = cases.filter(c => (stateF === 'all' || c.state === stateF) && (folderF === 'all' || (c.folder || '(χωρίς φάκελο)') === folderF)
       && (invF === 'all' || (c.state !== 'closed' && invDone(c) === Number(invF))) && (!ql || hay(c).includes(ql)))
       .sort((a, b) => (a.state === 'closed') - (b.state === 'closed') || prio(a) - prio(b) || (dueOf(a) || '9999').localeCompare(dueOf(b) || '9999'));
@@ -630,15 +918,21 @@
     const tl = timeline(c);
     const nO = (pc[normPlate(c.plate)] || 1) - 1;
     let sec = '';
-    if (c.state === 'appointment') sec += `<a class="btn ghost" target="_blank" rel="noopener" href="${esc(calLink(c))}">Προσθήκη στο Google Calendar</a><button class="btn ghost" data-r="${c.id}">Αλλαγή ραντεβού</button>`;
+    if (c.dates.appt) sec += `<a class="btn ghost" target="_blank" rel="noopener" href="${esc(calLink(c))}">Προσθήκη στο Google Calendar</a><button class="btn ghost" data-r="${c.id}">Αλλαγή ραντεβού</button>`;
+    sec += `<button class="btn ghost" data-create-inv="${c.id}">Δημιουργία πρόσκλησης (.doc)</button>`;
     (ACT2[c.state] || []).filter(x => !x[2] || x[2](c)).forEach((x, i) => { sec += `<button class="btn ghost" data-b="${c.id}|${i}">${x[0]}</button>`; });
     if (c.state !== 'closed' && !c.dates.oos) sec += `<button class="btn ghost" data-oos="${c.id}">Εκτός αρμοδιότητας</button>`;
     const det = [
-      c.service && `<span><b>Υπηρεσία:</b> ${esc(c.service)}</span>`,
+      c.protocol && `<span><b>Πρωτόκολλο:</b> ${esc(c.protocol)}</span>`,
+      c.address && `<span><b>Διεύθυνση:</b> ${esc(c.address)}</span>`,
+      c.service && `<span><b>Υπηρεσία παράβασης:</b> ${esc(c.service)}</span>`,
       c.folder && `<span><b>Φάκελος:</b> ${esc(c.folder)}</span>`,
       c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
       c.removalDays > 0 && `<span><b>Αφαίρεση:</b> ${esc(c.removalDays)} ημέρες</span>`,
       c.violationType && `<span><b>Είδος παράβασης:</b> ${esc(c.violationType)}</span>`,
+      c.violationArticle && `<span><b>Άρθρο Κ.Ο.Κ.:</b> ${esc(c.violationArticle)}</span>`,
+      c.violationDate && `<span><b>Ημερομηνία παράβασης:</b> ${esc(fmt(c.violationDate))}</span>`,
+      c.violationLocation && `<span><b>Τόπος παράβασης:</b> ${esc(c.violationLocation)}</span>`,
       `<span><b>Παραλαβή εγγράφου:</b> ${esc(fmt(c.receivedDate))}</span>`
     ].filter(Boolean).join('');
     return `<div class="d-hd"><div class="d-pl">${esc(c.plate)}</div><div class="d-nm">${esc(c.name)}</div><div><span class="bd t-${s.t}">${esc(s.l)}</span></div></div>
@@ -649,8 +943,9 @@
       ${c.moveTo ? `<div class="mvbox"><span>Μετακίνηση φακέλου: <b>${esc(c.moveTo)}</b></span><button class="btn ghost" data-mv="${c.id}">Μετακινήθηκε</button></div>` : ''}
       ${stepper(c)}
       ${sec ? `<details class="more"><summary>Άλλες ενέργειες</summary><div class="sec">${sec}</div></details>` : ''}
-      <h3 class="d-h">Ιστορικό</h3>
+      <h3 class="d-h">Χρονολόγιο υπόθεσης</h3>
       <ol class="tl">${tl.map((r, i) => `<li><i>${i + 1}</i><span>${esc(evText(r))}</span></li>`).join('')}${nl && c.state !== 'closed' ? `<li class="nx"><i>›</i><span>Επόμενο: ${esc(nl)}${wt ? ' · ' + esc(wt) : ''}</span></li>` : ''}</ol>
+      <button class="btn ghost fullbtn" data-history="${c.id}">Πλήρες ιστορικό ενεργειών (${(c.history || []).length})</button>
       <h3 class="d-h">Στοιχεία</h3>
       <div class="det">${det}</div>${c.notes ? `<div class="notes">${esc(c.notes)}</div>` : ''}
       ${nO ? `<button class="linkbtn" data-p="${esc(normPlate(c.plate))}">Άλλες υποθέσεις με την ίδια πινακίδα: ${nO}</button>` : ''}
@@ -705,6 +1000,14 @@
 
   // ---------- Φόρμα ----------
   const F = $('#caseForm'), dlgF = $('#dlgForm'), E = F.elements;
+  // Καθαρισμός ημερομηνιών (στατικά + δυναμικά πεδία)
+  document.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('[data-clear]');
+    if (!btn || !F.contains(btn)) return;
+    const name = btn.dataset.clear;
+    const inp = E[name] || F.querySelector('[name="' + name + '"]');
+    if (inp) { inp.value = ''; inp.dispatchEvent(new Event('input', {bubbles:true})); }
+  });
   
   const folderOpts = (cur) => {
     let h = '<option value="">—</option>';
@@ -756,15 +1059,38 @@
   const DF = { phone:'d_phone', appt:'d_appt', susp:'d_susp', return:'d_return', inv1Create:'d_inv1Create', inv1Send:'d_inv1Send', inv1Proof:'d_inv1Proof', inv2Create:'d_inv2Create', inv2Send:'d_inv2Send', inv2Proof:'d_inv2Proof', inv3Create:'d_inv3Create', inv3Send:'d_inv3Send', inv3Proof:'d_inv3Proof', searchNone:'d_searchNone', callRes:'d_callRes', docRecv:'d_docRecv', returned:'d_returned', polRem:'d_polRem', polRet:'d_polRet', closed:'d_closed', closedKind:'d_closedKind', oos:'d_oos', oosDest:'d_oosDest', oosReason:'d_oosReason' };
   (() => {
     const adv = E.d_phone.closest('.grid');
-    const mk = (name, label, opts) => { if (E[name]) return; const l = document.createElement('label'); l.innerHTML = label + (opts === 'text' ? `<input type="text" name="${name}">` : opts ? `<select name="${name}">${opts.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('')}</select>` : `<input type="date" name="${name}">`); adv.appendChild(l); };
-    mk('d_callRes', 'Αποτέλεσμα κλήσης', [['', '—'], ['noanswer', 'Δεν απάντησε'], ['informed', 'Ενημερώθηκε (θα καλέσει ο ίδιος)'], ['booked', 'Έκλεισε ραντεβού'], ['refused', 'Αρνήθηκε ή αναβάλλει']]);
+    const mk = (name, label, opts) => {
+      if (E[name]) return;
+      const l = document.createElement('label');
+      if (opts === 'text') {
+        l.innerHTML = label + `<input type="text" name="${name}">`;
+      } else if (opts) {
+        l.innerHTML = label + `<select name="${name}">${opts.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('')}</select>`;
+      } else {
+        // Ημερομηνία + κουμπί καθαρισμού
+        l.innerHTML = label + `<div style="display:flex;gap:6px;align-items:center"><input type="date" name="${name}" style="flex:1"><button type="button" class="btn ghost" style="padding:4px 8px;font-size:12px" title="Καθαρισμός" data-clear="${name}">×</button></div>`;
+      }
+      adv.appendChild(l);
+    };
+    // Event delegation για καθαρισμό ημερομηνιών
+    if (!adv._clearBound) {
+      adv._clearBound = true;
+      adv.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('[data-clear]');
+        if (!btn) return;
+        const inp = E[btn.dataset.clear];
+        if (inp) { inp.value = ''; inp.dispatchEvent(new Event('input', {bubbles:true})); }
+      });
+    }
+    mk('d_callRes', 'Αποτέλεσμα κλήσης', [['', '—'], ['noanswer', 'Δεν απάντησε'], ['informed', 'Ενημερώθηκε (θα καλέσει ο ίδιος)'], ['booked', 'Έκλεισε ραντεβού'], ['refused', 'Αρνήθηκε ή αναβάλλει'], ['noshow', 'Δεν προσήλθε στο ραντεβού']]);
     mk('d_searchNone', 'Δεν βρέθηκε τηλέφωνο (ημερομηνία)');
     [1, 2, 3].forEach(n => mk('d_inv' + n + 'Create', n + 'η Δημιουργία πρόσκλησης'));
     mk('d_docRecv', 'Παραλαβή εγγράφου (χωρίς αφαίρεση)'); mk('d_returned', 'Απόδοση διπλώματος');
     mk('d_polRem', 'POL αφαίρεσης'); mk('d_polRet', 'POL απόδοσης'); mk('d_closed', 'Κλείσιμο υπόθεσης');
     mk('d_closedKind', 'Είδος κλεισίματος', [['', '—'], ['transmittal', 'Διαβιβαστικό'], ['complaint', 'Μήνυση']]);
     mk('d_oos', 'Εκτός αρμοδιότητας (ημερομηνία)'); mk('d_oosDest', 'Υπηρεσία προορισμού', 'text'); mk('d_oosReason', 'Αιτιολογία', 'text');
-    E.manualState.closest('label').hidden = true;
+    // Η χειροκίνητη κατάσταση εμφανίζεται στο πεδίο προχωρημένης διόρθωσης.
+    E.manualState.closest('label').hidden = false;
   })();
   const openForm = (id) => {
     const c = id ? get(id) : null;
@@ -772,17 +1098,39 @@
     $('#formTitle').textContent = c ? 'Επεξεργασία υπόθεσης' : 'Νέα υπόθεση';
     $('#btnFormDelete').hidden = !c;
     
-    E.manualState.innerHTML = Object.keys(ST).map(k => `<option value="${k}">${ST[k].l}</option>`).join('');
+    E.manualState.innerHTML = `<option value="__auto__">Αυτόματη κατάσταση</option>` + Object.keys(ST).map(k => `<option value="${k}">${ST[k].l}</option>`).join('');
     folderOpts(c ? c.folder : '');
     
+    // Ενημέρωση επιλογών πρωτοκόλλου με τρέχον έτος
+    if (E.protocolPrefix) {
+      const cur = E.protocolPrefix.value;
+      E.protocolPrefix.innerHTML = '<option value="">— επιλογή —</option>' + PROTO_PREFIXES().map(p => `<option value="${p.v}">${p.l}</option>`).join('');
+      E.protocolPrefix.value = cur;
+    }
+    fillServiceList();
     if (c) {
-      E.plate.value = c.plate; E.name.value = c.name; E.service.value = c.service || ''; E.phone.value = c.phone || '';
+      E.plate.value = c.plate; E.name.value = c.name; E.service.value = serviceCanonical(c.service || ''); E.phone.value = c.phone || '';
+      E.violationArticle.value = c.violationArticle || ''; E.violationDate.value = c.violationDate || ''; E.violationLocation.value = c.violationLocation || '';
+      const sp = splitProtocol(c.protocol);
+      if (E.protocolPrefix) {
+        // αν ταιριάζει με τρέχον έτος ή παλιό, βάλε το
+        const opts = [...E.protocolPrefix.options].map(o => o.value);
+        if (opts.includes(sp.prefix)) E.protocolPrefix.value = sp.prefix;
+        else if (sp.prefix) {
+          // πρόσθεσε προσωρινά το παλιό prefix
+          const o = document.createElement('option'); o.value = sp.prefix; o.textContent = sp.prefix; E.protocolPrefix.appendChild(o);
+          E.protocolPrefix.value = sp.prefix;
+        } else E.protocolPrefix.value = '';
+      }
+      if (E.protocolNum) E.protocolNum.value = sp.num || '';
+      if (E.protocol) E.protocol.value = c.protocol || '';
+      E.address.value = c.address || '';
       E.receivedDate.value = c.receivedDate;
       if (VIOL.includes(c.violationType)) E.violationType.value = c.violationType;
       else if (c.violationType) { E.violationType.value = 'custom'; E.violationOther.value = c.violationType; }
       E.fine.value = c.fine || '';
       E.removalDays.value = c.removalDays || ''; E.notes.value = c.notes || '';
-      E.manualState.value = c.state;
+      E.manualState.value = c.stateManual ? c.state : '__auto__';
       
       Object.entries(DF).forEach(([k, n]) => { E[n].value = c.dates[k] || ''; });
       
@@ -791,7 +1139,10 @@
     } else {
       E.receivedDate.value = todayStr();
       $('#plateWarning').style.display = 'none';
-      E.manualState.value = 'search';
+      E.manualState.value = '__auto__';
+      if (E.protocolPrefix) E.protocolPrefix.value = '';
+      if (E.protocolNum) E.protocolNum.value = '';
+      if (E.protocol) E.protocol.value = '';
     }
     toggles();
     F.dataset.id = id || '';
@@ -803,6 +1154,11 @@
     const id = F.dataset.id || uid(), old = get(id);
     
     const folder = E.folderSelect.value === 'custom' ? E.folderCustom.value.trim().toUpperCase() : E.folderSelect.value;
+    const protoNum = (E.protocolNum.value || '').trim();
+    if (E.protocolPrefix.value && !/^\d{2,3}$/.test(protoNum)) {
+      const unchangedLegacy = old && old.protocol === buildProtocol();
+      if (!unchangedLegacy) { alert('Με επιλεγμένο πρόθεμα, ο αριθμός πρωτοκόλλου πρέπει να αποτελείται από 2 ή 3 ψηφία.'); E.protocolNum.focus(); return; }
+    }
     const days = Number(E.removalDays.value) || 0, req = days > 0;
     const D = { ...(old ? old.dates : BLANK_DATES) };
     if (old) Object.entries(DF).forEach(([k, n]) => { D[k] = E[n].value; });
@@ -818,7 +1174,10 @@
       id, 
       plate: normPlate(E.plate.value), 
       name: E.name.value.trim().toUpperCase(), 
-      service: E.service.value.trim().toUpperCase(),
+      protocol: buildProtocol(),
+      address: (E.address.value || '').trim().toUpperCase(),
+      service: serviceCanonical(E.service.value),
+      violationArticle: E.violationArticle.value.trim().toUpperCase(), violationDate: E.violationDate.value, violationLocation: E.violationLocation.value.trim().toUpperCase(),
       phone: E.phone.value.trim(), 
       receivedDate: E.receivedDate.value, 
       folder,
@@ -827,14 +1186,24 @@
       requiresLicense: req, 
       removalDays: days, 
       notes: E.notes.value.trim().toUpperCase(),
-      state: old ? old.state : 'search',
-      history: old ? (old.history || []) : [], ev: old ? (old.ev || []) : [], 
+      state: old ? old.state : 'search', stateManual: old ? !!old.stateManual : false,
+      history: old ? (old.history || []) : [], ev: old ? (old.ev || []) : [],
       dates: D, flags: old ? (old.flags || []) : [], schema: 4
     };
     
     rec.moveTo = old ? (old.moveTo || '') : '';
     reconcile(rec);
+    // Προχωρημένη διόρθωση: αν ο χρήστης επέλεξε συγκεκριμένη κατάσταση, την επιβάλλουμε
+    const forced = E.manualState.value;
+    if (forced === '__auto__') { rec.stateManual = false; reconcile(rec); }
+    else if (forced) { rec.stateManual = true; rec.state = forced; setMove(rec); }
     if (rec.moveTo && rec.moveTo === rec.folder) rec.moveTo = '';
+    if (old) {
+      const labels = { plate:'Πινακίδα', name:'Ονοματεπώνυμο', protocol:'Πρωτόκολλο', address:'Διεύθυνση', service:'Υπηρεσία', phone:'Τηλέφωνο', receivedDate:'Ημερομηνία παραλαβής', folder:'Θέση φακέλου', violationType:'Είδος παράβασης', violationArticle:'Άρθρο Κ.Ο.Κ.', violationDate:'Ημερομηνία παράβασης', violationLocation:'Τόπος παράβασης', fine:'Πρόστιμο', removalDays:'Ημέρες αφαίρεσης', notes:'Παρατηρήσεις' };
+      Object.entries(labels).forEach(([k, l]) => { if ((old[k] || '') !== (rec[k] || '')) logAudit(rec, `Τροποποίηση: ${l}`, `${old[k] || '—'} → ${rec[k] || '—'}`); });
+      Object.entries(D).forEach(([k, v]) => { if ((old.dates[k] || '') !== (v || '')) logAudit(rec, `Διόρθωση ημερομηνίας: ${DATE_LABEL[k] || k}`, `${old.dates[k] || '—'} → ${v || '—'}`); });
+      if (old.state !== rec.state || !!old.stateManual !== !!rec.stateManual) logAudit(rec, 'Αλλαγή κατάστασης από επεξεργασία', `${(ST[old.state]||{}).l || old.state} → ${(ST[rec.state]||{}).l || rec.state}${rec.stateManual ? ' (χειροκίνητη)' : ' (αυτόματη)'}`);
+    } else logAudit(rec, 'Δημιουργία νέας υπόθεσης', 'Καταχωρήθηκε νέα καρτέλα');
     if (old) {
       cases[cases.indexOf(old)] = rec;
     } else {
@@ -845,7 +1214,7 @@
 
   // ---------- Events ----------
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-nav],[data-open],[data-a],[data-b],[data-oos],[data-mv],[data-r],[data-e],[data-p],[data-back],[data-grp],[data-filter],[data-clearf]');
+    const t = e.target.closest('[data-nav],[data-open],[data-a],[data-b],[data-oos],[data-mv],[data-r],[data-e],[data-p],[data-back],[data-grp],[data-filter],[data-clearf],[data-history],[data-create-inv]');
     if (!t || e.target.closest('.rc-call') || e.target.closest('dialog')) return;
     const d = t.dataset;
     if (d.nav) { openId = null; view = d.nav; render(); scrollTo(0, 0); return; }
@@ -860,6 +1229,8 @@
       else openPick('Αριθμός προσκλήσεων', [{ v: 'all', l: 'Όλες' }, { v: '0', l: 'Καμία πρόσκληση', n: ic[0] }, { v: '1', l: '1 πρόσκληση', n: ic[1] }, { v: '2', l: '2 προσκλήσεις', n: ic[2] }, { v: '3', l: '3 προσκλήσεις', n: ic[3] }], invF, v => { invF = v; render(); });
       return;
     }
+    if (d.history) { const hc = get(d.history); if (hc) showHistory(hc); return; }
+    if (d['create-inv']) { const ic = get(d['create-inv']); if (ic) { const n = prompt('Ποια πρόσκληση θέλεις να δημιουργήσεις; (1, 2 ή 3)', String(Math.min(3, [1,2,3].find(n => !ic.dates['inv'+n+'Create'] && !ic.dates['inv'+n+'Send']) || 1))); if (n !== null) createInv(ic, Math.min(3, Math.max(1, parseInt(n,10)||1))); } return; }
     if (d.open) { setView('case', d.open); return; }
     if (d.p) { q = d.p; $('#searchInput').value = q; stateF = 'all'; folderF = 'all'; invF = 'all'; view = 'cases'; render(); scrollTo(0, 0); return; }
     const id = d.a || d.r || d.e || d.oos || d.mv || (d.b || '').split('|')[0];
@@ -869,7 +1240,7 @@
     else if (d.r) actAppt(c);
     else if (d.e) openForm(c.id);
     else if (d.oos) actOOS(c);
-    else if (d.mv && c.moveTo) { c.folder = c.moveTo; c.moveTo = ''; save(); render(); }
+    else if (d.mv && c.moveTo) { const prev = c.folder; c.folder = c.moveTo; c.moveTo = ''; logAudit(c, 'Μετακίνηση φακέλου', `${prev || '—'} → ${c.folder}`); save(); render(); }
   });
   window.addEventListener('popstate', () => { if (view === 'case') { view = prevView; openId = null; render(); } });
   $('#searchInput').oninput = (e) => { q = e.target.value; render(); };
@@ -877,7 +1248,30 @@
   $('#fFolder').onchange = toggles; $('#fViol').onchange = toggles;
   $('#btnNew').onclick = () => openForm(null);
   $('#btnFormCancel').onclick = () => dlgF.close();
+  $('#btnGenInv').onclick = () => {
+    const proto = buildProtocol();
+    const temp = {
+      plate: normPlate(E.plate.value) || '_______',
+      name: (E.name.value || '').trim().toUpperCase() || '_______________',
+      protocol: proto,
+      address: (E.address.value || '').trim().toUpperCase() || '_______________',
+      service: serviceCanonical(E.service.value), violationArticle: E.violationArticle.value.trim(), violationDate: E.violationDate.value, violationLocation: E.violationLocation.value.trim()
+    };
+    const n = prompt('Ποια πρόσκληση θέλεις να δημιουργήσεις; (1, 2 ή 3)', '1');
+    const num = Math.min(3, Math.max(1, parseInt(n, 10) || 1));
+    generateInvitation(temp, num);
+  };
   $('#btnHistoryClose').onclick = () => $('#dlgHistory').close();
+  const showHistory = (c) => {
+    const rows = (c.history || []).map((h, i) => ({ ...h, _i:i, date:h.date || h.d || todayStr(), action:h.action || h.t || 'Ενέργεια', details:h.details || h.result || h.r || '', timestamp:h.timestamp || '' }));
+    const keyDate = x => x.timestamp || (parseFmt(x.date) || x.date || '');
+    rows.sort((a,b) => keyDate(a).localeCompare(keyDate(b)) || a._i-b._i);
+    const audit = rows.length ? `<ol class="audit-list">${rows.map((h,i)=>`<li><div class="audit-index">${i+1}</div><div class="audit-content"><b>${esc(h.action)}</b><time>${esc(fmt(h.date))}${h.timestamp ? ' · '+esc(new Date(h.timestamp).toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'})) : ''}</time>${h.details ? `<p>${esc(h.details)}</p>` : ''}</div></li>`).join('')}</ol>` : `<p class="muted">Δεν υπάρχουν ακόμη καταγεγραμμένες χειροκίνητες ενέργειες. Οι νέες ενέργειες θα καταγράφονται από εδώ και πέρα.</p>`;
+    const milestones = timeline(c);
+    const historic = milestones.length ? `<details class="history-source" open><summary>Καταχωρισμένες ημερομηνίες / παλαιότερα γεγονότα</summary><ol class="audit-list">${milestones.map((r,i)=>`<li><div class="audit-index">${i+1}</div><div class="audit-content"><b>${esc(r.t)}</b><time>${esc(fmt(r.d))}</time>${r.res ? `<p>${esc(r.res)}</p>` : ''}${r.note ? `<p>${esc(r.note)}</p>` : ''}</div></li>`).join('')}</ol></details>` : '';
+    $('#histBody').innerHTML = `<div class="history-meta"><b>${esc(c.plate)} · ${esc(c.name)}</b><span>${rows.length} καταγεγραμμένες ενέργειες</span></div><h3 class="history-heading">Καταγραφή ενεργειών</h3>${audit}${historic}`;
+    $('#dlgHistory').showModal();
+  };
   $('#btnFormDelete').onclick = () => {
     if (confirm('Οριστική διαγραφή υπόθεσης;')) {
       cases = cases.filter(x => x.id !== F.dataset.id); save(); render(); dlgF.close();
