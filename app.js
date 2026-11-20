@@ -1,7 +1,8 @@
 (() => {
-  const KEY = 'troxonomika_final_v27';
+  const KEY = 'troxonomika_final_v28';
   const OLD = [...Array(22)].map((_, i) => 'troxonomika_final_v' + (22 - i))
     .concat(['ypotheseis_pwa_v1','ypotheseis.v1','troxonomika.cases.v1','ypotheseis.v2','ypotheseis_gemini_v1']);
+  OLD.unshift('troxonomika_final_v27');
   OLD.unshift('troxonomika_final_v26');
   OLD.unshift('troxonomika_final_v25');
   OLD.unshift('troxonomika_final_v24');
@@ -64,6 +65,36 @@
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const iso = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   const todayStr = () => iso(new Date());
+  const yy = () => String(new Date().getFullYear()).slice(-2);
+  const PROTO_PREFIXES = () => [
+    { v: '2515/11-' + yy() + '/', l: '2515/11-' + yy() + '/' },
+    { v: '2517/4-' + yy() + '/', l: '2517/4-' + yy() + '/' }
+  ];
+  const splitProtocol = (p) => {
+    p = String(p || '').trim().toUpperCase();
+    for (const pr of PROTO_PREFIXES()) {
+      if (p.startsWith(pr.v.toUpperCase())) return { prefix: pr.v, num: p.slice(pr.v.length) };
+    }
+    // fallback older years or free text
+    const m = p.match(/^(2515\/11-\d{2}\/|2517\/4-\d{2}\/)(.*)$/i);
+    if (m) return { prefix: m[1], num: m[2] };
+    return { prefix: '', num: p };
+  };
+  const buildProtocol = () => {
+    const pre = (E.protocolPrefix && E.protocolPrefix.value) || '';
+    const num = (E.protocolNum && E.protocolNum.value || '').trim().toUpperCase();
+    if (!pre && !num) return '';
+    if (!pre) return num;
+    return pre + num;
+  };
+  const fillServiceList = () => {
+    const list = $('#serviceList');
+    if (!list) return;
+    const set = new Set();
+    cases.forEach(c => { const s = (c.service || '').trim().toUpperCase(); if (s) set.add(s); });
+    list.innerHTML = [...set].sort().map(s => `<option value="${esc(s)}">`).join('');
+  };
+
   const fmt = v => v ? new Date(v + 'T12:00:00').toLocaleDateString('el-GR') : '—';
   const sd = (v) => { if (!v) return '—'; const [y, m, d] = v.split('-'); return d + '/' + m + (y !== String(new Date().getFullYear()) ? '/' + y : ''); };
   const telHref = (x) => 'tel:' + x.replace(/[^\d+]/g, '');
@@ -1000,9 +1031,29 @@ xmlns="http://www.w3.org/TR/REC-html40">
     E.manualState.innerHTML = Object.keys(ST).map(k => `<option value="${k}">${ST[k].l}</option>`).join('');
     folderOpts(c ? c.folder : '');
     
+    // Ενημέρωση επιλογών πρωτοκόλλου με τρέχον έτος
+    if (E.protocolPrefix) {
+      const cur = E.protocolPrefix.value;
+      E.protocolPrefix.innerHTML = '<option value="">— επιλογή —</option>' + PROTO_PREFIXES().map(p => `<option value="${p.v}">${p.l}</option>`).join('');
+      E.protocolPrefix.value = cur;
+    }
+    fillServiceList();
     if (c) {
       E.plate.value = c.plate; E.name.value = c.name; E.service.value = c.service || ''; E.phone.value = c.phone || '';
-      E.protocol.value = c.protocol || ''; E.address.value = c.address || '';
+      const sp = splitProtocol(c.protocol);
+      if (E.protocolPrefix) {
+        // αν ταιριάζει με τρέχον έτος ή παλιό, βάλε το
+        const opts = [...E.protocolPrefix.options].map(o => o.value);
+        if (opts.includes(sp.prefix)) E.protocolPrefix.value = sp.prefix;
+        else if (sp.prefix) {
+          // πρόσθεσε προσωρινά το παλιό prefix
+          const o = document.createElement('option'); o.value = sp.prefix; o.textContent = sp.prefix; E.protocolPrefix.appendChild(o);
+          E.protocolPrefix.value = sp.prefix;
+        } else E.protocolPrefix.value = '';
+      }
+      if (E.protocolNum) E.protocolNum.value = sp.num || '';
+      if (E.protocol) E.protocol.value = c.protocol || '';
+      E.address.value = c.address || '';
       E.receivedDate.value = c.receivedDate;
       if (VIOL.includes(c.violationType)) E.violationType.value = c.violationType;
       else if (c.violationType) { E.violationType.value = 'custom'; E.violationOther.value = c.violationType; }
@@ -1018,6 +1069,9 @@ xmlns="http://www.w3.org/TR/REC-html40">
       E.receivedDate.value = todayStr();
       $('#plateWarning').style.display = 'none';
       E.manualState.value = 'search';
+      if (E.protocolPrefix) E.protocolPrefix.value = '';
+      if (E.protocolNum) E.protocolNum.value = '';
+      if (E.protocol) E.protocol.value = '';
     }
     toggles();
     F.dataset.id = id || '';
@@ -1044,7 +1098,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
       id, 
       plate: normPlate(E.plate.value), 
       name: E.name.value.trim().toUpperCase(), 
-      protocol: (E.protocol.value || '').trim().toUpperCase(),
+      protocol: buildProtocol(),
       address: (E.address.value || '').trim().toUpperCase(),
       service: E.service.value.trim().toUpperCase(),
       phone: E.phone.value.trim(), 
@@ -1110,6 +1164,19 @@ xmlns="http://www.w3.org/TR/REC-html40">
   $('#fFolder').onchange = toggles; $('#fViol').onchange = toggles;
   $('#btnNew').onclick = () => openForm(null);
   $('#btnFormCancel').onclick = () => dlgF.close();
+  $('#btnGenInv').onclick = () => {
+    const proto = buildProtocol();
+    const temp = {
+      plate: normPlate(E.plate.value) || '_______',
+      name: (E.name.value || '').trim().toUpperCase() || '_______________',
+      protocol: proto,
+      address: (E.address.value || '').trim().toUpperCase() || '_______________',
+      service: (E.service.value || '').trim().toUpperCase()
+    };
+    const n = prompt('Ποια πρόσκληση θέλεις να δημιουργήσεις; (1, 2 ή 3)', '1');
+    const num = Math.min(3, Math.max(1, parseInt(n, 10) || 1));
+    generateInvitation(temp, num);
+  };
   $('#btnHistoryClose').onclick = () => $('#dlgHistory').close();
   $('#btnFormDelete').onclick = () => {
     if (confirm('Οριστική διαγραφή υπόθεσης;')) {

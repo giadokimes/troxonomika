@@ -68,9 +68,22 @@
         <div id="plateWarning" class="warn-text" style="display:none;"></div>
       </label>
       <label class="full">Ονοματεπώνυμο *<input name="name" required autocomplete="off" placeholder="π.χ. ΠΑΠΑΖΗΣΗ Γεώργιο του Ανδρέα"></label>
-      <label class="full">Αριθ. Πρωτοκόλλου<input name="protocol" autocomplete="off" placeholder="π.χ. 2515/11-26/451Α"></label>
+      <label class="full">Αριθ. Πρωτοκόλλου
+        <div style="display:flex;gap:6px;align-items:center">
+          <select name="protocolPrefix" id="protocolPrefix" style="flex:0 0 auto;min-width:140px">
+            <option value="">— επιλογή —</option>
+            <option value="2515/11-">2515/11-YY/</option>
+            <option value="2517/4-">2517/4-YY/</option>
+          </select>
+          <input name="protocolNum" id="protocolNum" autocomplete="off" placeholder="αριθμός π.χ. 451Α" style="flex:1">
+        </div>
+        <input type="hidden" name="protocol">
+      </label>
       <label class="full">Διεύθυνση κατοικίας<input name="address" autocomplete="off" placeholder="π.χ. Κυρίλλου και Μεθοδίου 07"></label>
-      <label>Υπηρεσία παράβασης<input name="service" placeholder="π.χ. ΥΔΝΣΗ / ΑΤ ..."></label>
+      <label class="full">Υπηρεσία παράβασης
+        <input name="service" list="serviceList" autocomplete="off" placeholder="πληκτρολόγησε π.χ. λητ...">
+        <datalist id="serviceList"></datalist>
+      </label>
       <label>Τηλέφωνο<input name="phone" type="tel"></label>
       <label>Ημ. Παραλαβής *<input type="date" name="receivedDate" required></label>
       <label>Θέση Φακέλου<select name="folderSelect" id="fFolder"></select></label>
@@ -109,9 +122,10 @@
       </div>
     </details>
 
-    <div class="acts">
+    <div class="acts" style="flex-wrap:wrap;gap:8px">
       <button type="button" class="btn ghost" id="btnFormCancel">Άκυρο</button>
       <button type="button" class="btn bad" id="btnFormDelete" hidden>Διαγραφή</button>
+      <button type="button" class="btn" id="btnGenInv" title="Κατεβάζει πρόσκληση .doc με τα τρέχοντα στοιχεία της φόρμας">Δημιουργία πρόσκλησης .doc</button>
       <button type="submit" class="btn pri">Αποθήκευση</button>
     </div>
   </form>
