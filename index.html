@@ -31,7 +31,6 @@
 </div>
 
 <main>
-    <!-- View: Σήμερα -->
     <div id="view-today" class="view">
         <div class="tools">
             <input type="search" id="searchInput" placeholder="Αναζήτηση (Πινακίδα, Όνομα, Φάκελος...)">
@@ -39,7 +38,6 @@
         <div id="todayList"></div>
     </div>
 
-    <!-- View: Υποθέσεις -->
     <div id="view-cases" class="view" hidden>
         <div class="tools">
             <input type="search" id="searchInputCases" placeholder="Αναζήτηση..." oninput="document.getElementById('searchInput').value=this.value; q=this.value; render();">
@@ -54,7 +52,6 @@
         <div id="casesList"></div>
     </div>
 
-    <!-- View: Μενού -->
     <div id="view-menu" class="view" hidden>
         <div class="menu">
             <div class="mrow">
@@ -75,16 +72,13 @@
         </div>
     </div>
 
-    <!-- View: Λεπτομέρειες Υπόθεσης -->
     <div id="view-case" class="view" hidden>
         <div id="caseBody"></div>
     </div>
 </main>
 
-<!-- FAB -->
 <button class="fab" id="btnNew" aria-label="Νέα υπόθεση">+</button>
 
-<!-- Bottom Navigation -->
 <nav class="nav">
     <button data-nav="today" class="on">
         <span>Σήμερα</span>
@@ -98,7 +92,6 @@
     </button>
 </nav>
 
-<!-- Dialog: Φόρμα Υπόθεσης -->
 <dialog id="dlgForm">
     <div class="dlg">
         <h2 id="formTitle">Νέα Υπόθεση</h2>
@@ -152,14 +145,12 @@
                 
                 <label class="full">Παρατηρήσεις <textarea name="notes" id="notes" rows="3"></textarea></label>
 
-                <!-- Προχωρημένη Διόρθωση -->
                 <details class="adv full">
                     <summary>Προχωρημένη Διόρθωση (Κατάσταση & Ημερομηνίες)</summary>
                     <div class="grid" style="margin-top:12px;">
                         <label>Χειροκίνητη Κατάσταση
                             <select name="manualState" id="manualState"></select>
                         </label>
-                        <!-- Τα δυναμικά πεδία ημερομηνιών θα προστεθούν εδώ από το app.js -->
                     </div>
                 </details>
             </div>
@@ -174,7 +165,6 @@
     </div>
 </dialog>
 
-<!-- Dialog: Wizard (Ενέργειες) -->
 <dialog id="dlgWizard">
     <div class="dlg">
         <h2 id="wT"></h2>
@@ -184,7 +174,6 @@
     </div>
 </dialog>
 
-<!-- Dialog: Επιλογή (Pick) -->
 <dialog id="dlgPick">
     <div class="dlg">
         <h2 id="pickT"></h2>
@@ -195,7 +184,6 @@
     </div>
 </dialog>
 
-<!-- Dialog: Ιστορικό -->
 <dialog id="dlgHistory">
     <div class="dlg">
         <h2>Ιστορικό Ενεργειών</h2>
