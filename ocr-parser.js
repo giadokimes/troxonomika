@@ -48,17 +48,41 @@
     const plate = L.join('') + '-' + D.join('');
     return { plate, corrected: plate !== (a + '-' + b) };
   }
+  function plateCandidate(raw) {
+    const s = String(raw || '').toUpperCase().replace(/[‐‑‒–—−]/g, '-').replace(/\s+/g, '');
+    const m = s.match(/([Α-ΩA-Z0-9]{3})-?([Α-ΩA-Z0-9]{4})/);
+    if (!m) return null;
+    const r = fixPlate(m[1], m[2]);
+    return r ? { plate: r.plate, corrected: r.corrected || !s.includes('-') } : null;
+  }
   function findPlate(flat, warnings) {
-    const re = /(?<![A-Za-zΑ-Ωα-ω0-9])([A-Za-zΑ-Ωα-ω0-9]{3})\s?[-–—]\s?([A-Za-zΑ-Ωα-ω0-9]{3,4})(?![A-Za-zΑ-Ωα-ω0-9])/g;
+    // Πρώτα ψάχνουμε στο συμφραζόμενο «υπ' αριθ.» και πριν από την αναφορά τύπου οχήματος.
+    // Αυτό περιορίζει τις ψευδείς αντιστοιχίες από αριθμούς πρωτοκόλλου/τηλέφωνα.
+    const contexts = [];
+    const anchor = /(?:υπ\s*['’΄]?\s*αριθ|υπ\s*αριθ|αριθ\s*κυκλοφορ)/ig;
+    let a;
+    while ((a = anchor.exec(flat))) contexts.push(flat.slice(a.index, Math.min(flat.length, a.index + 150)));
+    for (const c of contexts) {
+      const m = c.match(/([Α-ΩA-Z0-9]{3})\s*[-‐‑‒–—]?\s*([Α-ΩA-Z0-9]{4})/i);
+      if (m) {
+        const r = plateCandidate(m[1] + '-' + m[2]);
+        if (r) {
+          warnings.push('Πινακίδα από το σημείο «υπ\' αριθ.»: ' + r.plate + '. Απαιτείται οπτική επιβεβαίωση.');
+          return r.plate;
+        }
+      }
+    }
+    // Εφεδρική αναζήτηση σε όλο το κείμενο, μόνο σε έγκυρη ελληνική μορφή 3+4.
+    const re = /(?<![A-Za-zΑ-Ωα-ω0-9])([A-Za-zΑ-Ωα-ω0-9]{3})\s?[-–—]?\s?([A-Za-zΑ-Ωα-ω0-9]{4})(?![A-Za-zΑ-Ωα-ω0-9])/g;
     let m;
     while ((m = re.exec(flat))) {
-      const r = fixPlate(m[1], m[2]);
+      const r = plateCandidate(m[1] + '-' + m[2]);
       if (r) {
-        if (r.corrected) warnings.push('Πινακίδα: το OCR διάβασε "' + m[1] + '-' + m[2] + '", διορθώθηκε σε ' + r.plate + '. Έλεγξέ την.');
+        warnings.push('Πινακίδα που εντοπίστηκε εκτός του βασικού συμφραζομένου: ' + r.plate + '. Απαιτείται οπτική επιβεβαίωση.');
         return r.plate;
       }
     }
-    warnings.push('Δεν βρέθηκε πινακίδα.');
+    warnings.push('Δεν βρέθηκε πινακίδα με επαρκή βεβαιότητα.');
     return null;
   }
 
@@ -67,21 +91,23 @@
                       ενενηντα: 90, εκατο: 100, εκατον: 100, διακοσιες: 200, πεντακοσιες: 500 };
 
   function parseDays(flat, warnings) {
-    // OCR συχνά χάνει τη φράση «χρονικό διάστημα», αλλά διατηρεί το
-    // ολογράφως + (αριθμητικά) + «ημερών». Δεν συμπληρώνουμε αν δεν υπάρχει σαφές μοτίβο.
-    const m = flat.match(/(?:χρονικο\s+διαστημα|για\s+)?([α-ω]{2,15})\s*\(\s*([0-9οΟoOΙιl|]{1,4})\s*\)\s*ημερ/i)
-      || flat.match(/(?:αφαιρεση[^.]{0,100})?\b(\d{1,3})\s*ημερ(?:ων|εσ)?/i);
-    if (!m) return null;
-    const fromWord = DAY_WORDS[String(m[1] || '').toLowerCase()] || null;
-    const digits = String(m[2] || m[1] || '').replace(/[οΟoO]/g, '0').replace(/[Iιl|]/g, '1').replace(/\s/g, '');
-    const fromDigits = /^\d{1,3}$/.test(digits) ? +digits : null;
-    if (fromWord && fromDigits && fromWord !== fromDigits)
-      warnings.push('Ημέρες αφαίρεσης: ολόγραφα ' + fromWord + ', αριθμητικά ' + fromDigits + '. Έλεγξέ το.');
-    const days = fromDigits || fromWord;
-    if (!days || days < 1 || days > 365) {
-      warnings.push('Ημέρες αφαίρεσης: δεν διαβάστηκαν με ασφάλεια.');
+    // Στα έγγραφα της υπηρεσίας η διάρκεια ορίζεται ολογράφως.
+    // Το αριθμητικό τμήμα συχνά αλλοιώνεται από το OCR (π.χ. τριάντα (80)).
+    const m = flat.match(/(?:για\s+)?χρονικο\s+διαστημα\s+([α-ω]+)\s*\(\s*([^)]{1,8})\s*\)\s*ημερ/i);
+    if (!m) {
+      const wordOnly = flat.match(/(?:χρονικο\s+διαστημα\s+|για\s+χρονικο\s+διαστημα\s+)?(δεκα|δεκαπεντε|εικοσι|τριαντα|σαραντα|πενηντα|εξηντα|ενενηντα|εκατο|εκατον)\s+ημερ/i);
+      if (wordOnly) return DAY_WORDS[wordOnly[1].toLowerCase()] || null;
+      warnings.push('Ημέρες αφαίρεσης: δεν αναγνωρίστηκε με ασφάλεια η ολογράφως διάρκεια.');
       return null;
     }
+    const fromWord = DAY_WORDS[m[1].toLowerCase()] || null;
+    const digits = m[2].replace(/[οΟoO]/g, '0').replace(/[Iιl|]/g, '1').replace(/\s/g, '');
+    const fromDigits = /^\d{1,3}$/.test(digits) ? +digits : null;
+    if (fromWord && fromDigits && fromWord !== fromDigits)
+      warnings.push('Διαφωνία OCR στις ημέρες: ολογράφως ' + fromWord + ', αριθμητικά ' + fromDigits + '. Επιλέχθηκαν οι ολογράφως ' + fromWord + ' ημέρες — απαιτείται επιβεβαίωση.');
+    // ΠΟΤΕ δεν υπερισχύει το αριθμητικό OCR έναντι της ολογράφως διάρκειας.
+    const days = fromWord || fromDigits;
+    if (!days) warnings.push('Ημέρες αφαίρεσης: δεν αναγνωρίστηκε ασφαλής αριθμός ημερών.');
     return days;
   }
 
@@ -106,19 +132,14 @@
   }
 
   function findService(flat) {
-    const text = flat.toUpperCase().replace(/[\s,.;:]+/g, ' ');
     const found = [];
-    // Πρώτα οι σαφείς ονομασίες υπηρεσιών, με ανοχή σε χαμένα κενά OCR.
-    const patterns = [
-      /ΤΜΗΜΑ\s*ΤΡΟΧΑΙΑΣ\s+([Α-ΩA-Z]{3,})/g,
-      /ΤΡΟΧΑΙΑΣ\s+([Α-ΩA-Z]{3,})/g,
-      /ΑΣΤΥΝΟΜΙΚΟ\s*ΤΜΗΜΑ\s+([Α-ΩA-Z]{3,})/g
-    ];
-    for (const re of patterns) {
-      let m; while ((m = re.exec(text))) found.push((re === patterns[2] ? 'ΑΤ ' : 'ΤΤ ') + m[1]);
-    }
-    // Η υπηρεσία παραλήπτη δεν πρέπει να επιλεγεί ως υπηρεσία ανάθεσης.
-    return found.find(s => !/ΚΑΛΑΜΑΡΙΑ|ΜΑΓΝΗΣΙΑ|ΘΕΣΣΑΛΟΝΙΚ/.test(s)) || null;
+    let m;
+    const reTT = /ΤΜΗΜΑ\s*ΤΡΟΧΑΙΑΣ\s+([Α-ΩA-Z]{3,})/gi;
+    const reAT = /ΑΣΤΥΝΟΜΙΚΟ\s+ΤΜΗΜΑ\s+([Α-ΩA-Z]{3,})/gi;
+    while ((m = reTT.exec(flat))) found.push('ΤΤ ' + m[1].toUpperCase());
+    while ((m = reAT.exec(flat))) found.push('ΑΤ ' + m[1].toUpperCase());
+    // το δικό μας τμήμα (παραλήπτης) δεν είναι υπηρεσία ανάθεσης
+    return found.find(s => !/ΚΑΛΑΜΑΡΙΑΣ/.test(s)) || null;
   }
 
   /* ---------- κύρια συνάρτηση ---------- */
@@ -169,30 +190,35 @@
     if (m && !f.article) warnings.push('Άρθρο: το OCR διάβασε "' + m[1] + '". Συμπλήρωσέ το χειροκίνητα.');
     f.law = m ? m[2] : null;
 
-    // Στοιχεία ιδιοκτήτη: πρώτα το τυπικό μοτίβο, μετά ελεγχόμενη εναλλακτική
-    // με άγκυρα «κάτοικος» για OCR που αλλοιώνει τη λέξη «ιδιοκτήτη».
-    m = /στοιχεια\s+ιδιοκτητ[ηω]\s+(.+?)\s*,?\s*κατοικο[σς]\s+(.+?)\s*,?\s*περιφερεια/id.exec(flat);
-    if (!m) m = /(?:ιδιοκτητ[ηω]|στοιχεια\s+.{0,18})\s+(.{4,100}?)\s*,?\s*κατοικο[σς]\s+(.{3,100}?)\s*,?\s*περιφερεια/id.exec(flat);
-    if (!m) m = /(?:στοιχεια\s+)?(?:ιδιοκτητ[ηω]|ιδιοκτη[στ][ηω])[^,]{0,25}(.{4,90}?)\s+κατοικο[σς]\s+(.{3,100})\s+περιφερεια/id.exec(flat);
-    if (m) {
-      f.ownerFull = String(m[1]).replace(/[\s,]+$/g, '').toUpperCase();
-      f.ownerName = f.ownerFull.split(/\s+(?:ΤΟΥ|ΤΗΣ)\s+/)[0].trim();
-      const residence = String(m[2] || '').replace(/[\s,]+$/g, '');
-      const a = /^(.{2,40}?),\s*οδο[σς]\s+(.+)$/i.exec(residence);
-      f.address = a
-        ? { city: a[1].toUpperCase(), street: a[2].trim() }
-        : { city: null, street: null, raw: residence };
-      if (!/\s/.test(f.ownerName) || f.ownerName.length < 5) warnings.push('Ονοματεπώνυμο: η αναγνώριση είναι αβέβαιη. Έλεγξέ το.');
+    // Αναζήτηση ιδιοκτήτη με ανοχή σε μικρές αλλοιώσεις OCR στη λέξη «ιδιοκτήτη».
+    // Το ονοματεπώνυμο αναζητείται πριν από το «του» (πατρώνυμο) και δεν
+    // συμπληρώνεται από άσχετα κεφαλαία ονόματα της κεφαλίδας.
+    const ownerAnchor = /(?:στοιχεια\s+)?[α-ω]{0,4}διοκ[α-ω]{0,12}/ig;
+    let om = null, oa;
+    while ((oa = ownerAnchor.exec(flat))) {
+      const tail = flat.slice(oa.index + oa[0].length, Math.min(flat.length, oa.index + oa[0].length + 180));
+      const nm = tail.match(/[\s:{,.-]*([Α-ΩA-Z]{5,}(?:\s+[Α-ΩA-Z]{4,})?)\s+(?:του|της)\s+([Α-ΩA-Z]{4,})/i);
+      if (nm) { om = { name: nm[1].replace(/^[^Α-ΩA-Z]+/i, '').trim(), patronymic: nm[2], index: oa.index }; break; }
+    }
+    if (om) {
+      f.ownerFull = om.name.toUpperCase();
+      f.ownerName = f.ownerFull;
+      f.ownerNeedsReview = true;
+      warnings.push('Ονοματεπώνυμο από την παράγραφο ιδιοκτήτη: επιβεβαίωσε γράμμα προς γράμμα από το έγγραφο.');
+      // Διεύθυνση: κρατάμε μόνο αν εντοπιστεί καθαρά μετά από «οδός».
+      const tail = flat.slice(om.index, Math.min(flat.length, om.index + 320));
+      const street = tail.match(/οδ[οσς]\s+([^,]{3,60})/i);
+      f.address = street ? { city: null, street: street[1].trim() } : null;
     } else {
       f.ownerFull = f.ownerName = f.address = null;
-      warnings.push('Δεν βρέθηκαν με ασφάλεια στοιχεία ιδιοκτήτη.');
+      warnings.push('Δεν βρέθηκε με ασφάλεια το ονοματεπώνυμο στην παράγραφο ιδιοκτήτη.');
     }
 
-    const removal = /αφαιρεση[^.]{0,100}αδει[^.]{0,50}ικανοτη/i.test(flat);
+    const removal = /αφαιρεση\s+της\s+αδειας\s+ικανοτητας/i.test(flat);
     f.removal = {
       required: removal,
       days: removal ? parseDays(flat, warnings) : null,
-      circulation: /αφαιρεση[^.]{0,200}?(πινακιδ|αδει[^.]{0,60}κυκλοφορια)/i.test(flat)
+      circulation: /αφαιρεση[^.]{0,200}?(πινακιδ|αδειας\s+κυκλοφοριας)/i.test(flat)
     };
 
     // Ρητές διατάξεις του εγγράφου. Αν η φράση δεν αναγνωριστεί με σαφήνεια, δεν βγαίνει τίποτα

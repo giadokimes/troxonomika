@@ -1,4 +1,4 @@
-const CACHE = "troxonomika-v66"; // Άλλαξα την έκδοση εδώ για να σπάσει η προηγούμενη μνήμη
+const CACHE = "troxonomika-v65"; // Άλλαξα την έκδοση εδώ για να σπάσει η προηγούμενη μνήμη
 const FILES = ["./", "./index.html", "./style.css", "./app.js", "./ocr-parser.js", "./ocr-scan.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 // Αρχεία OCR (μεγάλα): αποθηκεύονται για χρήση χωρίς σύνδεση, αλλά αν κάποιο λείπει δεν μπλοκάρει την εγκατάσταση
@@ -23,15 +23,6 @@ self.addEventListener("fetch", e => {
   if (r.method !== "GET") return;
   const u = new URL(r.url);
   if (u.origin !== location.origin) return;
-
-  // OCR engine/model: cache-first. These are static code/model files only—never user documents.
-  if (u.pathname.includes("/tess/")) {
-    e.respondWith(caches.match(r).then(hit => hit || fetch(r).then(res => {
-      if (res && res.ok) { const cp = res.clone(); caches.open(CACHE).then(c => c.put(r, cp)); }
-      return res;
-    })));
-    return;
-  }
   if (r.mode === "navigate" || u.pathname.endsWith(".html")) {
     e.respondWith(fetch(r).then(res => {
       const cp = res.clone(); caches.open(CACHE).then(c => c.put(r, cp)); return res;

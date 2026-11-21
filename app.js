@@ -1209,7 +1209,7 @@
       const strip = (a) => JSON.stringify((a || []).map(x => [x.b, x.d]));
       if (strip(old.appts) !== strip(appts)) lines.push('Ραντεβού: ' + (old.appts || []).length + ' → ' + appts.length);
       if ((old.removalDays || 0) !== days) lines.push('Ημέρες αφαίρεσης: ' + (old.removalDays || '—') + ' → ' + (days || '—'));
-      if (days && (old.removalWhat || 'license') !== what) lines.push('Τι αφαιρέθηκε: ' + cap1(REMS[old.removalWhat || 'license']) + ' → ' + cap1(REMS[what]));
+      if (days && (old.removalWhat || 'license') !== what) lines.push('Προς αφαίρεση: ' + cap1(REMS[old.removalWhat || 'license']) + ' → ' + cap1(REMS[what]));
       if (lines.length && !confirm('Θα αλλάξουν:\n' + lines.join('\n') + '\n\nΣυνέχεια;')) return;
     }
     const before = old ? snap(old) : null;
@@ -1222,7 +1222,7 @@
     if (pushed) showToast(rec, 'Διόρθωση στοιχείων');
   });
   // ---------- Συμπλήρωση από κείμενο εγγράφου (OCR) ----------
-  const SCAN_LBL = { plate: 'Πινακίδα', name: 'Ονοματεπώνυμο', service: 'Υπηρεσία', address: 'Διεύθυνση', violationType: 'Είδος παράβασης', removalDays: 'Ημέρες αφαίρεσης', removalWhat: 'Τι αφαιρέθηκε', vDate: 'Ημερομηνία παράβασης', vPlace: 'Τόπος παράβασης', vArticle: 'Άρθρο', endRoute: 'Τέλος διαδικασίας' };
+  const SCAN_LBL = { plate: 'Πινακίδα', name: 'Ονοματεπώνυμο', service: 'Υπηρεσία', address: 'Διεύθυνση', violationType: 'Είδος παράβασης', removalDays: 'Ημέρες αφαίρεσης', removalWhat: 'Προς αφαίρεση', vDate: 'Ημερομηνία παράβασης', vPlace: 'Τόπος παράβασης', vArticle: 'Άρθρο', endRoute: 'Τέλος διαδικασίας' };
   const ROUTE_L = { '': 'κατά τον κανόνα', complaint: 'μήνυση', transmittal: 'διαβιβαστικό' };
   const scanShow = (k, v) => !v ? '—' : k === 'removalWhat' ? cap1(REMS[v] || v) : k === 'endRoute' ? ROUTE_L[v] : k === 'vDate' ? sd(v) : String(v);
   const scanCur = (k) => {
@@ -1270,10 +1270,6 @@
     sm.hidden = false; sm.textContent = 'Προετοιμασία…'; btn.disabled = true;
     try {
       if (!window.OcrScan) throw new Error('Λείπει το αρχείο ocr-scan.js');
-      if (!navigator.onLine && window.OcrScan.checkOffline) {
-        const check = await window.OcrScan.checkOffline();
-        if (check.supported && !check.ready) throw new Error('Δεν έχουν αποθηκευτεί όλα τα τοπικά αρχεία OCR. Συνδέσου προσωρινά στο Internet, άνοιξε/φόρτωσε ξανά την εφαρμογή και μετά δοκίμασε offline. Λείπουν: ' + check.missing.join(', '));
-      }
       const text = await window.OcrScan.run(f, (s) => { sm.textContent = s; });
       applyScan(text);
     } catch (err) {
