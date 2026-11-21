@@ -1,4 +1,4 @@
-const CACHE = "troxonomika-v66"; // Άλλαξα την έκδοση εδώ για να σπάσει η προηγούμενη μνήμη
+const CACHE = "troxonomika-v65"; // Άλλαξα την έκδοση εδώ για να σπάσει η προηγούμενη μνήμη
 const FILES = ["./", "./index.html", "./style.css", "./app.js", "./ocr-parser.js", "./ocr-scan.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 // Αρχεία OCR (μεγάλα): αποθηκεύονται για χρήση χωρίς σύνδεση, αλλά αν κάποιο λείπει δεν μπλοκάρει την εγκατάσταση
