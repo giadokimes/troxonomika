@@ -1,6 +1,7 @@
+
 /* troxonomika - ocr-parser.js
    Ανάλυση OCR κειμένου ελληνικών εγγράφων.
-   Οι αναγνωρισμένες τιμές είναι προτάσεις και απαιτούν επιβεβαίωση από τον χρήστη.
+   Οι αναγνωρισμένες τιμές είναι προτάσεις και απαιτούν επιβεβαίωση.
 */
 (function (root) {
   'use strict';
@@ -9,7 +10,7 @@
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[’‘`´]/g, "'")
-    .replace(/[‐‑‒–—]/g, '-')
+    .replace(/[‐-‒–—]/g, '-')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -26,7 +27,6 @@
       .filter(Boolean);
   }
 
-  // Διορθώσεις συνηθισμένων συγχύσεων OCR σε ελληνικά/λατινικά γράμματα.
   function greekLookalikes(value) {
     return String(value || '')
       .replace(/[A]/g, 'Α')
@@ -67,11 +67,8 @@
     const source = normalize(text).toUpperCase();
     const candidates = new Map();
 
-    // Ελληνικές πινακίδες: τρία γράμματα και τέσσερα ψηφία.
-    // Εξετάζουμε και OCR εκδοχές με κενά ή λανθασμένα διαχωριστικά.
     const patterns = [
-      /([Α-ΩA-Z]{3})[\s\-_.]*([0-9ΟΟΙΙΖΒS]{4})/g,
-      /([Α-ΩA-Z]{2})[\s\-_.]*([0-9ΟΟΙΙΖΒS]{3})/g
+      /([Α-ΩA-Z]{3})[\s\-_.]*([0-9ΟΙΖΒS]{4})/g
     ];
 
     function normalizePlateLetters(value) {
@@ -81,13 +78,11 @@
 
     function normalizePlateDigits(value) {
       return value
-        .replace(/[ΟΟ]/g, '0')
-        .replace(/[Ο]/g, '0')
-        .replace(/[ΙΙ]/g, '1')
-        .replace(/[Ι]/g, '1')
-        .replace(/[Ζ]/g, '2')
-        .replace(/[Β]/g, '8')
-        .replace(/[S]/g, '5')
+        .replace(/Ο/g, '0')
+        .replace(/Ι/g, '1')
+        .replace(/Ζ/g, '2')
+        .replace(/Β/g, '8')
+        .replace(/S/g, '5')
         .replace(/[^0-9]/g, '');
     }
 
@@ -96,6 +91,7 @@
       while ((match = pattern.exec(source)) !== null) {
         const letters = normalizePlateLetters(match[1]);
         const digits = normalizePlateDigits(match[2]);
+
         if (letters.length === 3 && digits.length === 4) {
           const plate = letters + '-' + digits;
           candidates.set(plate, (candidates.get(plate) || 0) + 1);
@@ -130,7 +126,7 @@
       const upper = line.toUpperCase();
 
       if (keywords.some(k => upper.includes(k))) {
-        let candidate = line
+        const candidate = line
           .replace(/^(ΑΠΟ|ΠΡΟΣ|ΑΠΟ ΤΗΝ|ΑΠΟ ΤΟ)\s*[:\-]?\s*/i, '')
           .replace(/^(ΥΠΗΡΕΣΙΑ|ΤΜΗΜΑ|ΔΙΕΥΘΥΝΣΗ)\s*[:\-]?\s*/i, '')
           .trim();
@@ -139,58 +135,18 @@
           matches.push(candidate);
         }
 
-        if (lines[i + 1] && lines[i + 1].length >= 5 && lines[i + 1].length <= 100) {
-          const next = lines[i + 1];
-          if (/ΑΣΤΥΝ|ΤΡΟΧ|ΔΙΕΥΘΥΝ|ΤΜΗΜΑ|ΥΠΟΔΙΕΥΘΥΝ/i.test(next)) {
-            matches.push(next);
-          }
+        if (
+          lines[i + 1] &&
+          lines[i + 1].length >= 5 &&
+          lines[i + 1].length <= 100 &&
+          /ΑΣΤΥΝ|ΤΡΟΧ|ΔΙΕΥΘΥΝ|ΤΜΗΜΑ|ΥΠΟΔΙΕΥΘΥΝ/i.test(lines[i + 1])
+        ) {
+          matches.push(lines[i + 1]);
         }
       }
     }
 
     const unique = [...new Set(matches)];
-    return {
-      value: unique[0] || '',
-      candidates: unique
-    };
-  }
-
-  function extractOwner(text) {
-    const lines = linesOf(text);
-    const candidates = [];
-
-    const labels = [
-      /(?:ΙΔΙΟΚΤΗΤΗ|ΙΔΙΟΚΤΗΤΗΣ|ΚΑΤΟΧΟΣ|ΟΝΟΜΑΤΕΠΩΝΥΜΟ|ΕΠΩΝΥΜΟ|ΟΝΟΜΑ)\s*[:\-]?\s*(.+)/i,
-      /(?:ΤΟΥ|ΤΗΣ)\s+ΚΥΡΙΟΥ\s+(.+)/i
-    ];
-
-    const excluded = /^(?:ΑΡΙΘΜ|ΑΡ\.|ΗΜΕΡ|ΗΜΕΡΟΜΗΝΙΑ|ΠΡΩΤΟΚΟΛΛΟ|ΘΕΜΑ|ΣΧΕΤ|ΠΙΝΑΚΙΔΑ|ΑΡΙΘΜΟΣ ΚΥΚΛΟΦΟΡΙΑΣ|ΥΠΗΡΕΣΙΑ|ΤΜΗΜΑ|ΔΙΕΥΘΥΝΣΗ|ΠΡΟΣ|ΚΟΙΝ)/i;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-
-      for (const pattern of labels) {
-        const match = line.match(pattern);
-        if (match && match[1]) {
-          const value = match[1].trim();
-          if (isLikelyName(value)) candidates.push(value);
-        }
-      }
-
-      // Συχνή μορφή διοικητικού εγγράφου:
-      // «... του/της [Ονοματεπώνυμο] ...»
-      const ownership = line.match(/\b(?:ΤΟΥ|ΤΗΣ)\s+([Α-ΩA-Z][Α-ΩA-Z\s.'-]{5,70})/i);
-      if (ownership && isLikelyName(ownership[1])) {
-        candidates.push(ownership[1]);
-      }
-
-      // Ελέγχουμε γειτονικές γραμμές μετά από ετικέτα ονόματος.
-      if (/ΟΝΟΜΑΤΕΠΩΝΥΜΟ|ΙΔΙΟΚΤΗΤΗ|ΚΑΤΟΧΟΣ/i.test(line) && lines[i + 1]) {
-        if (isLikelyName(lines[i + 1])) candidates.push(lines[i + 1]);
-      }
-    }
-
-    const unique = [...new Set(candidates.map(v => v.replace(/\s+/g, ' ').trim()))];
 
     return {
       value: unique[0] || '',
@@ -206,17 +162,67 @@
     if (v.length < 7 || v.length > 85) return false;
     if (/^[^Α-ΩA-Z]*$/i.test(v)) return false;
     if (/^[0-9\s.,:/-]+$/.test(v)) return false;
-    if (/^(?:ΑΡΙΘΜ|ΗΜΕΡ|ΠΙΝΑΚ|ΥΠΗΡΕΣ|ΤΜΗΜ|ΔΙΕΥΘΥΝ|ΘΕΜΑ|ΣΧΕΤ)/i.test(v)) return false;
+    if (/^(ΑΡΙΘΜ|ΗΜΕΡ|ΠΙΝΑΚ|ΥΠΗΡΕΣ|ΤΜΗΜ|ΔΙΕΥΘΥΝ|ΘΕΜΑ|ΣΧΕΤ)/i.test(v)) return false;
     if (v.split(/\s+/).length < 2) return false;
 
     return true;
   }
 
+  function extractOwner(text) {
+    const lines = linesOf(text);
+    const candidates = [];
+
+    const labels = [
+      /(?:ΙΔΙΟΚΤΗΤΗ|ΙΔΙΟΚΤΗΤΗΣ|ΚΑΤΟΧΟΣ|ΟΝΟΜΑΤΕΠΩΝΥΜΟ|ΕΠΩΝΥΜΟ|ΟΝΟΜΑ)\s*[:\-]?\s*(.+)/i,
+      /(?:ΤΟΥ|ΤΗΣ)\s+ΚΥΡΙΟΥ\s+(.+)/i
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      for (const pattern of labels) {
+        const match = line.match(pattern);
+        if (match && match[1] && isLikelyName(match[1])) {
+          candidates.push(match[1].trim());
+        }
+      }
+
+      const ownership = line.match(
+        /\b(?:ΤΟΥ|ΤΗΣ)\s+([Α-ΩA-Z][Α-ΩA-Z\s.'-]{5,70})/i
+      );
+
+      if (ownership && isLikelyName(ownership[1])) {
+        candidates.push(ownership[1]);
+      }
+
+      if (
+        /ΟΝΟΜΑΤΕΠΩΝΥΜΟ|ΙΔΙΟΚΤΗΤΗ|ΚΑΤΟΧΟΣ/i.test(line) &&
+        lines[i + 1] &&
+        isLikelyName(lines[i + 1])
+      ) {
+        candidates.push(lines[i + 1]);
+      }
+    }
+
+    const unique = [...new Set(
+      candidates.map(v => v.replace(/\s+/g, ' ').trim())
+    )];
+
+    return {
+      value: unique[0] || '',
+      candidates: unique
+    };
+  }
+
   const numberWords = {
-    'ΜΙΑ': 1, 'ΕΝΑ': 1, 'ΕΝΑΣ': 1,
+    'ΜΙΑ': 1,
+    'ΕΝΑ': 1,
+    'ΕΝΑΣ': 1,
     'ΔΥΟ': 2,
-    'ΤΡΙΑ': 3, 'ΤΡΕΙΣ': 3,
-    'ΤΕΣΣΕΡΑ': 4, 'ΤΕΣΣΑΡΑ': 4,
+    'ΤΡΙΑ': 3,
+    'ΤΡΕΙΣ': 3,
+    'ΤΕΣΣΕΡΑ': 4,
+    'ΤΕΣΣΑΡΑ': 4,
     'ΠΕΝΤΕ': 5,
     'ΕΞΙ': 6,
     'ΕΠΤΑ': 7,
@@ -245,14 +251,6 @@
 
   function extractDays(text) {
     const source = normalize(text).toUpperCase();
-    const candidates = [];
-
-    // Πρώτα αναζητούμε αριθμό γραμμένο ολογράφως.
-    // Σε περίπτωση «τριάντα (80)» κρατάμε το 30.
-    for (const [word, value] of Object.entries(numberWords)) {
-      const re = new RegExp('\\b' + word + '\\b[^\\n]{0,35}\\b(?:ΗΜΕΡ|ΗΜΕΡΕΣ)', 'g');
-      if (re.test(source)) candidates.push({ value, source: 'words', word });
-    }
 
     const wordFirst = source.match(
       /\b(ΕΙΚΟΣΙ|ΤΡΙΑΝΤΑ|ΣΑΡΑΝΤΑ|ΠΕΝΗΝΤΑ|ΕΞΗΝΤΑ|ΕΒΔΟΜΗΝΤΑ|ΟΓΔΟΝΤΑ|ΕΝΕΝΗΝΤΑ|ΕΚΑΤΟ|ΠΕΝΤΕ|ΔΕΚΑ|ΔΥΟ|ΤΡΙΑ|ΤΕΣΣΕΡΑ|ΕΞΙ|ΕΠΤΑ|ΟΚΤΩ|ΕΝΝΕΑ)\b[^.\n]{0,45}\bΗΜΕΡ/i
@@ -261,26 +259,33 @@
     if (wordFirst) {
       const word = wordFirst[1];
       const value = numberWords[word];
+
       if (value) {
         return {
           value,
           source: 'words',
-          candidates
+          candidates: []
         };
       }
     }
 
-    // Αν δεν βρέθηκε ολογράφως, χρησιμοποιούμε αριθμητική ένδειξη.
-    const numeric = source.match(/\b(\d{1,3})\s*(?:\(\s*\d{1,3}\s*\)\s*)?ΗΜΕΡ/i);
+    const numeric = source.match(
+      /\b(\d{1,3})\s*(?:\(\s*\d{1,3}\s*\)\s*)?ΗΜΕΡ/i
+    );
+
     if (numeric) {
       return {
         value: Number(numeric[1]),
         source: 'digits',
-        candidates
+        candidates: []
       };
     }
 
-    return { value: null, source: '', candidates };
+    return {
+      value: null,
+      source: '',
+      candidates: []
+    };
   }
 
   function parse(text) {
@@ -303,11 +308,18 @@
     };
   }
 
+  // Συμβατότητα με το app.js που καλεί parseDocument().
+  function parseDocument(text) {
+    return parse(text);
+  }
+
   root.OcrParser = {
     parse,
+    parseDocument,
     extractPlate,
     extractService,
     extractOwner,
     extractDays
   };
+
 })(typeof self !== 'undefined' ? self : this);
