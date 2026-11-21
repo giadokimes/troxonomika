@@ -1270,6 +1270,10 @@
     sm.hidden = false; sm.textContent = 'Προετοιμασία…'; btn.disabled = true;
     try {
       if (!window.OcrScan) throw new Error('Λείπει το αρχείο ocr-scan.js');
+      if (!navigator.onLine && window.OcrScan.checkOffline) {
+        const check = await window.OcrScan.checkOffline();
+        if (check.supported && !check.ready) throw new Error('Δεν έχουν αποθηκευτεί όλα τα τοπικά αρχεία OCR. Συνδέσου προσωρινά στο Internet, άνοιξε/φόρτωσε ξανά την εφαρμογή και μετά δοκίμασε offline. Λείπουν: ' + check.missing.join(', '));
+      }
       const text = await window.OcrScan.run(f, (s) => { sm.textContent = s; });
       applyScan(text);
     } catch (err) {
