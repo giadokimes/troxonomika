@@ -1232,13 +1232,15 @@
     if (k === 'name') return E.name.value.trim().toUpperCase();
     return String(E[k].value || '').trim();
   };
+  let lastScanText = '';
   const applyScan = (text) => {
     const P = window.OcrParser, sm = $('#scanMsg');
     if (!P) { alert('Λείπει το αρχείο ocr-parser.js.'); return; }
+    lastScanText = String(text || ''); $('#btnCopyOcr').hidden = !lastScanText;
     const res = P.parseDocument(text), o = P.toForm(res);
     const keys = Object.keys(SCAN_LBL).filter(k => o[k] !== undefined && o[k] !== '');
     const lines = keys.filter(k => scanCur(k) && scanCur(k) !== String(o[k])).map(k => SCAN_LBL[k] + ': ' + scanShow(k, scanCur(k)) + ' → ' + scanShow(k, o[k]));
-    if (lines.length && !confirm('Θα αλλάξουν:\n' + lines.join('\n') + '\n\nΣυνέχεια;')) return;
+    if (lines.length && !confirm('Θα αλλάξουν:\n' + lines.join('\n') + '\n\nΣυνέχεια;')) { sm.hidden = true; return; }
     keys.forEach(k => {
       const v = o[k];
       if (k === 'plate') { E.plate.value = normPlate(v); checkPlate(E.plate.value); }
@@ -1254,9 +1256,29 @@
     const done = keys.map(k => SCAN_LBL[k]).concat(add.length ? ['Σημειώσεις'] : []);
     msg.push(done.length ? 'Συμπληρώθηκαν: ' + done.join(', ') + '.' : 'Δεν αναγνωρίστηκε τίποτα. Έλεγξε ότι επικόλλησες το κείμενο του εγγράφου.');
     (res.warnings || []).concat(o.info || []).forEach(w => msg.push('Έλεγξε: ' + w));
+    if (keys.length) msg.push('Έλεγξε πάντα: πινακίδα, ονοματεπώνυμο, ημέρες αφαίρεσης.');
     const left = [['τηλέφωνο', E.phone.value], ['αριθμός πρωτοκόλλου', E.protocolNum.value], ['φάκελος', E.folderSelect.value], ['πρόστιμο', E.fine.value]].filter(x => !String(x[1] || '').trim()).map(x => x[0]);
     if (left.length) msg.push('Μένουν: ' + left.join(', ') + '.');
     sm.textContent = msg.join('\n'); sm.hidden = false;
+  };
+  // Σάρωση με φωτογραφία: το OCR τρέχει στη συσκευή (ocr-scan.js, αρχεία στον φάκελο tess/)
+  $('#btnScan').onclick = () => $('#scanFile').click();
+  $('#scanFile').onchange = async (e) => {
+    const f = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    const sm = $('#scanMsg'), btn = $('#btnScan');
+    sm.hidden = false; sm.textContent = 'Προετοιμασία…'; btn.disabled = true;
+    try {
+      if (!window.OcrScan) throw new Error('Λείπει το αρχείο ocr-scan.js');
+      const text = await window.OcrScan.run(f, (s) => { sm.textContent = s; });
+      applyScan(text);
+    } catch (err) {
+      sm.textContent = 'Η σάρωση απέτυχε: ' + (err && err.message ? err.message : err) + '\nΜπορείς να χρησιμοποιήσεις την επικόλληση κειμένου.';
+    } finally { btn.disabled = false; }
+  };
+  $('#btnCopyOcr').onclick = () => {
+    const done = () => { const b = $('#btnCopyOcr'); b.textContent = 'Αντιγράφηκε'; setTimeout(() => { b.textContent = 'Αντιγραφή κειμένου OCR'; }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(lastScanText).then(done, () => alert('Δεν έγινε αντιγραφή.'));
   };
   $('#btnPaste').onclick = () => wiz('Συμπλήρωση από έγγραφο', 'Επικόλλησε το κείμενο του εγγράφου που έβγαλες με το OCR.',
     '<textarea id="wTx" rows="9" style="width:100%;box-sizing:border-box" placeholder="Επικόλληση κειμένου"></textarea>',

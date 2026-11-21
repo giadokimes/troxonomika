@@ -83,13 +83,17 @@
   function cleanPlace(p) {
     return p
       .replace(/(\d+)\+([0-9οΟoO]{2,3})/g, (_, a, b) => a + '+' + b.replace(/[οΟoO]/g, '0'))
+      // το OCR χάνει συχνά το "+" της χιλιομετρικής θέσης: 39370 χ/θ -> 39+370 χ/θ
+      .replace(/(?<![\d+])(\d{1,3})\s*[^\d\sA-Za-zΑ-Ωα-ω]{0,3}\s*(\d{3})(?=\s*χ\s*[\/ήη|]?\s*θ)/i, '$1+$2')
+      .replace(/χ\s*[\/ήη|]\s*θ/gi, 'χ/θ')
       .replace(/(Π\.Ε\.)[0οΟ]\./i, '$1Ο.')
       .replace(/\s+/g, ' ').trim();
   }
 
+  // Αυστηρή ανάγνωση: αν το OCR δώσει κάτι που δεν μοιάζει με άρθρο, δεν γεμίζει το πεδίο (δεν μαντεύει)
   function parseArticle(raw) {
-    const m = raw.match(/^(\d{1,3})(?:\s*[^\d\s]\s*(\d{1,2}))?\s*([α-ω]{1,3})?$/i);
-    if (!m) return { raw, label: raw };
+    const m = raw.match(/^(\d{1,3})(?:\s*[§ςσξ$S5]?\s*(\d{1,2}))?\s*([α-ω]{1,2})?$/i);
+    if (!m || +m[1] > 150) return null;
     return { raw, art: m[1], par: m[2] || null, per: m[3] || null,
              label: m[1] + (m[2] ? ' παρ.' + m[2] : '') + (m[3] ? ' περ.' + m[3] : ''),
              short: m[1] + (m[2] ? '§' + m[2] : '') + (m[3] || '') };
@@ -132,10 +136,16 @@
 
     m = flat.match(/στις\s+(\d{1,2})\/(\d{1,2})\/(\d{4})\s+και\s+ωρα\s+(\d{1,2})[:.](\d{2})/i);
     f.violationDate = m ? iso(m[1], m[2], m[3]) : null;
+    if (!f.violationDate && f.actDate) {
+      f.violationDate = f.actDate;
+      warnings.push('Ημερομηνία παράβασης: δεν διαβάστηκε σίγουρα, μπήκε η ημερομηνία της πράξης. Έλεγξέ την.');
+    }
     f.violationTime = m ? String(m[4]).padStart(2, '0') + ':' + m[5] : null;
 
     m = /ωρα\s+\d{1,2}[:.]\d{2}\s+(?:στην|στη|στον|στο)?\s*(.+?)\s+διαπιστωθηκε/id.exec(flat);
     f.place = m ? cleanPlace(cut(m, 1)) : null;
+    if (f.place && /χ\/θ/.test(f.place) && !/\+/.test(cut(m, 1)))
+      warnings.push('Τόπος: έλεγξε τη χιλιομετρική θέση (το OCR δεν διάβασε το "+").');
 
     m = flat.match(/ταχυτητα\s+(\d{2,3})\s*\S{0,5}\s+αντι\s+του\s+ανωτατου\s+επιτρεπομενου\s+οριου\s+των\s+(\d{2,3})/i);
     f.speed = m ? { measured: +m[1], limit: +m[2] } : null;
@@ -145,6 +155,7 @@
 
     m = flat.match(/κατα\s+παραβαση\s+του\s+αρθρου\s+(.{1,20}?)\s+του\s+Ν\.?\s*(\d{4})\//i);
     f.article = m ? parseArticle(m[1]) : null;
+    if (m && !f.article) warnings.push('Άρθρο: το OCR διάβασε "' + m[1] + '". Συμπλήρωσέ το χειροκίνητα.');
     f.law = m ? m[2] : null;
 
     m = /στοιχεια\s+ιδιοκτητ[ηω]\s+(.+?)\s*,?\s*κατοικο[σς]\s+(.+?)\s*,?\s*περιφερεια/id.exec(flat);

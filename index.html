@@ -63,7 +63,15 @@
   <form id="caseForm" class="dlg">
     <h2 id="formTitle">Νέα Υπόθεση</h2>
     <div class="grid">
-      <div class="full"><button type="button" class="btn ghost sm" id="btnPaste">Συμπλήρωση από έγγραφο (επικόλληση κειμένου)</button><div id="scanMsg" class="muted" hidden style="white-space:pre-line;margin-top:6px"></div></div>
+      <div class="full">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn pri sm" id="btnScan">Σάρωση εγγράφου (φωτογραφία)</button>
+          <button type="button" class="btn ghost sm" id="btnPaste">Επικόλληση κειμένου</button>
+          <button type="button" class="btn ghost sm" id="btnCopyOcr" hidden>Αντιγραφή κειμένου OCR</button>
+        </div>
+        <input type="file" id="scanFile" accept="image/*" hidden>
+        <div id="scanMsg" class="muted" hidden style="white-space:pre-line;margin-top:6px"></div>
+      </div>
       <label class="full">Πινακίδα *
         <input name="plate" required autocomplete="off" style="text-transform:uppercase">
         <div id="plateWarning" class="warn-text" style="display:none;"></div>
@@ -198,6 +206,7 @@
 
 <section id="printArea"></section>
 <script src="./ocr-parser.js"></script>
+<script src="./ocr-scan.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>
