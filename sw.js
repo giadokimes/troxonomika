@@ -1,5 +1,5 @@
-const CACHE = "troxonomika-v61"; // Άλλαξα την έκδοση εδώ για να σπάσει η προηγούμενη μνήμη
-const FILES = ["./", "./index.html", "./style.css", "./app.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const CACHE = "troxonomika-v62"; // Άλλαξα την έκδοση εδώ για να σπάσει η προηγούμενη μνήμη
+const FILES = ["./", "./index.html", "./style.css", "./app.js", "./ocr-parser.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE)

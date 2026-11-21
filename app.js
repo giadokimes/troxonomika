@@ -167,7 +167,8 @@
   };
 
   const mig = { plates: 0, inv: 0, ret: 0, rem: 0, svc: 0, back: [] };
-  const endState = (c) => c.violationType === 'Απόφαση' ? 'complaint' : 'transmittal';
+  // Τέλος διαδικασίας: αν το έγγραφο το ορίζει ρητά (c.endRoute) ισχύει αυτό, αλλιώς ο κανόνας (απόφαση: μήνυση, απλή κλήση: διαβιβαστικό)
+  const endState = (c) => c.endRoute === 'complaint' ? 'complaint' : c.endRoute === 'transmittal' ? 'transmittal' : (c.violationType === 'Απόφαση' ? 'complaint' : 'transmittal');
   const ev = (c, d, t, r) => { c.ev = c.ev || []; c.ev.push({ d: d || todayStr(), t, r: r || '' }); };
   const parseFmt = (a) => { const m = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(a || ''); return m ? m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0') : ''; };
   
@@ -600,7 +601,10 @@
     const TBL = (cols, cells) => `<w:tbl><w:tblPr><w:tblW w:w="${cols.reduce((a, b) => a + b, 0)}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="40" w:type="dxa"/><w:right w:w="40" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${cols.map(w => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid><w:tr>${cells.map((x, i) => `<w:tc><w:tcPr><w:tcW w:w="${cols[i]}" w:type="dxa"/></w:tcPr>${x}</w:tc>`).join('')}</w:tr></w:tbl>`;
     const IMG = '<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="560000" cy="493000"/><wp:docPr id="1" name="Logo"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="logo.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdLogo"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="560000" cy="493000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>';
     const protoRuns = (o) => proto ? R(proto, o) + R(LET, { ...o, sup: true }) : R('______________', o);
-    const articleBlank = R('____', {}), dateBlank = R('____/____/________', { b: true }), streetV = R('________________________', { b: true, i: true });
+    const vdm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(c.vDate || '');
+    const articleBlank = c.vArticle ? R(c.vArticle, {}) : R('____', {}),
+      dateBlank = vdm ? R(vdm[3] + '/' + vdm[2] + '/' + vdm[1], { b: true }) : R('____/____/________', { b: true }),
+      streetV = c.vPlace ? R(c.vPlace, { b: true, i: true }) : R('________________________', { b: true, i: true });
     const svcV = R(svc || '____________________', { b: true });
     const left = [
       P(IMG, { jc: 'center', after: 60 }),
@@ -1121,6 +1125,7 @@
   const openForm = (id, adv) => {
     const c = id ? get(id) : null;
     F.reset(); F.dataset.id = id || '';
+    { const sm = $('#scanMsg'); if (sm) { sm.hidden = true; sm.textContent = ''; } }
     $('#formTitle').textContent = c ? 'Επεξεργασία υπόθεσης' : 'Νέα υπόθεση';
     $('#btnFormDelete').hidden = !c;
     E.manualState.innerHTML = Object.keys(ST).map(k => `<option value="${k}">${ST[k].l}</option>`).join('');
@@ -1137,6 +1142,7 @@
       E.removalDays.value = c.removalDays || ''; E.removalWhat.value = c.removalWhat || 'license'; E.notes.value = c.notes || '';
       const sp = splitProtocol(c.protocol); fillProto(yy2(c.receivedDate), sp.prefix); E.protocolNum.value = sp.num; E.address.value = c.address || '';
       E.manualState.value = c.state;
+      E.vDate.value = c.vDate || ''; E.vPlace.value = c.vPlace || ''; E.vArticle.value = c.vArticle || ''; E.endRoute.value = c.endRoute || '';
       Object.entries(DF).forEach(([k, n]) => { E[n].value = c.dates[k] || ''; });
       if (c.folder && $('#fFolder').value === '') { $('#fFolder').value = 'custom'; E.folderCustom.value = c.folder; }
       checkPlate(c.plate);
@@ -1190,6 +1196,7 @@
       protocol: proto,
       address: E.address.value.trim(),
       notes: E.notes.value.trim().toUpperCase(),
+      vDate: E.vDate.value, vPlace: E.vPlace.value.trim(), vArticle: E.vArticle.value.trim(), endRoute: E.endRoute.value,
       state: old ? old.state : 'search',
       history: old ? (old.history || []) : [], ev: old ? (old.ev || []) : [],
       calls, appts, undo: old ? (old.undo || []) : [],
@@ -1214,7 +1221,47 @@
     save(); render(); dlgF.close();
     if (pushed) showToast(rec, 'Διόρθωση στοιχείων');
   });
-  $('#btnGenInv').onclick = () => wiz('Δημιουργία πρόσκλησης', 'Από τα στοιχεία της φόρμας. Ποια πρόσκληση;', '', [1, 2, 3].map(n => ({ t: n + 'η πρόσκληση', c: n === 1 ? 'pri' : '', f: () => sendInvitation({ plate: normPlate(E.plate.value), name: E.name.value.trim().toUpperCase(), protocol: buildProtocol(), address: E.address.value.trim(), service: normText(E.service.value) }, n, todayStr()) })));
+  // ---------- Συμπλήρωση από κείμενο εγγράφου (OCR) ----------
+  const SCAN_LBL = { plate: 'Πινακίδα', name: 'Ονοματεπώνυμο', service: 'Υπηρεσία', address: 'Διεύθυνση', violationType: 'Είδος παράβασης', removalDays: 'Ημέρες αφαίρεσης', removalWhat: 'Τι αφαιρέθηκε', vDate: 'Ημερομηνία παράβασης', vPlace: 'Τόπος παράβασης', vArticle: 'Άρθρο', endRoute: 'Τέλος διαδικασίας' };
+  const ROUTE_L = { '': 'κατά τον κανόνα', complaint: 'μήνυση', transmittal: 'διαβιβαστικό' };
+  const scanShow = (k, v) => !v ? '—' : k === 'removalWhat' ? cap1(REMS[v] || v) : k === 'endRoute' ? ROUTE_L[v] : k === 'vDate' ? sd(v) : String(v);
+  const scanCur = (k) => {
+    if (k === 'violationType') return E.violationType.value === 'custom' ? E.violationOther.value.trim().toUpperCase() : E.violationType.value;
+    if (k === 'removalWhat') return E.removalDays.value ? E.removalWhat.value : '';   // η προεπιλογή «Δίπλωμα» δεν μετρά ως τιμή
+    if (k === 'plate') return normPlate(E.plate.value);
+    if (k === 'name') return E.name.value.trim().toUpperCase();
+    return String(E[k].value || '').trim();
+  };
+  const applyScan = (text) => {
+    const P = window.OcrParser, sm = $('#scanMsg');
+    if (!P) { alert('Λείπει το αρχείο ocr-parser.js.'); return; }
+    const res = P.parseDocument(text), o = P.toForm(res);
+    const keys = Object.keys(SCAN_LBL).filter(k => o[k] !== undefined && o[k] !== '');
+    const lines = keys.filter(k => scanCur(k) && scanCur(k) !== String(o[k])).map(k => SCAN_LBL[k] + ': ' + scanShow(k, scanCur(k)) + ' → ' + scanShow(k, o[k]));
+    if (lines.length && !confirm('Θα αλλάξουν:\n' + lines.join('\n') + '\n\nΣυνέχεια;')) return;
+    keys.forEach(k => {
+      const v = o[k];
+      if (k === 'plate') { E.plate.value = normPlate(v); checkPlate(E.plate.value); }
+      else if (k === 'service') E.service.value = normText(v);
+      else if (k === 'violationType') { E.violationType.value = v; toggles(); }
+      else E[k].value = v;
+    });
+    const cur = E.notes.value.split('\n').map(x => x.trim()).filter(Boolean), have = cur.map(x => x.toUpperCase());
+    const add = (o.notes || []).filter(x => !have.includes(x.toUpperCase()));
+    if (add.length) E.notes.value = cur.concat(add).join('\n');
+    if (o.endRoute) { const ds = F.querySelectorAll('.adv'); if (ds[1]) ds[1].open = true; }
+    const msg = [];
+    const done = keys.map(k => SCAN_LBL[k]).concat(add.length ? ['Σημειώσεις'] : []);
+    msg.push(done.length ? 'Συμπληρώθηκαν: ' + done.join(', ') + '.' : 'Δεν αναγνωρίστηκε τίποτα. Έλεγξε ότι επικόλλησες το κείμενο του εγγράφου.');
+    (res.warnings || []).concat(o.info || []).forEach(w => msg.push('Έλεγξε: ' + w));
+    const left = [['τηλέφωνο', E.phone.value], ['αριθμός πρωτοκόλλου', E.protocolNum.value], ['φάκελος', E.folderSelect.value], ['πρόστιμο', E.fine.value]].filter(x => !String(x[1] || '').trim()).map(x => x[0]);
+    if (left.length) msg.push('Μένουν: ' + left.join(', ') + '.');
+    sm.textContent = msg.join('\n'); sm.hidden = false;
+  };
+  $('#btnPaste').onclick = () => wiz('Συμπλήρωση από έγγραφο', 'Επικόλλησε το κείμενο του εγγράφου που έβγαλες με το OCR.',
+    '<textarea id="wTx" rows="9" style="width:100%;box-sizing:border-box" placeholder="Επικόλληση κειμένου"></textarea>',
+    [{ t: 'Συμπλήρωση', c: 'pri', v: () => { const ok = $('#wTx').value.trim().length > 30; if (!ok) alert('Επικόλλησε πρώτα το κείμενο του εγγράφου.'); return ok; }, f: () => applyScan($('#wTx').value) }]);
+  $('#btnGenInv').onclick = () => wiz('Δημιουργία πρόσκλησης', 'Από τα στοιχεία της φόρμας. Ποια πρόσκληση;', '', [1, 2, 3].map(n => ({ t: n + 'η πρόσκληση', c: n === 1 ? 'pri' : '', f: () => sendInvitation({ plate: normPlate(E.plate.value), name: E.name.value.trim().toUpperCase(), protocol: buildProtocol(), address: E.address.value.trim(), service: normText(E.service.value), vDate: E.vDate.value, vPlace: E.vPlace.value.trim(), vArticle: E.vArticle.value.trim() }, n, todayStr()) })));
 
   // ---------- Events ----------
   document.addEventListener('click', (e) => {

@@ -63,6 +63,7 @@
   <form id="caseForm" class="dlg">
     <h2 id="formTitle">Νέα Υπόθεση</h2>
     <div class="grid">
+      <div class="full"><button type="button" class="btn ghost sm" id="btnPaste">Συμπλήρωση από έγγραφο (επικόλληση κειμένου)</button><div id="scanMsg" class="muted" hidden style="white-space:pre-line;margin-top:6px"></div></div>
       <label class="full">Πινακίδα *
         <input name="plate" required autocomplete="off" style="text-transform:uppercase">
         <div id="plateWarning" class="warn-text" style="display:none;"></div>
@@ -139,6 +140,22 @@
       </div>
     </details>
 
+    <details class="adv">
+      <summary>Στοιχεία παράβασης (για την πρόσκληση) και τέλος διαδικασίας</summary>
+      <div class="grid">
+        <label>Ημερομηνία παράβασης<input type="date" name="vDate"></label>
+        <label>Άρθρο<input name="vArticle" autocomplete="off" placeholder="π.χ. 24§9αγ"></label>
+        <label class="full">Τόπος παράβασης<input name="vPlace" autocomplete="off" placeholder="π.χ. 39+370 χ/θ της Π.Ε.Ο. Λάρισας - Βόλου"></label>
+        <label class="full">Τέλος διαδικασίας
+          <select name="endRoute">
+            <option value="">Κατά τον κανόνα (απλή κλήση: διαβιβαστικό, απόφαση: μήνυση)</option>
+            <option value="complaint">Μήνυση (το ζητά το έγγραφο)</option>
+            <option value="transmittal">Διαβιβαστικό</option>
+          </select>
+        </label>
+      </div>
+    </details>
+
     <div class="acts">
       <button type="button" class="btn ghost" id="btnFormCancel">Άκυρο</button>
       <button type="button" class="btn bad" id="btnFormDelete" hidden>Διαγραφή</button>
@@ -180,6 +197,7 @@
 </dialog>
 
 <section id="printArea"></section>
+<script src="./ocr-parser.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>
