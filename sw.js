@@ -1,8 +1,15 @@
-const CACHE = "troxonomika-v70"; // Άλλαξα την έκδοση εδώ για να σπάσει η προηγούμενη μνήμη
+const CACHE = "troxonomika-v72-opencv";
 const FILES = ["./", "./index.html", "./style.css", "./app.js", "./ocr-parser.js", "./ocr-scan.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 // Αρχεία OCR (μεγάλα): αποθηκεύονται για χρήση χωρίς σύνδεση, αλλά αν κάποιο λείπει δεν μπλοκάρει την εγκατάσταση
-const OCR_FILES = ["./tess/tesseract.min.js", "./tess/worker.min.js", "./tess/tesseract-core-simd-lstm.wasm.js", "./tess/tesseract-core-lstm.wasm.js", "./tess/lang/ell.traineddata.gz"];
+const OCR_FILES = [
+  "./tess/tesseract.min.js",
+  "./tess/worker.min.js",
+  "./tess/tesseract-core-simd-lstm.wasm.js",
+  "./tess/tesseract-core-lstm.wasm.js",
+  "./tess/lang/ell.traineddata.gz",
+  "./tess/opencv.js"
+];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE)
