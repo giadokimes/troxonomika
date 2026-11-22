@@ -1,8 +1,6 @@
-/* troxonomika - ocr-scan.js v2
+/* troxonomika - ocr-scan.js v3
    OcrScan.run(αρχείοΕικόνας, onStatus) -> Promise<κείμενο>
-   Με OpenCV.js pre-processing (document detection + perspective correction + adaptive threshold).
-   Αν το OpenCV αποτύχει, πέφτει σε απλό grayscale fallback.
-   Όλη η επεξεργασία γίνεται τοπικά. */
+   100% τοπικά. Color filter + OpenCV warp/threshold + στήλες + ROI passes. */
 (function (root) {
   'use strict';
   const MAXSIDE = 2400;
@@ -16,34 +14,32 @@
   });
 
   async function sourceCanvas(file) {
-    const src = root.createImageBitmap
-      ? await root.createImageBitmap(file)
-      : await loadImg(file);
+    const src = root.createImageBitmap ? await root.createImageBitmap(file) : await loadImg(file);
     const sw = src.width, sh = src.height;
     const scale = Math.min(1, MAXSIDE / Math.max(sw, sh));
     const canvas = root.document.createElement('canvas');
     canvas.width = Math.max(1, Math.round(sw * scale));
     canvas.height = Math.max(1, Math.round(sh * scale));
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
     if (src.close) src.close();
     return canvas;
   }
 
-  // Fallback: απλό grayscale/contrast (αν το OpenCV αποτύχει)
-  function grayVariant(source, contrast) {
+  // Grayscale + απόδοση των ΚΟΚΚΙΝΩΝ pixel σε λευκό (σφραγίδα & κόκκινα χειρόγραφα)
+  function redFilteredGray(source, contrast) {
     const cv = root.document.createElement('canvas');
     cv.width = source.width; cv.height = source.height;
     const ctx = cv.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(source, 0, 0);
     const id = ctx.getImageData(0, 0, cv.width, cv.height), d = id.data;
     for (let i = 0; i < d.length; i += 4) {
-      let v = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000;
-      if (contrast) v = Math.max(0, Math.min(255, (v - 128) * 1.22 + 128));
-      d[i] = d[i + 1] = d[i + 2] = v;
-      d[i + 3] = 255;
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      const isRed = r > 120 && r > g + 35 && r > b + 35;
+      let v = isRed ? 255 : (r * 299 + g * 587 + b * 114) / 1000;
+      if (contrast && !isRed) v = Math.max(0, Math.min(255, (v - 128) * 1.18 + 128));
+      d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
     }
     ctx.putImageData(id, 0, 0);
     return cv;
@@ -54,7 +50,7 @@
     const sy = Math.max(0, Math.round(source.height * y));
     const sw = Math.max(1, Math.min(source.width - sx, Math.round(source.width * width)));
     const sh = Math.max(1, Math.min(source.height - sy, Math.round(source.height * height)));
-    const scale = Math.min(2.2, maxSide / Math.max(sw, sh));
+    const scale = Math.min(3, maxSide / Math.max(sw, sh));
     const cv = root.document.createElement('canvas');
     cv.width = Math.max(1, Math.round(sw * scale));
     cv.height = Math.max(1, Math.round(sh * scale));
@@ -64,244 +60,155 @@
     return cv;
   }
 
-  // Load OpenCV.js lazily
   async function loadOpenCV() {
     if (root.cv && root.cv.Mat) return true;
     return new Promise((res) => {
       const s = root.document.createElement('script');
       s.src = base() + 'opencv.js';
-      s.onload = () => res(root.cv && root.cv.Mat);
+      s.onload = () => res(!!(root.cv && root.cv.Mat));
       s.onerror = () => res(false);
       root.document.head.appendChild(s);
     });
   }
 
-  // Εντοπισμός 4 γωνιών (top-left, top-right, bottom-right, bottom-left)
   function sortCorners(pts) {
-    const withStats = pts.map(p => ({
-      p,
-      sum: p.x + p.y,
-      diff: p.y - p.x
-    }));
-    // top-left: min sum, bottom-right: max sum
-    const bySum = withStats.slice().sort((a, b) => a.sum - b.sum);
-    const tl = bySum[0].p, br = bySum[3].p;
-    // top-right: min diff, bottom-left: max diff
-    const byDiff = withStats.slice().sort((a, b) => a.diff - b.diff);
-    const tr = byDiff[0].p, bl = byDiff[3].p;
-    return [tl, tr, br, bl];
+    const ws = pts.map(p => ({ p, sum: p.x + p.y, diff: p.y - p.x }));
+    const bySum = ws.slice().sort((a, b) => a.sum - b.sum);
+    const byDiff = ws.slice().sort((a, b) => a.diff - b.diff);
+    return [bySum[0].p, byDiff[0].p, bySum[3].p, byDiff[3].p];
   }
 
-  // OpenCV pipeline: detect document → perspective warp → adaptive threshold
   async function processWithOpenCV(source) {
-    const cv = root.cv;
-    const src = cv.imread(source);
-    const trash = [];
+    const cv = root.cv; const src = cv.imread(source); const trash = [];
+    let bestApprox = null;
     try {
-      // Grayscale
-      const gray = new cv.Mat(); trash.push(gray);
-      cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
-
-      // Blur
-      const blurred = new cv.Mat(); trash.push(blurred);
-      cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
-
-      // Canny edges
-      const edges = new cv.Mat(); trash.push(edges);
-      cv.Canny(blurred, edges, 50, 200);
-
-      // Dilate edges για να κλείσουμε gaps
+      const gray = new cv.Mat(); trash.push(gray); cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+      const blurred = new cv.Mat(); trash.push(blurred); cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
+      const edges = new cv.Mat(); trash.push(edges); cv.Canny(blurred, edges, 50, 200);
       const dilated = new cv.Mat(); trash.push(dilated);
       const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
       cv.dilate(edges, dilated, kernel);
-
-      // Find contours
       const contours = new cv.MatVector(); trash.push(contours);
       const hierarchy = new cv.Mat(); trash.push(hierarchy);
       cv.findContours(dilated, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-
-      const srcArea = src.rows * src.cols;
-      let bestContour = null, bestArea = 0, bestApprox = null;
-
+      const srcArea = src.rows * src.cols; let bestArea = 0;
       for (let i = 0; i < contours.size(); i++) {
-        const c = contours.get(i);
-        const area = cv.contourArea(c);
-        if (area < srcArea * 0.25) continue; // πολύ μικρό, δεν είναι έγγραφο
-
-        const peri = cv.arcLength(c, true);
-        const approx = new cv.Mat();
+        const c = contours.get(i); const area = cv.contourArea(c);
+        if (area < srcArea * 0.25) continue;
+        const peri = cv.arcLength(c, true); const approx = new cv.Mat();
         cv.approxPolyDP(c, approx, 0.02 * peri, true);
-
-        // Ψάχνουμε τετράπλευρο με μεγάλο εμβαδόν
         if (approx.rows === 4 && area > bestArea) {
-          bestContour = c;
-          bestArea = area;
-          if (bestApprox) bestApprox.delete();
-          bestApprox = approx.clone();
-        } else {
-          approx.delete();
-        }
+          bestArea = area; if (bestApprox) bestApprox.delete(); bestApprox = approx.clone();
+        } else approx.delete();
       }
-
       let warped = null;
       if (bestApprox && bestApprox.rows === 4) {
-        // Εξαγωγή γωνιών
-        const pts = [];
-        for (let i = 0; i < 4; i++) {
-          pts.push({
-            x: bestApprox.data32S[i * 2],
-            y: bestApprox.data32S[i * 2 + 1]
-          });
-        }
+        const pts = []; for (let i = 0; i < 4; i++) pts.push({ x: bestApprox.data32S[i * 2], y: bestApprox.data32S[i * 2 + 1] });
         const [tl, tr, br, bl] = sortCorners(pts);
-
-        const widthTop = Math.hypot(tr.x - tl.x, tr.y - tl.y);
-        const widthBot = Math.hypot(br.x - bl.x, br.y - bl.y);
-        const heightLeft = Math.hypot(bl.x - tl.x, bl.y - tl.y);
-        const heightRight = Math.hypot(br.x - tr.x, br.y - tr.y);
-        const w = Math.round(Math.max(widthTop, widthBot));
-        const h = Math.round(Math.max(heightLeft, heightRight));
-
-        const srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
-          tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y
-        ]);
-        const dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
-          0, 0, w, 0, w, h, 0, h
-        ]);
+        const w = Math.round(Math.max(Math.hypot(tr.x - tl.x, tr.y - tl.y), Math.hypot(br.x - bl.x, br.y - bl.y)));
+        const h = Math.round(Math.max(Math.hypot(bl.x - tl.x, bl.y - tl.y), Math.hypot(br.x - tr.x, br.y - tr.y)));
+        const srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y]);
+        const dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, w, 0, w, h, 0, h]);
         const M = cv.getPerspectiveTransform(srcTri, dstTri);
         warped = new cv.Mat();
-        cv.warpPerspective(src, warped, M, new cv.Size(w, h),
-          cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar(255));
+        cv.warpPerspective(src, warped, M, new cv.Size(w, h), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar(255));
         srcTri.delete(); dstTri.delete(); M.delete();
       }
-
-      const input = warped || src.clone();
-
-      // Convert to gray αν έχει χρώμα
+      const input = warped || src;
       const grayIn = new cv.Mat();
-      if (input.channels() === 1) {
-        input.copyTo(grayIn);
-      } else {
-        cv.cvtColor(input, grayIn, cv.COLOR_RGBA2GRAY, 0);
-      }
-
-      // Adaptive threshold - εξαφανίζει σκιές, αναδεικνύει γράμματα
+      if (input.channels() === 1) input.copyTo(grayIn); else cv.cvtColor(input, grayIn, cv.COLOR_RGBA2GRAY, 0);
       const thresh = new cv.Mat();
-      cv.adaptiveThreshold(grayIn, thresh, 255,
-        cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 21, 10);
-
-      // Convert σε canvas
-      const outCanvas = root.document.createElement('canvas');
-      outCanvas.width = thresh.cols;
-      outCanvas.height = thresh.rows;
-      cv.imshow(outCanvas, thresh);
-
-      // Cleanup
-      grayIn.delete();
-      thresh.delete();
-      if (warped) warped.delete();
-      if (bestApprox) bestApprox.delete();
-      trash.forEach(m => { try { m.delete(); } catch(e){} });
-      src.delete();
-
-      return outCanvas;
+      cv.adaptiveThreshold(grayIn, thresh, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 31, 12);
+      const out = root.document.createElement('canvas');
+      out.width = thresh.cols; out.height = thresh.rows; cv.imshow(out, thresh);
+      grayIn.delete(); thresh.delete(); if (warped) warped.delete();
+      if (bestApprox) bestApprox.delete(); trash.forEach(m => { try { m.delete(); } catch (e) {} }); src.delete();
+      return out;
     } catch (err) {
-      console.warn('OpenCV failed, falling back:', err);
-      trash.forEach(m => { try { m.delete(); } catch(e){} });
-      try { src.delete(); } catch(e){}
-      if (bestApprox) try { bestApprox.delete(); } catch(e){}
+      console.warn('OpenCV failed:', err);
+      trash.forEach(m => { try { m.delete(); } catch (e) {} });
+      try { src.delete(); } catch (e) {}
+      if (bestApprox) try { bestApprox.delete(); } catch (e) {}
       return null;
     }
   }
 
   const loadScript = (src) => new Promise((res, rej) => {
-    const s = root.document.createElement('script');
-    s.src = src; s.onload = res;
+    const s = root.document.createElement('script'); s.src = src; s.onload = res;
     s.onerror = () => rej(new Error('Δεν φορτώθηκε το ' + src.split('/').pop()));
     root.document.head.appendChild(s);
   });
 
   const simdOK = () => {
     try {
-      return WebAssembly.validate(new Uint8Array([
-        0,97,115,109,1,0,0,0,1,5,1,96,0,1,123,
-        3,2,1,0,10,10,1,8,0,65,0,253,15,253,98,11
-      ]));
+      return WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,96,0,1,123,3,2,1,0,10,10,1,8,0,65,0,253,15,253,98,11]));
     } catch (e) { return false; }
   };
+
+  const PLATE_WHITELIST = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ0123456789-';
 
   async function run(file, onStatus) {
     const say = onStatus || (() => {});
     say('Προετοιμασία εικόνας…');
-
     const original = await sourceCanvas(file);
+    const redGray = redFilteredGray(original, false);
+    const redContrast = redFilteredGray(original, true);
     const B = base();
 
-    // Προσπάθεια OpenCV pre-processing
     let processed = null;
     try {
       const cvOk = await loadOpenCV();
-      if (cvOk) {
-        say('Εντοπισμός εγγράφου…');
-        processed = await processWithOpenCV(original);
-      }
-    } catch (err) {
-      console.warn('OpenCV pipeline failed:', err);
-    }
+      if (cvOk) { say('Εντοπισμός & ισοπέδωση εγγράφου…'); processed = await processWithOpenCV(redGray); }
+    } catch (e) { console.warn(e); }
+    if (!processed) { say('Εφεδρική προεπεξεργασία…'); processed = redGray; }
 
-    // Fallback: grayscale (παλιά λογική)
-    if (!processed) {
-      say('Χρήση εφεδρικής προεπεξεργασίας…');
-      processed = grayVariant(original, false);
-    }
-
-    // Φόρτωση Tesseract
-    if (!root.Tesseract) {
-      say('Φόρτωση OCR…');
-      await loadScript(B + 'tesseract.min.js');
-    }
-
+    if (!root.Tesseract) { say('Φόρτωση OCR…'); await loadScript(B + 'tesseract.min.js'); }
     say('Εκκίνηση τοπικού OCR…');
 
     const worker = await root.Tesseract.createWorker('ell', 1, {
       workerPath: B + 'worker.min.js',
       corePath: B + (simdOK() ? 'tesseract-core-simd-lstm.wasm.js' : 'tesseract-core-lstm.wasm.js'),
-      langPath: B + 'lang/',
-      workerBlobURL: false,
-      logger: (m) => {
-        if (m && m.status === 'recognizing text') {
-          say('Τοπική ανάγνωση… ' + Math.round((m.progress || 0) * 100) + '%');
-        }
-      }
+      langPath: B + 'lang/', workerBlobURL: false,
+      logger: (m) => { if (m && m.status === 'recognizing text') say('Τοπική ανάγνωση… ' + Math.round((m.progress || 0) * 100) + '%'); }
     });
 
     const outputs = [];
-
-    async function pass(label, image, psm) {
-      if (worker.setParameters) {
-        await worker.setParameters({
-          tessedit_pageseg_mode: String(psm),
-          preserve_interword_spaces: '1'
-        });
-      }
+    async function pass(label, image, psm, extra) {
+      const params = Object.assign({ tessedit_pageseg_mode: String(psm), preserve_interword_spaces: '1' }, extra || {});
+      if (worker.setParameters) await worker.setParameters(params);
       say('Ανάγνωση: ' + label + '…');
       const result = await worker.recognize(image);
       const text = result && result.data ? String(result.data.text || '').trim() : '';
       if (text) outputs.push('\n[' + label + ']\n' + text);
+      if (worker.setParameters && extra && extra.tessedit_char_whitelist) {
+        await worker.setParameters({ tessedit_char_whitelist: '' }); // επαναφορά
+      }
     }
 
     try {
-      // Κύρια passes στην καθαρή εικόνα
+      // Global
       await pass('ΟΛΟΚΛΗΡΗ ΣΕΛΙΔΑ', processed, 3);
-      await pass('ΟΛΟΚΛΗΡΗ ΣΕΛΙΔΑ - ΕΝΑΛΛΑΚΤΙΚΗ', processed, 11);
+      await pass('ΟΛΟΚΛΗΡΗ ΣΕΛΙΔΑ - ΕΝΑΛΛΑΚΤΙΚΗ', redContrast, 11);
 
-      // Crops για συγκεκριμένες περιοχές (χρησιμοποιούνται από τον parser)
-      const header = cropCanvas(processed, 0.02, 0.00, 0.96, 0.38, 2400);
-      await pass('ΚΕΦΑΛΙΔΑ ΥΠΗΡΕΣΙΑΣ', header, 6);
+      // Κεφαλίδα: ξεχωριστές στήλες (αριστερά = υπηρεσία αποστολής, δεξιά = ημερομηνία/προς)
+      const leftHead = cropCanvas(processed, 0.00, 0.00, 0.48, 0.34, 2200);
+      const rightHead = cropCanvas(processed, 0.50, 0.00, 0.50, 0.34, 2200);
+      await pass('ΚΕΦΑΛΙΔΑ ΑΡΙΣΤΕΡΗ', leftHead, 6);
+      await pass('ΚΕΦΑΛΙΔΑ ΔΕΞΙΑ', rightHead, 6);
+      await pass('ΚΕΦΑΛΙΔΑ ΥΠΗΡΕΣΙΑΣ', cropCanvas(processed, 0.02, 0.00, 0.96, 0.38, 2400), 6);
 
+      // Σώμα
       const body = cropCanvas(processed, 0.02, 0.20, 0.96, 0.68, 2800);
       await pass('ΚΥΡΙΑ ΠΑΡΑΓΡΑΦΟΣ', body, 6);
-      await pass('ΚΥΡΙΑ ΠΑΡΑΓΡΑΦΟΣ - ΕΝΑΛΛΑΚΤΙΚΗ', body, 11);
+      await pass('ΚΥΡΙΑ ΠΑΡΑΓΡΑΦΟΣ - ΕΝΑΛΛΑΚΤΙΚΗ', cropCanvas(redContrast, 0.02, 0.20, 0.96, 0.68, 2800), 11);
+
+      // ROI: πινακίδα (γραμμή «υπ' αριθ. XXXX-XXXX») με whitelist & single-line
+      const plateROI = cropCanvas(processed, 0.05, 0.30, 0.90, 0.10, 2400);
+      await pass('ΠΙΝΑΚΙΔΑ', plateROI, 7, { tessedit_char_whitelist: PLATE_WHITELIST });
+
+      // ROI: άρθρο (γραμμή «κατά παράβαση του άρθρου …»)
+      const artROI = cropCanvas(processed, 0.05, 0.40, 0.90, 0.10, 2400);
+      await pass('ΑΡΘΡΟ', artROI, 7);
 
       return outputs.join('\n\n');
     } finally {
