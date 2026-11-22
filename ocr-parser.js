@@ -1,16 +1,14 @@
-/* troxonomika - ocr-parser.js v5
+/* troxonomika - ocr-parser.js v6
    parseDocument(κείμενο) -> { fields, warnings }
    toForm(αποτέλεσμα) -> τιμές έτοιμες για τη φόρμα υπόθεσης
-   Αρχή: ΜΗΔΕΝ επινοείται. Κρίσιμα πεδία απαιτούν consensus. Αλλιώς null + warning.
-   Διορθώσεις v5:
-   - Ημέρες: αφαίρεση \b (δεν ταιριάζει ελληνικά) + fuzzy anchor.
-   - Πινακίδα: consensus n>=2, αλλιώς null.
-   - Τόπος: απαίτηση χιλιομετρικής θέσης.
-   - Άρθρο: διατήρηση δομής art§par per. */
+   Αρχή: ΜΗΔΕΝ επινοείται. Ύποπτα μεγάλα πεδία -> κενό + warning.
+   Διορθώσεις v6:
+   - Split ανά πέρασμα με ΓΕΝΙΚΟ pattern [..] (μελλοντικά ασφαλές).
+   - Σκληρό όριο μήκους σε ΟΛΑ τα string πεδία.
+   - Άρθρο: δέχεται «παρ.» / «περ.» / «§» / «ς» / «β».
+   - Τόπος: απαιτεί χιλιομετρική θέση (ήδη v5). */
 (function (root) {
   'use strict';
-
-  /* ---------- ΒΟΗΘΗΤΙΚΑ ---------- */
 
   function prepare(text) {
     let cleaned = String(text || '').replace(/\[[^\]]*\]/g, ' ');
@@ -58,8 +56,19 @@
     return 1 - v / L.length;
   }
 
-  /* ---------- ΓΝΗΣΙΟΙ ΤΟΠΟΙ ---------- */
+  /* ---------- ΟΡΙΑ ΜΗΚΟΥΣ ---------- */
+  const MAXLEN = { plate: 10, name: 60, service: 40, address: 80, place: 90, article: 20, violationText: 160, protocol: 30 };
+  function bounded(value, key, warnings) {
+    if (value == null) return null;
+    const s = String(value);
+    if (s.length > (MAXLEN[key] || 999)) {
+      warnings.push('Πεδίο «' + key + '» φάνηκε ύποπτα μεγάλο (' + s.length + ' χρ.). Αθεωρήθηκε — συμπλήρωσέ το χειροκίνητα.');
+      return null;
+    }
+    return value;
+  }
 
+  /* ---------- ΓΝΗΣΙΟΙ ΤΟΠΟΙ ---------- */
   const KNOWN_PLACES = [
     'ΒΟΛΟΥ','ΒΟΛΟ','ΛΑΡΙΣΑΣ','ΛΑΡΙΣΑ','ΛΑΜΙΑΣ','ΛΑΜΙΑ','ΚΑΛΑΜΑΡΙΑΣ','ΚΑΛΑΜΑΡΙΑ',
     'ΘΕΣΣΑΛΟΝΙΚΗΣ','ΘΕΣΣΑΛΟΝΙΚΗ','ΑΘΗΝΩΝ','ΑΘΗΝΑ','ΠΕΙΡΑΙΑΣ','ΠΕΙΡΑΙΑ','ΧΑΝΙΩΝ','ΧΑΝΙΑ',
@@ -110,7 +119,6 @@
   }
 
   /* ---------- ΠΙΝΑΚΙΔΑ ---------- */
-
   const PLATE_LETTERS = 'ΑΒΕΖΗΙΚΜΝΟΡΤΥΧ';
   const LAT2GR = { A:'Α',B:'Β',E:'Ε',Z:'Ζ',H:'Η',I:'Ι',K:'Κ',M:'Μ',N:'Ν',O:'Ο',P:'Ρ',T:'Τ',Y:'Υ',X:'Χ' };
   const DIG2LET = { '0':'Ο','1':'Ι','2':'Ζ','8':'Β' };
@@ -129,7 +137,6 @@
     if (!m) return null;
     return fixPlate(m[1], m[2]);
   }
-
   function findPlate(flat) {
     const contexts = [];
     const anchor = /(?:υπ\s*['’΄]?\s*αριθ|υπ\s*αριθ|αριθ\s*κυκλοφορ|οδηγός\s*του)/ig;
@@ -145,8 +152,7 @@
     return null;
   }
 
-  /* ---------- ΗΜΕΡΕΣ ΑΦΑΙΡΕΣΗΣ (ΔΙΟΡΘΩΜΕΝΟ: χωρίς \b, fuzzy anchor) ---------- */
-
+  /* ---------- ΗΜΕΡΕΣ (χωρίς \b) ---------- */
   const DAY_WORDS = {
     δεκα:10, δεκαπεντε:15, εικοσι:20, τριαντα:30, σαραντα:40, πενηντα:50,
     εξηντα:60, εβδομηκοντα:70, εβδομηκοσι:70, ογδοντα:80, ογδοηκοσι:80,
@@ -156,16 +162,13 @@
     δεκαεννια:19, δεκαοκτω:18, δεκαεπτα:17, δεκαεξι:16
   };
   const DAY_RE = Object.keys(DAY_WORDS).join('|');
-  // Πρόθεμα: αρχή ή κενό/στίξη (ΟΧΙ \b — δεν ταιριάζει ελληνικά)
   const PRE = '(?:^|[\\s,;:.()])';
 
   function parseDays(flat, warnings) {
-    // 1) με ασαφές anchor «χρονικό διάστημα» (δεκτικό σε παραλλαγές OCR)
     const reWord = new RegExp(
       PRE + '(?:για[\\s,;:.()]+)?(?:χρονικο|οροναο|προναο|προνοσο|χροναο)[^\\s]{0,4}[\\s,;:.()]*(?:διαστη|διασ|δισ|διαση|διασημα)[^\\s]{0,4}[\\s,;:.()]*(' + DAY_RE + ')\\s*(?:\\([^)]{0,8}\\))?\\s*ημερ', 'i'
     );
     let m = flat.match(reWord);
-    // 2) fallback: η ολογράφως λέξη + προαιρετική παρένθεση + «ημερ» οπουδήποτε
     if (!m) {
       const reAlone = new RegExp(PRE + '(' + DAY_RE + ')\\s*(?:\\([^)]{0,8}\\))?\\s*ημερ', 'i');
       m = flat.match(reAlone);
@@ -174,54 +177,43 @@
     return DAY_WORDS[m[1].toLowerCase()] || null;
   }
 
-  /* ---------- ΤΟΠΟΣ (ΑΠΑΙΤΕΙΤΑΙ χιλιομετρική θέση) ---------- */
-
-  function cleanKm(s) {
-    return s.replace(/[οΟoO]/g, '0').replace(/[Iιl|]/g, '1').replace(/\s+/g, '');
-  }
+  /* ---------- ΤΟΠΟΣ (απαιτεί χλθ) ---------- */
+  function cleanKm(s) { return s.replace(/[οΟoO]/g, '0').replace(/[Iιl|]/g, '1').replace(/\s+/g, ''); }
   function findPlace(flat) {
-    // Η χιλιομετρική θέση είναι υποχρεωτική για τροχονομικούς τόπους Π.Ε.Ο./Α.Μ.
     const km = flat.match(/(\d{1,3})\s*\+\s*(\d{2,3})/);
     if (!km) return null;
-
     const road = flat.match(/(Π\.?\s*Ε\.?\s*Ο\.?|Ε\.?\s*Ο\.?|Α\.?\s*Μ\.?|Θ\.?\s*Α\.?)/i);
     const seg = road ? flat.slice(road.index, Math.min(flat.length, road.index + 80)) : '';
     const toks = seg.split(/[^Α-ΩA-Z]+/).filter(Boolean);
     const cities = [];
     for (const t of toks) { const c = cityOk(t); if (c && !cities.includes(c)) cities.push(c); }
-
     const parts = [];
     parts.push(cleanKm(km[1]) + '+' + cleanKm(km[2]) + ' χ/θ');
     if (road) {
-      const rn = road[1].replace(/\s+/g, '')
-        .replace(/ΠΕΟ/, 'Π.Ε.Ο.').replace(/ΕΟ/, 'Ε.Ο.').replace(/ΑΜ/, 'Α.Μ.').replace(/ΘΑ/, 'Θ.Α.');
+      const rn = road[1].replace(/\s+/g, '').replace(/ΠΕΟ/, 'Π.Ε.Ο.').replace(/ΕΟ/, 'Ε.Ο.').replace(/ΑΜ/, 'Α.Μ.').replace(/ΘΑ/, 'Θ.Α.');
       parts.push('της ' + rn);
     }
     if (cities.length >= 2) parts.push(cities[0] + ' - ' + cities[1]);
     else if (cities.length === 1) parts.push(cities[0]);
-    else return null; // χ/θ χωρίς αναγνωρίσιμο δρόμο/πόλη = επισφαλές
-
+    else return null;
     return parts.join(' ');
   }
 
-  /* ---------- ΑΡΘΡΟ (διατήρηση δομής art§par per) ---------- */
-
+  /* ---------- ΑΡΘΡΟ (δέχεται παρ./περ./§/ς/β) ---------- */
+  function buildArticle(art, par, per) {
+    if (!art || +art > 150) return null;
+    return { raw: art + (par ? '§' + par : '') + (per || ''), art: String(art), par: par || null, per: per || null,
+      short: art + (par ? '§' + par : '') + (per || '') };
+  }
   function findArticle(flat) {
-    let m = flat.match(/αρθρου\s+(\d{1,3})\s*(?:[§ςσξβ$S5]\s*)?(\d{1,2})?\s*([α-ω]{1,3})?/i);
-    if (m && m[1]) {
-      const art = m[1], par = m[2] || null, per = m[3] || null;
-      if (+art > 150) return null;
-      return { raw: m[0], art, par, per, short: art + (par ? '§' + par : '') + (per || '') };
-    }
-    m = flat.match(/(?<![0-9])(\d{1,3})\s*[§ςβ]\s*(\d{1,2})\s*([α-ω]{1,3})(?![α-ω])/i);
-    if (m && m[1] && +m[1] <= 150) {
-      return { raw: m[0], art: m[1], par: m[2], per: m[3], short: m[1] + '§' + m[2] + m[3] };
-    }
+    let m = flat.match(/αρθρου\s+(\d{1,3})\s*(?:παρ\.?\s*|περ\.?\s*|[§ςσξβ$S5]\s*)?(\d{1,2})?\s*(?:περ\.?\s*)?([α-ω]{1,3})?/i);
+    if (m && m[1]) { const r = buildArticle(m[1], m[2], m[3]); if (r) return r; }
+    m = flat.match(/(?<![0-9])(\d{1,3})\s*(?:παρ\.?\s*|περ\.?\s*|[§ςβ]\s*)(\d{1,2})\s*(?:περ\.?\s*)?([α-ω]{1,3})(?![α-ω])/i);
+    if (m && m[1]) { const r = buildArticle(m[1], m[2], m[3]); if (r) return r; }
     return null;
   }
 
-  /* ---------- ΥΠΗΡΕΣΙΑ ΑΝΑΘΕΣΗΣ ---------- */
-
+  /* ---------- ΥΠΗΡΕΣΙΑ ---------- */
   function findService(flat) {
     const anchors = [
       { re: /ΤΜΗΜΑ[^Α-Ω]{0,3}ΤΡΟΧΑΙΑΣ?/gi, type: 'ΤΤ' },
@@ -244,11 +236,10 @@
     if (tt) return 'ΤΤ ' + tt.city;
     const other = results.find(r => !/ΚΑΛΑΜΑΡΙΑ/.test(r.city));
     if (other) return other.type + ' ' + other.city;
-    return null; // μόνο Καλαμαριά -> δεν είναι υπηρεσία ανάθεσης
+    return null;
   }
 
-  /* ---------- ΟΝΟΜΑΤΕΠΩΝΥΜΟ ---------- */
-
+  /* ---------- ΟΝΟΜΑ ---------- */
   function nameTokenOk(t) {
     const u = t.toUpperCase();
     if (u.length < 3 || u.length > 15) return false;
@@ -258,7 +249,6 @@
     if (consonantRatio(u) > 0.85) return false;
     return true;
   }
-
   function findOwner(flat) {
     const anchor = /(?:στοιχεια\s+)?[α-ω]{0,4}διοκ[α-ω]{0,12}/ig;
     let m;
@@ -273,30 +263,26 @@
       if (name.length >= 2) {
         const joined = name.slice(0, 3).join(' ');
         const after = tail.toUpperCase();
-        const idx = after.indexOf(name[Math.min(name.length, 3) - 1]);
-        const rest = idx >= 0 ? after.slice(idx + name[Math.min(name.length, 3) - 1].length) : after;
+        const lastTok = name[Math.min(name.length, 3) - 1];
+        const idx = after.indexOf(lastTok);
+        const rest = idx >= 0 ? after.slice(idx + lastTok.length) : after;
         const pat = rest.match(/(?:ΤΟΥ|ΤΗΣ)\s+([Α-Ω]{3,})/);
         return { name: joined, patronymic: pat ? pat[1] : null, index: m.index };
       }
     }
     return null;
   }
-
   function findAddress(flat, ownerIndex) {
     if (ownerIndex == null) return null;
     const tail = flat.slice(ownerIndex, Math.min(flat.length, ownerIndex + 400));
     const m = tail.match(/κατοικ[οσς]\s+([Α-Ω]{3,})[\s,]+(?:οδ[οσς]\s+)?([^,.\n]{3,50}?)\s+(\d+[Α-Ω]?(?:\s*[-–]\s*\d+)?)/i);
-    if (m) {
-      const city = cityOk(m[1]);
-      return { city: city || m[1], street: m[2].trim(), number: m[3] };
-    }
+    if (m) { const city = cityOk(m[1]); return { city: city || m[1], street: m[2].trim(), number: m[3] }; }
     const s = tail.match(/οδ[οσς]\s+([^,.\n]{3,50}?)\s+(\d+[Α-Ω]?)/i);
     if (s) return { city: null, street: s[1].trim(), number: s[2] };
     return null;
   }
 
   /* ---------- ΑΝΑ ΠΕΡΑΣΜΑ ---------- */
-
   function parseOne(rawText) {
     const warnings = [];
     const { orig, flat } = prepare(rawText);
@@ -326,17 +312,12 @@
     m = flat.match(/κατα\s+παραβαση\s+του\s+αρθρου\s+.{1,20}?\s+του\s+Ν\.?\s*(\d{4})\//i); f.law = m ? m[1] : null;
 
     const om = findOwner(flat);
-    if (om) {
-      f.ownerFull = om.name; f.patronymic = om.patronymic;
-      f.address = findAddress(flat, om.index);
-    } else { f.ownerFull = null; f.address = null; }
+    if (om) { f.ownerFull = om.name; f.patronymic = om.patronymic; f.address = findAddress(flat, om.index); }
+    else { f.ownerFull = null; f.address = null; }
 
     const removal = /αφαιρεση\s+της\s+αδειας\s+ικανοτητας/i.test(flat) || /αφαιρεση\s+αδειας\s+οδηγησης/i.test(flat);
-    f.removal = {
-      required: removal,
-      days: removal ? parseDays(flat, warnings) : null,
-      circulation: /αφαιρεση[^.]{0,200}?(πινακιδ|αδειας\s+κυκλοφοριας)/i.test(flat)
-    };
+    f.removal = { required: removal, days: removal ? parseDays(flat, warnings) : null,
+      circulation: /αφαιρεση[^.]{0,200}?(πινακιδ|αδειας\s+κυκλοφοριας)/i.test(flat) };
     f.clauses = {
       complaint169: /169\s*π\.?\s*κ/i.test(flat) && (/απειθεια/i.test(flat) || /αρνηση\s+προσελευσης/i.test(flat)),
       payNotRequired: /δεν\s+ειναι\s+υποχρεωτικο[^)]{0,80}αποδοση/i.test(flat)
@@ -344,14 +325,12 @@
     return { fields: f, warnings };
   }
 
-  /* ---------- ΣΥΓΧΩΝΕΥΣΗ / ΨΗΦΟΦΟΡΙΑ ---------- */
-
-  const LABEL_RE = /\[(?:ΟΛΟΚΛΗΡΗ ΣΕΛΙΔΑ|ΚΕΦΑΛΙΔΑ|ΚΥΡΙΑ ΠΑΡΑΓΡΑΦΟΣ|ΠΙΝΑΚΙΔΑ|ΑΡΘΡΟ|ΤΟΠΟΣ)[^\]]*\]/g;
+  /* ---------- ΣΥΓΧΩΝΕΥΣΗ ---------- */
+  // ΓΕΝΙΚΟ split: ΟΠΟΙΟΔΗΠΟΤΕ [label] χωρίζει τα περάσματα (μελλοντικά ασφαλές).
   function splitPasses(text) {
-    const parts = String(text || '').split(LABEL_RE).map(x => x.trim()).filter(x => x.length > 15);
+    const parts = String(text || '').split(/\[[^\]]*\]/g).map(x => x.trim()).filter(x => x.length > 15);
     return parts.length ? parts : [String(text || '')];
   }
-  // Επιστρέφει { value, n } — το n είναι ο αριθμός των ψηφοφόρων
   function tally(values) {
     const c = new Map();
     values.forEach((v, i) => {
@@ -366,7 +345,7 @@
   function vote(values, minVotes) {
     const t = tally(values);
     if (!t) return null;
-    if (minVotes && t.n < minVotes) return null; // απαίτηση consensus
+    if (minVotes && t.n < minVotes) return null;
     return t.v;
   }
 
@@ -376,21 +355,18 @@
     const pick = (fn, ok) => vote(F.map(fn).filter(v => v !== null && v !== undefined && (!ok || ok(v))));
     const f = {}, w = [];
 
-    // ΠΙΝΑΚΙΔΑ: απαιτείται consensus (n>=2). Αλλιώς κενό — καμία επινοημένη πινακίδα.
     const plateTally = tally(F.map(x => x.plate));
     f.plate = (plateTally && plateTally.n >= 2) ? plateTally.v : null;
+    f.plate = bounded(f.plate, 'plate', w);
     const plates = Array.from(new Set(F.map(x => x.plate).filter(Boolean)));
     if (f.plate) w.push('Πινακίδα: ' + f.plate + '. Απαιτείται οπτική επιβεβαίωση από την εικόνα.');
     else if (plates.length) w.push('Πινακίδα: διαβάστηκε διαφορετικά (' + plates.join(' / ') + ') χωρίς πλειοψηφία. Διάβασέ την από την εικόνα και συμπλήρωσέ τη χειροκίνητα.');
     else w.push('Πινακίδα: δεν διαβάστηκε. Συμπλήρωσέ τη χειροκίνητα.');
 
     f.docDate = pick(x => x.docDate);
-
-    // ΥΠΗΡΕΣΙΑ: n>=1 + warning (ο χρήστης την ελέγχει)
-    f.service = pick(x => x.service);
+    f.service = bounded(pick(x => x.service), 'service', w);
     if (!f.service) w.push('Υπηρεσία ανάθεσης: δεν αναγνωρίστηκε. Συμπλήρωσέ τη χειροκίνητα.');
-
-    f.senderProtocol = pick(x => x.senderProtocol);
+    f.senderProtocol = bounded(pick(x => x.senderProtocol), 'protocol', w);
     f.type = pick(x => x.type); f.actNumber = pick(x => x.actNumber); f.actDate = pick(x => x.actDate);
 
     f.violationDate = vote(F.filter(x => x.violationDate && !x.vDateGuess).map(x => x.violationDate));
@@ -400,24 +376,24 @@
     } else w.push('Ημερομηνία παράβασης: ' + f.violationDate + '. Επιβεβαίωση.');
     f.violationTime = pick(x => x.violationTime);
 
-    // ΤΟΠΟΣ: απαιτείται χιλιομετρική θέση (ήδη ενσωματωμένο στο findPlace)
-    f.place = pick(x => x.place, p => p && p.length >= 4 && p.length <= 90);
+    f.place = bounded(pick(x => x.place, p => p && p.length >= 4), 'place', w);
     if (!f.place) w.push('Τόπος παράβασης: δεν διαβάστηκε με βεβαιότητα (χιλιομετρική θέση). Συμπλήρωσέ τον χειροκίνητα.');
 
     f.speed = pick(x => x.speed);
-    f.violationText = pick(x => x.violationText, t => t && t.length <= 160);
+    f.violationText = bounded(pick(x => x.violationText), 'violationText', w);
     f.article = pick(x => x.article);
+    if (f.article) f.article = bounded(f.article, 'article', w) ? f.article : null;
     f.law = pick(x => x.law);
     if (!f.article) w.push('Άρθρο: δεν διαβάστηκε με βεβαιότητα. Συμπλήρωσέ το χειροκίνητα.');
 
-    f.ownerFull = pick(x => x.ownerFull, n => n && n.split(' ').every(nameTokenOk));
+    f.ownerFull = bounded(pick(x => x.ownerFull, n => n && n.split(' ').every(nameTokenOk)), 'name', w);
     f.ownerName = f.ownerFull;
     const same = F.filter(x => x.ownerFull === f.ownerFull);
     f.address = (same.find(x => x.address && x.address.street) || same.find(x => x.address) || {}).address || null;
+    if (f.address && f.address.street) f.address.street = bounded(f.address.street, 'address', w) ? f.address.street : null;
     if (f.ownerFull) w.push('Ονοματεπώνυμο: ' + f.ownerFull + '. Επιβεβαίωσε γράμμα προς γράμμα.');
     else w.push('Ονοματεπώνυμο: δεν διαβάστηκε με βεβαιότητα. Συμπλήρωσέ το χειροκίνητα.');
 
-    // ΗΜΕΡΕΣ: n>=1 αρκεί αν η ολογράφως λέξη είναι unambiguous (π.χ. τριάντα=30)
     const required = F.some(x => x.removal && x.removal.required);
     const daysTally = tally(F.map(x => (x.removal && x.removal.days) || null));
     const days = (daysTally && daysTally.n >= 1) ? daysTally.v : null;
@@ -431,8 +407,7 @@
     return { fields: f, warnings: w, passes: rs.length };
   }
 
-  /* ---------- ΜΕΤΑΤΡΟΠΗ ΣΤΑ ΠΕΔΙΑ ΤΗΣ ΦΟΡΜΑΣ ---------- */
-
+  /* ---------- ΜΕΤΑΤΡΟΠΗ ΣΤΑ ΠΕΔΙΑ ---------- */
   function violationKind(text) {
     const t = String(text || '');
     if (/ταχυτητ/i.test(t)) return 'Υπερβολική ταχύτητα';
@@ -441,19 +416,15 @@
     if (/σταθμευ/i.test(t)) return 'Στάθμευση';
     return '';
   }
-
   function toForm(res) {
     const f = res.fields;
     const o = { notes: [], info: [] };
     if (f.plate) o.plate = f.plate.replace('-', '');
     if (f.ownerFull) o.name = f.ownerFull;
     if (f.service) o.service = f.service;
-    if (f.address && f.address.street) {
-      o.address = f.address.street + (f.address.number ? ' ' + f.address.number : '');
-    }
-    if (f.address && f.address.city && !/^ΚΑΛΑΜΑΡΙΑΣ?$/.test(f.address.city)) {
+    if (f.address && f.address.street) o.address = f.address.street + (f.address.number ? ' ' + f.address.number : '');
+    if (f.address && f.address.city && !/^ΚΑΛΑΜΑΡΙΑΣ?$/.test(f.address.city))
       o.info.push('Η πόλη κατοικίας είναι ' + f.address.city + ' (το πρότυπο γράφει "κάτοικο Καλαμαριάς").');
-    }
     const vt = violationKind(f.violationText); if (vt) o.violationType = vt;
     if (f.removal.required) {
       if (f.removal.days) o.removalDays = f.removal.days;
