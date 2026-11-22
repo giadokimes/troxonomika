@@ -1,10 +1,14 @@
-/* troxonomika - ocr-scan.js v3
+/* troxonomika - ocr-scan.js v4
    OcrScan.run(αρχείοΕικόνας, onStatus) -> Promise<κείμενο>
-   100% τοπικά. Color filter + OpenCV warp/threshold + στήλες + ROI passes. */
+   100% τοπικά. Διορθώσεις v4:
+   - OpenCV: δοκιμάζει ./tess/opencv.js ΚΑΙ ./opencv.js (ρίζα).
+   - OpenCV: περιμένει την初始化 με polling (όχι await cv -> αποφυγή recursion).
+   - Lazy load: δεν φορτώνεται στο index.html (10MB). */
 (function (root) {
   'use strict';
   const MAXSIDE = 2400;
-  const base = () => new URL('./tess/', root.location.href).href;
+  const tessBase = () => new URL('./tess/', root.location.href).href;
+  const rootBase = () => new URL('./', root.location.href).href;
 
   const loadImg = (file) => new Promise((res, rej) => {
     const u = URL.createObjectURL(file), im = new Image();
@@ -27,7 +31,6 @@
     return canvas;
   }
 
-  // Grayscale + απόδοση των ΚΟΚΚΙΝΩΝ pixel σε λευκό (σφραγίδα & κόκκινα χειρόγραφα)
   function redFilteredGray(source, contrast) {
     const cv = root.document.createElement('canvas');
     cv.width = source.width; cv.height = source.height;
@@ -60,15 +63,38 @@
     return cv;
   }
 
-  async function loadOpenCV() {
-    if (root.cv && root.cv.Mat) return true;
+  // Polling για την初始化 του OpenCV. Γυρνάει BOOLEAN (όχι το cv -> αποφυγή recursion).
+  function waitForCv(timeoutMs) {
     return new Promise((res) => {
+      const start = Date.now();
+      const check = () => {
+        if (root.cv && root.cv.Mat) { res(true); return; }
+        if (Date.now() - start > timeoutMs) { res(false); return; }
+        setTimeout(check, 120);
+      };
+      check();
+    });
+  }
+
+  function loadOneOpenCV(url) {
+    return new Promise((res) => {
+      if (root.cv && root.cv.Mat) { res(true); return; }
       const s = root.document.createElement('script');
-      s.src = base() + 'opencv.js';
-      s.onload = () => res(!!(root.cv && root.cv.Mat));
+      s.src = url;
+      s.onload = () => { waitForCv(20000).then(res); };
       s.onerror = () => res(false);
       root.document.head.appendChild(s);
     });
+  }
+
+  async function loadOpenCV() {
+    if (root.cv && root.cv.Mat) return true;
+    const urls = [tessBase() + 'opencv.js', rootBase() + 'opencv.js'];
+    for (const u of urls) {
+      const ok = await loadOneOpenCV(u);
+      if (ok) return true;
+    }
+    return false;
   }
 
   function sortCorners(pts) {
@@ -145,7 +171,7 @@
     } catch (e) { return false; }
   };
 
-  const PLATE_WHITELIST = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ0123456789-';
+  const PLATE_WHITELIST = 'ΑΒΕΖΗΙΚΜΝΟΡΤΥΧ0123456789-';
 
   async function run(file, onStatus) {
     const say = onStatus || (() => {});
@@ -153,14 +179,15 @@
     const original = await sourceCanvas(file);
     const redGray = redFilteredGray(original, false);
     const redContrast = redFilteredGray(original, true);
-    const B = base();
+    const B = tessBase();
 
     let processed = null;
     try {
       const cvOk = await loadOpenCV();
       if (cvOk) { say('Εντοπισμός & ισοπέδωση εγγράφου…'); processed = await processWithOpenCV(redGray); }
+      else say('OpenCV μη διαθέσιμο — εφεδρική επεξεργασία…');
     } catch (e) { console.warn(e); }
-    if (!processed) { say('Εφεδρική προεπεξεργασία…'); processed = redGray; }
+    if (!processed) processed = redGray;
 
     if (!root.Tesseract) { say('Φόρτωση OCR…'); await loadScript(B + 'tesseract.min.js'); }
     say('Εκκίνηση τοπικού OCR…');
@@ -180,33 +207,28 @@
       const result = await worker.recognize(image);
       const text = result && result.data ? String(result.data.text || '').trim() : '';
       if (text) outputs.push('\n[' + label + ']\n' + text);
-      if (worker.setParameters && extra && extra.tessedit_char_whitelist) {
-        await worker.setParameters({ tessedit_char_whitelist: '' }); // επαναφορά
+      if (extra && extra.tessedit_char_whitelist && worker.setParameters) {
+        await worker.setParameters({ tessedit_char_whitelist: '' });
       }
     }
 
     try {
-      // Global
       await pass('ΟΛΟΚΛΗΡΗ ΣΕΛΙΔΑ', processed, 3);
       await pass('ΟΛΟΚΛΗΡΗ ΣΕΛΙΔΑ - ΕΝΑΛΛΑΚΤΙΚΗ', redContrast, 11);
 
-      // Κεφαλίδα: ξεχωριστές στήλες (αριστερά = υπηρεσία αποστολής, δεξιά = ημερομηνία/προς)
       const leftHead = cropCanvas(processed, 0.00, 0.00, 0.48, 0.34, 2200);
       const rightHead = cropCanvas(processed, 0.50, 0.00, 0.50, 0.34, 2200);
       await pass('ΚΕΦΑΛΙΔΑ ΑΡΙΣΤΕΡΗ', leftHead, 6);
       await pass('ΚΕΦΑΛΙΔΑ ΔΕΞΙΑ', rightHead, 6);
       await pass('ΚΕΦΑΛΙΔΑ ΥΠΗΡΕΣΙΑΣ', cropCanvas(processed, 0.02, 0.00, 0.96, 0.38, 2400), 6);
 
-      // Σώμα
       const body = cropCanvas(processed, 0.02, 0.20, 0.96, 0.68, 2800);
       await pass('ΚΥΡΙΑ ΠΑΡΑΓΡΑΦΟΣ', body, 6);
       await pass('ΚΥΡΙΑ ΠΑΡΑΓΡΑΦΟΣ - ΕΝΑΛΛΑΚΤΙΚΗ', cropCanvas(redContrast, 0.02, 0.20, 0.96, 0.68, 2800), 11);
 
-      // ROI: πινακίδα (γραμμή «υπ' αριθ. XXXX-XXXX») με whitelist & single-line
       const plateROI = cropCanvas(processed, 0.05, 0.30, 0.90, 0.10, 2400);
       await pass('ΠΙΝΑΚΙΔΑ', plateROI, 7, { tessedit_char_whitelist: PLATE_WHITELIST });
 
-      // ROI: άρθρο (γραμμή «κατά παράβαση του άρθρου …»)
       const artROI = cropCanvas(processed, 0.05, 0.40, 0.90, 0.10, 2400);
       await pass('ΑΡΘΡΟ', artROI, 7);
 
