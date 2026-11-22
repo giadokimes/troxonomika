@@ -1,4 +1,4 @@
-const CACHE = "troxonomika-v73-opencv-fix";
+const CACHE = "troxonomika-v77-opencv-fix";
 const FILES = ["./", "./index.html", "./style.css", "./app.js", "./ocr-parser.js", "./ocr-scan.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 const OCR_FILES = [
