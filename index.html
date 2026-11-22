@@ -63,13 +63,9 @@
   <form id="caseForm" class="dlg">
     <h2 id="formTitle">Νέα Υπόθεση</h2>
     <div class="grid">
+      <!-- ΑΦΑΙΡΕΘΗΚΕ: btnScan, scanFile, btnCopyOcr, cvStatus -->
       <div class="full">
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" class="btn pri sm" id="btnScan">Σάρωση εγγράφου (φωτογραφία)</button>
-          <button type="button" class="btn ghost sm" id="btnPaste">Επικόλληση κειμένου</button>
-          <button type="button" class="btn ghost sm" id="btnCopyOcr" hidden>Αντιγραφή κειμένου OCR</button>
-        </div>
-        <input type="file" id="scanFile" accept="image/*" hidden>
+        <button type="button" class="btn pri sm" id="btnPaste">Εισαγωγή κειμένου (από MakeACopy)</button>
         <div id="scanMsg" class="muted" hidden style="white-space:pre-line;margin-top:6px"></div>
       </div>
       <label class="full">Πινακίδα *
@@ -206,7 +202,6 @@
 
 <section id="printArea"></section>
 <script src="./ocr-parser.js"></script>
-<script src="./ocr-scan.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>
