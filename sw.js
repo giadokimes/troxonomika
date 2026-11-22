@@ -1,21 +1,11 @@
-const CACHE = "troxonomika-v77-opencv-fix";
-const FILES = ["./", "./index.html", "./style.css", "./app.js", "./ocr-parser.js", "./ocr-scan.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const CACHE = "troxonomika-v8-light";
+const FILES = ["./", "./index.html", "./style.css", "./app.js", "./ocr-parser.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
-const OCR_FILES = [
-  "./tess/tesseract.min.js",
-  "./tess/worker.min.js",
-  "./tess/tesseract-core-simd-lstm.wasm.js",
-  "./tess/tesseract-core-lstm.wasm.js",
-  "./tess/lang/ell.traineddata.gz",
-  "./tess/opencv.js",
-  "./opencv.js"
-];
+// ΑΦΑΙΡΕΘΗΚΑΝ: tess/*, opencv.js, worker.min.js, wasm files
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE)
     .then(c => c.addAll(FILES.map(u => new Request(u, { cache: "reload" }))))
-    .then(() => caches.open(CACHE))
-    .then(c => Promise.allSettled(OCR_FILES.map(u => c.add(new Request(u, { cache: "reload" })))))
     .then(() => self.skipWaiting()));
 });
 
@@ -30,12 +20,15 @@ self.addEventListener("fetch", e => {
   if (r.method !== "GET") return;
   const u = new URL(r.url);
   if (u.origin !== location.origin) return;
+  
+  // Network First for HTML, Cache First for Assets
   if (r.mode === "navigate" || u.pathname.endsWith(".html")) {
     e.respondWith(fetch(r).then(res => {
       const cp = res.clone(); caches.open(CACHE).then(c => c.put(r, cp)); return res;
     }).catch(() => caches.match(r).then(h => h || caches.match("./index.html"))));
     return;
   }
+  
   e.respondWith(caches.match(r).then(hit => {
     const net = fetch(r).then(res => {
       if (res && res.ok) { const cp = res.clone(); caches.open(CACHE).then(c => c.put(r, cp)); }
