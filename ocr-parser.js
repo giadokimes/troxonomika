@@ -1,4 +1,4 @@
-/* troxonomika - ocr-parser.js v2
+/* troxonomika - ocr-parser.js v3 (ανάλυση ανά πέρασμα OCR + συγχώνευση)
    parseDocument(κείμενο) -> { fields, warnings }
    toForm(αποτέλεσμα) -> τιμές έτοιμες για τη φόρμα υπόθεσης
    Offline επεξεργασία. Όλα τα πεδία χρειάζονται έλεγχο από τον χρήστη.
@@ -174,7 +174,7 @@
   /* ---------- ΑΡΘΡΟ ---------- */
 
   function parseArticle(raw) {
-    const m = raw.match(/^(\d{1,3})(?:\s*[§ςσξ$S5]?\s*(\d{1,2}))?\s*([α-ω]{1,2})?$/i);
+    const m = raw.match(/^(\d{1,3})(?:\s*(?:παρ\.?|[§ςσξ$S5])?\s*(\d{1,2}))?\s*(?:περ\.?\s*)?([α-ω]{1,2})?$/i);
     if (!m || +m[1] > 150) return null;
     return {
       raw, art: m[1], par: m[2] || null, per: m[3] || null,
@@ -259,7 +259,7 @@
 
   /* ---------- ΚΥΡΙΑ ΑΝΑΛΥΣΗ ---------- */
 
-  function parseDocument(rawText) {
+  function parseOne(rawText) {
     const warnings = [];
     const { orig, flat } = prepare(rawText);
     const f = {};
@@ -272,6 +272,7 @@
         : null;
 
     f.plate = findPlate(flat, warnings);
+    f.plateAnchored = warnings.some(w => w.indexOf('Πινακίδα από') === 0);
 
     m = flat.match(
       /(\d{1,2})\s+(ιανουαριου|φεβρουαριου|μαρτιου|απριλιου|μαιου|ιουνιου|ιουλιου|αυγουστου|σεπτεμβριου|οκτωβριου|νοεμβριου|δεκεμβριου)\s+(20\d\d)/i
@@ -294,6 +295,7 @@
 
     if (!f.violationDate && f.actDate) {
       f.violationDate = f.actDate;
+      f.vDateGuess = true;
       warnings.push('Ημερομηνία παράβασης: δεν διαβάστηκε σίγουρα, μπήκε η ημερομηνία της πράξης. Έλεγξέ την.');
     }
 
@@ -383,6 +385,107 @@
 
     return { fields: f, warnings };
   }
+
+  /* ---------- ΣΥΓΧΩΝΕΥΣΗ ΑΝΑ ΠΕΡΑΣΜΑ OCR ---------- */
+  /* Το ocr-scan.js ενώνει 5 αναγνώσεις. Κάθε πέρασμα αναλύεται χωριστά και
+     κάθε πεδίο παίρνει την τιμή που βρέθηκε στα περισσότερα περάσματα. */
+
+  const LABEL_RE = /\[(?:ΟΛΟΚΛΗΡΗ ΣΕΛΙΔΑ|ΚΕΦΑΛΙΔΑ|ΚΥΡΙΑ ΠΑΡΑΓΡΑΦΟΣ)[^\]]*\]/g;
+  const MAX_PLACE = 90, MAX_VTEXT = 160;
+
+  function splitPasses(text) {
+    const s = String(text || '');
+    const parts = s.split(LABEL_RE).map(x => x.trim()).filter(x => x.length > 15);
+    return parts.length ? parts : [s];
+  }
+
+  function vote(values) {
+    const c = new Map();
+    values.forEach((v, i) => {
+      if (v === null || v === undefined || v === '') return;
+      const k = typeof v === 'object' ? JSON.stringify(v) : String(v);
+      const e = c.get(k) || { v, n: 0, i };
+      e.n++; c.set(k, e);
+    });
+    let best = null;
+    c.forEach(e => { if (!best || e.n > best.n || (e.n === best.n && e.i < best.i)) best = e; });
+    return best ? best.v : null;
+  }
+
+  function parseDocument(rawText) {
+    const rs = splitPasses(rawText).map(parseOne);
+    const F = rs.map(r => r.fields);
+    const pick = (fn, ok) => vote(F.map(fn).filter(v => v !== null && v !== undefined && (!ok || ok(v))));
+    const f = {}, w = [];
+
+    // πινακίδα: προτεραιότητα σε όσες βρέθηκαν δίπλα στο «υπ' αριθ.»
+    const anch = F.filter(x => x.plate && x.plateAnchored);
+    const pool = anch.length ? anch : F.filter(x => x.plate);
+    f.plate = vote(pool.map(x => x.plate));
+    const plates = Array.from(new Set(F.map(x => x.plate).filter(Boolean)));
+    if (f.plate) w.push('Πινακίδα: ' + f.plate + '. Απαιτείται οπτική επιβεβαίωση.');
+    else w.push('Δεν βρέθηκε πινακίδα με επαρκή βεβαιότητα.');
+    if (plates.length > 1) w.push('Η πινακίδα διαβάστηκε διαφορετικά στα περάσματα: ' + plates.join(' / ') + '.');
+
+    f.docDate = pick(x => x.docDate);
+    f.service = pick(x => x.service);
+    if (!f.service) w.push('Δεν βρέθηκε υπηρεσία ανάθεσης.');
+    f.senderProtocol = pick(x => x.senderProtocol);
+    f.type = pick(x => x.type);
+    f.actNumber = pick(x => x.actNumber);
+    f.actDate = pick(x => x.actDate);
+
+    // ημερομηνία παράβασης: προτιμάται η πραγματική, όχι η εικασία από την πράξη
+    f.violationDate = vote(F.filter(x => x.violationDate && !x.vDateGuess).map(x => x.violationDate));
+    if (!f.violationDate) {
+      f.violationDate = vote(F.map(x => x.violationDate));
+      if (f.violationDate) w.push('Ημερομηνία παράβασης: δεν διαβάστηκε σίγουρα, μπήκε η ημερομηνία της πράξης. Έλεγξέ την.');
+    }
+    f.violationTime = pick(x => x.violationTime);
+
+    // τόπος: όριο μήκους, ώστε ένα λάθος OCR να μη γεμίζει το πεδίο με σκουπίδια
+    f.place = pick(x => x.place, p => p.length >= 3 && p.length <= MAX_PLACE);
+    if (!f.place && F.some(x => x.place)) w.push('Τόπος: δεν διαβάστηκε με ασφάλεια. Συμπλήρωσέ τον χειροκίνητα.');
+    if (f.place && /χ\/θ/.test(f.place) && !/\+/.test(f.place)) w.push('Τόπος: έλεγξε τη χιλιομετρική θέση (το OCR δεν διάβασε το "+").');
+
+    f.speed = pick(x => x.speed);
+    f.violationText = pick(x => x.violationText, t => t.length <= MAX_VTEXT);
+    f.article = pick(x => x.article);
+    f.law = pick(x => x.law);
+    if (!f.article) {
+      const aw = rs.map(r => r.warnings.find(x => x.indexOf('Άρθρο:') === 0)).find(Boolean);
+      if (aw) w.push(aw);
+    }
+
+    // ιδιοκτήτης: η διεύθυνση λαμβάνεται από το ίδιο πέρασμα με το όνομα
+    f.ownerFull = pick(x => x.ownerFull);
+    f.ownerName = f.ownerFull;
+    f.ownerNeedsReview = !!f.ownerFull;
+    const same = F.filter(x => x.ownerFull && x.ownerFull === f.ownerFull);
+    f.address = (same.find(x => x.address && x.address.street) || same.find(x => x.address) || {}).address || null;
+    if (f.ownerFull) w.push('Ονοματεπώνυμο από ιδιοκτήτη: επιβεβαίωσε γράμμα προς γράμμα.');
+    else w.push('Δεν βρέθηκε με ασφάλεια το ονοματεπώνυμο.');
+
+    // αφαίρεση
+    const required = F.some(x => x.removal && x.removal.required);
+    const days = vote(F.map(x => (x.removal && x.removal.days) || null));
+    f.removal = {
+      required,
+      days: required ? days : null,
+      circulation: F.some(x => x.removal && x.removal.circulation)
+    };
+    if (required && !days) w.push('Ημέρες αφαίρεσης: δεν αναγνωρίστηκε ασφαλής αριθμός.');
+    const dw = rs.map(r => r.warnings.find(x => x.indexOf('Διαφωνία OCR στις ημέρες') === 0)).find(Boolean);
+    if (required && dw) w.push(dw);
+
+    f.clauses = {
+      complaint169: F.some(x => x.clauses && x.clauses.complaint169),
+      payNotRequired: F.some(x => x.clauses && x.clauses.payNotRequired)
+    };
+
+    return { fields: f, warnings: w, passes: rs.length };
+  }
+
 
   /* ---------- ΜΕΤΑΤΡΟΠΗ ΣΤΑ ΠΕΔΙΑ ΤΗΣ ΦΟΡΜΑΣ ---------- */
 
