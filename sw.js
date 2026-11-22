@@ -1,4 +1,4 @@
-const CACHE = "troxonomika-v8-light";
+const CACHE = "troxonomika-v9-light";
 const FILES = ["./", "./index.html", "./style.css", "./app.js", "./ocr-parser.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 // ΑΦΑΙΡΕΘΗΚΑΝ: tess/*, opencv.js, worker.min.js, wasm files
