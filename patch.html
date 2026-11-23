@@ -40,16 +40,17 @@ function st(m,ok){var e=document.getElementById('st');e.textContent=m;e.style.co
 function dl(n,t){var b=new Blob([t],{type:'text/plain;charset=utf-8'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);}
 function base(){return document.getElementById('base').value.trim().replace(/\/?$/,'/');}
 function cnt(s,x){return s.split(x).length-1;}
+function norm(s){return s.replace(/\r\n/g,'\n').replace(/\r/g,'\n');}
 async function ft(n){var r=await fetch(base()+n,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status+' '+n);return await r.text();}
 async function patchApp(){st('Φόρτωση app.js…');try{
-  var p=document.getElementById('pasteApp').value; var src=(p&&p.length>5000)?p:await ft('app.js');
+  var p=document.getElementById('pasteApp').value; var src=norm((p&&p.length>5000)?p:await ft('app.js'));
   var errs=[];for(var i=0;i<PAIRS.length;i++){var c=cnt(src,PAIRS[i][0]);if(c!==1)errs.push('#'+(i+1)+'('+c+')');}
   if(errs.length){st('ΔΕΝ εφαρμόστηκε: '+errs.join(', ')+' (ίσως ήδη ενημερωμένο). Τίποτα δεν άλλαξε.',false);return;}
   for(var j=0;j<PAIRS.length;j++){src=src.replace(PAIRS[j][0],PAIRS[j][1]);}
   dl('app.js',src);st('ΟΚ! Κατέβηκε το νέο app.js (31 αλλαγές, λογότυπο ανέπαφο). Ανέβασέ το.',true);
 }catch(e){st('Σφάλμα: '+e.message+'. Δοκίμασε την επικόλληση στο πλαίσιο κάτω.',false);}}
 async function patchIndex(){st('Φόρτωση index.html…');try{
-  var s=await ft('index.html');var c=cnt(s,OLD_DLG);
+  var s=norm(await ft('index.html'));var c=cnt(s,OLD_DLG);
   if(c!==1){st('index.html: η φόρμα δεν βρέθηκε ακριβώς 1 φορά ('+c+'). Ίσως ήδη ενημερωμένο. Δεν άλλαξε.',false);return;}
   s=s.replace(OLD_DLG,NEW_DLG);dl('index.html',s);st('ΟΚ! Κατέβηκε το νέο index.html. Ανέβασέ το.',true);
 }catch(e){st('Σφάλμα index.html: '+e.message,false);}}
