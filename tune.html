@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#04070C">
-<title>ΑΥΤΟΜΑΤΗ ΒΕΛΤΙΣΤΟΠΟΙΗΣΗ · troxonomika</title>
+<title>ΒΕΛΤΙΣΤΟΠΟΙΗΣΗ OCR · troxonomika</title>
 <style>
 :root{
   --a9:#04070C;--a8:#080D14;--a7:#0E1620;--sf:#111A25;--sf2:#17222E;--ln:#1F2E3D;--ln2:#2B3F52;
   --ink:#EAF2F9;--mut:#8BA2B8;--dim:#5B7084;
-  --amber:#FFB020;--cyan:#22D3EE;--violet:#A855F7;--plate:#2F6BFF;--lime:#A3E635;
-  --ok:#16DB65;--bad:#FF4D4F;--warn:#FFB020;--info:#38BDF8;--magenta:#FF3D9A;
+  --amber:#FFB020;--cyan:#22D3EE;--violet:#A855F7;--plate:#2F6BFF;--lime:#A3E635;--magenta:#FF3D9A;
+  --ok:#16DB65;--bad:#FF4D4F;--warn:#FFB020;--info:#38BDF8;
   --pad:15px;--r:14px;--fs:14px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 [data-theme="paper"]{--a9:#ECE6D9;--a8:#F4EFE4;--a7:#FCF8F0;--sf:#FFFDF8;--sf2:#F3EDE1;--ln:#DCD2C0;--ln2:#C4B8A2;
---ink:#121820;--mut:#566173;--dim:#798492;--amber:#A56800;--cyan:#0E7490;--violet:#7C22CE;--plate:#1B4FD8;--lime:#4D7C0F;--ok:#0E8F45;--bad:#C62828;--warn:#A56800;--info:#0369A1;--magenta:#BE185D}
+--ink:#121820;--mut:#566173;--dim:#798492;--amber:#A56800;--cyan:#0E7490;--violet:#7C22CE;--plate:#1B4FD8;--lime:#4D7C0F;--magenta:#BE185D;--ok:#0E8F45;--bad:#C62828;--warn:#A56800;--info:#0369A1}
 [data-density="tight"]{--pad:10px;--r:11px}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;background:var(--a9);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:100px;overflow-x:hidden}
@@ -49,7 +49,6 @@ nav.tabs a.on{color:var(--ink);background:var(--sf);border-color:var(--ln2);box-
 .rail{position:sticky;top:92px;z-index:60;background:color-mix(in srgb,var(--a8) 94%,transparent);backdrop-filter:blur(12px);border-block:1px solid var(--ln)}
 .railin{display:flex;gap:8px;overflow-x:auto;padding:9px 13px;max-width:1080px;margin:0 auto}
 .ctl{flex:none;width:136px;display:flex;flex-direction:column;gap:4px;background:var(--a7);border:1px solid var(--ln);border-radius:11px;padding:8px 9px}
-.ctl.w{width:180px}
 .ctl>small{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between}
 .ctl>small b{color:var(--amber);font-weight:700}
 input,select,textarea,button{font-family:inherit;font-size:var(--fs);color:var(--ink)}
@@ -60,12 +59,13 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ctl select{background-position:calc(100% - 12px) 14px,calc(100% - 8px) 14px}
 textarea{font-family:var(--mono);font-size:12.5px;line-height:1.5;resize:vertical;min-height:70px}
 input[type=range]{padding:0;height:22px;background:transparent;border:0;accent-color:var(--amber)}
+.srfile{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;opacity:0}
 .sw{display:flex;align-items:center;gap:7px;background:var(--a7);border:1px solid var(--ln);border-radius:10px;padding:8px 9px;cursor:pointer;user-select:none;min-height:38px}
 .sw i{width:31px;height:17px;border-radius:999px;background:var(--ln2);position:relative;flex:none;transition:.18s}
 .sw i::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--mut);transition:.18s}
 .sw.on i{background:linear-gradient(90deg,var(--amber),var(--cyan))}.sw.on i::after{left:16px;background:#fff}
 .sw span{font-size:11px;color:var(--mut);line-height:1.2}.sw.on span{color:var(--ink)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--ln2);background:var(--sf2);border-radius:11px;padding:11px 14px;font-weight:650;cursor:pointer;transition:.14s;min-height:44px;text-decoration:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--ln2);background:var(--sf2);border-radius:11px;padding:11px 14px;font-weight:650;cursor:pointer;transition:.14s;min-height:44px;text-decoration:none;text-align:center}
 .btn:hover{border-color:var(--amber);transform:translateY(-1px)}.btn:active{transform:translateY(1px) scale(.99)}
 .btn.pri{background:linear-gradient(135deg,var(--amber),#B07000);border-color:transparent;color:#241700;box-shadow:0 10px 24px rgba(255,176,32,.28)}
 .btn.go{background:linear-gradient(135deg,var(--ok),#0A7A3B);border-color:transparent;color:#03210F}
@@ -95,20 +95,27 @@ code.i{font-family:var(--mono);font-size:12px;background:var(--a9);border:1px so
 .tag.v{color:var(--violet);border-color:color-mix(in srgb,var(--violet) 45%,var(--ln))}
 .stats{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
 .lbl{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);display:block;margin:9px 0 4px}
-.two{display:grid;gap:9px;grid-template-columns:1fr 1fr}.three{display:grid;gap:9px;grid-template-columns:repeat(3,1fr)}
-@media(max-width:680px){.two,.three{grid-template-columns:1fr}}
-.ans{display:grid;gap:10px}
-.ansc{border:1px solid var(--ln2);border-radius:13px;padding:12px;background:var(--a7);position:relative;overflow:hidden}
+.two{display:grid;gap:9px;grid-template-columns:1fr 1fr}
+@media(max-width:680px){.two{grid-template-columns:1fr}}
+.ansc{border:1px solid var(--ln2);border-radius:13px;padding:12px;background:var(--a7);position:relative;overflow:hidden;margin-bottom:9px}
 .ansc::after{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,var(--amber),var(--cyan))}
 .ansc h3{margin:0 0 5px;font-size:14.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ansc p{margin:0;font-size:12.5px;color:var(--mut)}
+.envbar{display:flex;gap:9px;align-items:flex-start;border:1px solid color-mix(in srgb,var(--amber) 45%,var(--ln));background:color-mix(in srgb,var(--amber) 9%,transparent);border-radius:12px;padding:11px;margin-bottom:11px}
+.envbar .g{flex:1;min-width:0;font-size:12.5px;color:var(--mut)}
+.envbar b{color:var(--ink);display:block;margin-bottom:3px;font-size:13px}
+.drop{position:relative;border:2px dashed var(--ln2);border-radius:14px;padding:16px;text-align:center;background:var(--a7);transition:.16s}
+.drop.hot{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 9%,var(--a7))}
+.drop p{margin:0 0 10px;font-size:12.5px;color:var(--mut)}
+.stage{position:relative;border:1px solid var(--ln2);border-radius:12px;overflow:hidden;background:#000;min-height:120px}
+.stage canvas{display:block;width:100%;height:auto}
+.stage .ph{padding:34px 14px;text-align:center;color:var(--dim);font-size:13px}
+.intake{font-family:var(--mono);font-size:11px;max-height:130px;overflow:auto;background:var(--a9);border:1px solid var(--ln);border-radius:10px;padding:9px;margin-top:9px}
+.intake div{padding:2px 0;color:var(--dim)}.intake div.ok{color:var(--ok)}.intake div.err{color:var(--bad)}.intake div.warn{color:var(--amber)}
 .gt{display:grid;gap:7px}
 .gtr{display:grid;gap:7px;grid-template-columns:1fr 1.5fr 62px;align-items:center;border:1px solid var(--ln);border-radius:10px;padding:8px 9px;background:var(--a7)}
-.gtr b{font-size:12px}
-.gtr input{padding:6px 8px;font-size:12.5px;font-family:var(--mono)}
+.gtr b{font-size:12px}.gtr input{padding:6px 8px;font-size:12.5px;font-family:var(--mono)}
 @media(max-width:560px){.gtr{grid-template-columns:1fr 1fr}.gtr .wgt{grid-column:1/-1}}
-.stage{position:relative;border:1px solid var(--ln2);border-radius:12px;overflow:hidden;background:#000}
-.stage canvas{display:block;width:100%;height:auto}
 .pbar{height:8px;border-radius:4px;background:var(--a9);border:1px solid var(--ln);overflow:hidden}
 .pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--violet),var(--cyan));transition:width .15s}
 .board{display:grid;gap:7px;max-height:420px;overflow:auto}
@@ -117,14 +124,13 @@ code.i{font-family:var(--mono);font-size:12px;background:var(--a9);border:1px so
 .run.win{border-color:color-mix(in srgb,var(--ok) 45%,var(--ln));background:color-mix(in srgb,var(--ok) 7%,var(--a7))}
 .run .rk{width:26px;height:26px;flex:none;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:12px;background:var(--sf2);border:1px solid var(--ln2);color:var(--mut)}
 .run.win .rk{background:linear-gradient(135deg,var(--ok),#0A7A3B);color:#03210F;border-color:transparent}
-.run .g{flex:1;min-width:0}
-.run .t{font-size:12.5px;font-weight:650}
+.run .g{flex:1;min-width:0}.run .t{font-size:12.5px;font-weight:650}
 .run .s{font-size:11px;color:var(--dim);font-family:var(--mono)}
 .scorebar{width:74px;height:7px;border-radius:4px;background:var(--a9);border:1px solid var(--ln);overflow:hidden;flex:none}
 .scorebar i{display:block;height:100%;background:linear-gradient(90deg,var(--bad),var(--amber),var(--lime))}
 .heat{overflow:auto;border:1px solid var(--ln);border-radius:11px;background:var(--a9)}
 .heat table{border-collapse:collapse;font-size:10.5px;font-family:var(--mono)}
-.heat th{position:sticky;top:0;background:var(--sf2);color:var(--dim);font-size:9px;letter-spacing:.06em;padding:6px 5px;border-bottom:1px solid var(--ln);text-align:left;white-space:nowrap}
+.heat th{position:sticky;top:0;background:var(--sf2);color:var(--dim);font-size:9px;padding:6px 5px;border-bottom:1px solid var(--ln);text-align:left;white-space:nowrap}
 .heat td{padding:0;border-bottom:1px solid var(--ln);border-right:1px solid var(--ln)}
 .heat td.lbl2{padding:5px 7px;color:var(--mut);white-space:nowrap;background:var(--a7);position:sticky;left:0}
 .cell{width:22px;height:22px;display:block}
@@ -143,7 +149,7 @@ code.i{font-family:var(--mono);font-size:12px;background:var(--a9);border:1px so
 .txt{font-family:var(--mono);font-size:12px;white-space:pre-wrap;word-break:break-word;background:var(--a9);border:1px solid var(--ln);border-radius:11px;padding:11px;max-height:260px;overflow:auto}
 .empty{color:var(--dim);font-size:13px;text-align:center;padding:16px}
 #toast{position:fixed;left:12px;right:12px;bottom:14px;z-index:99;display:grid;gap:8px;pointer-events:none}
-.tst{background:var(--sf2);border:1px solid var(--ln2);border-left:4px solid var(--amber);border-radius:12px;padding:11px 13px;font-size:13px;box-shadow:0 16px 40px rgba(0,0,0,.55);animation:up .22s ease}
+.tst{background:var(--sf2);border:1px solid var(--ln2);border-left:4px solid var(--amber);border-radius:12px;padding:11px 13px;font-size:13px;box-shadow:0 16px 40px rgba(0,0,0,.55);animation:up .22s ease;pointer-events:auto}
 .tst.ok{border-left-color:var(--ok)}.tst.err{border-left-color:var(--bad)}.tst.warn{border-left-color:var(--cyan)}
 @keyframes up{from{opacity:0;transform:translateY(14px)}}
 .rise{animation:rise .5s cubic-bezier(.2,.7,.3,1) both}@keyframes rise{from{opacity:0;transform:translateY(16px)}}
@@ -156,104 +162,116 @@ footer{color:var(--dim);font-size:11px;text-align:center;padding:22px 13px 6px;l
 <header class="top">
   <div class="topin">
     <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#241700" stroke-width="2.2" stroke-linecap="round"><path d="M3 17l4-6 4 3 4-7 6 10"/><circle cx="7" cy="7" r="1.6"/></svg></div>
-    <div class="brand"><b>Βελτιστοποίηση</b><span>σάρωση scan × parser · επιλογή νικητή</span></div>
+    <div class="brand"><b>Βελτιστοποίηση</b><span>σάρωση scan × parser</span></div>
     <div class="netpill" id="netpill">δίκτυο: 0 B</div>
   </div>
   <nav class="tabs" id="tabs">
-    <a href="#ans" class="on">Απαντήσεις</a><a href="#gt">Πεδία</a><a href="#img">Εικόνα</a>
+    <a href="#img" class="on">Εικόνα</a><a href="#ans">Απαντήσεις</a><a href="#gt">Πεδία</a>
     <a href="#sweep">Σάρωση</a><a href="#win">Νικητής</a><a href="#off">Offline</a><a href="#files">Αρχεία</a>
   </nav>
 </header>
 
 <div class="rail"><div class="railin">
-  <label class="ctl w"><small>Ένταση σάρωσης</small><select id="cMode">
-    <option value="quick">Γρήγορη · 7</option><option value="full" selected>Πλήρης · 28+</option><option value="max">Εξαντλητική · 84+</option></select></label>
-  <label class="ctl"><small>Κινητήρας</small><select id="cEng"><option value="paddle" selected>PaddleOCR</option><option value="tess">Tesseract</option><option value="both">Και οι δύο</option></select></label>
-  <label class="ctl"><small>Κλίμακες</small><select id="cScales"><option value="1">1 (2000)</option><option value="2" selected>2 (1500/2400)</option><option value="3">3 (1400/2000/2800)</option></select></label>
-  <label class="ctl"><small>Δυαδικό</small><select id="cBins"><option value="keep" selected>Όπως η προεπιλογή</option><option value="gn">Γκρι + NICK</option><option value="gnw">Γκρι+NICK+Wolf</option><option value="all">Όλα</option></select></label>
+  <label class="ctl"><small>Ένταση</small><select id="cMode"><option value="quick">Γρήγορη · 7</option><option value="full" selected>Πλήρης · 28</option><option value="max">Εξαντλητική</option></select></label>
+  <label class="ctl"><small>Κινητήρας</small><select id="cEng"><option value="paddle">PaddleOCR</option><option value="tess" selected>Tesseract</option><option value="both">Και οι δύο</option></select></label>
+  <label class="ctl"><small>Κλίμακες</small><select id="cScales"><option value="1" selected>1 (2000)</option><option value="2">2 (1500/2400)</option><option value="3">3</option></select></label>
+  <label class="ctl"><small>Δυαδικό</small><select id="cBins"><option value="keep" selected>Προεπιλογή</option><option value="gn">+NICK</option><option value="gnw">+NICK/Wolf</option><option value="all">Όλα</option></select></label>
   <label class="ctl"><small>Det όριο</small><select id="cDet"><option value="960" selected>960</option><option value="both">736 & 1280</option><option value="1280">1280</option></select></label>
-  <label class="ctl"><small>Refine</small><div class="sw on" id="cRef"><i></i><span>2ο πέρασμα</span></div></div>
-  <label class="ctl"><small>Αυστηρή offline</small><div class="sw" id="cOff"><i></i><span>μπλοκάρει δίκτυο</span></div></div>
+  <label class="ctl"><small>Θόρυβος δοκ. <b id="vNz">14</b></small><input type="range" id="cNz" min="0" max="40" step="2" value="14"></label>
+  <label class="ctl"><small>Θολούρα δοκ. <b id="vBl">1.2</b></small><input type="range" id="cBl" min="0" max="4" step="0.2" value="1.2"></label>
+  <label class="ctl"><small>Σκιά δοκ. <b id="vSh">35</b>%</small><input type="range" id="cSh" min="0" max="80" step="5" value="35"></label>
+  <div class="ctl"><small>Offline</small><div class="sw" id="cOff"><i></i><span>μπλοκ δίκτυο</span></div></div>
   <label class="ctl"><small>Θέμα</small><select id="cTheme"><option value="dark">Ασφάλτινο</option><option value="paper">Χαρτί</option></select></label>
   <label class="ctl"><small>Πυκνότητα</small><select id="cDens"><option value="cozy">Άνετη</option><option value="tight">Συμπαγής</option></select></label>
   <label class="ctl"><small>Γραμματοσειρά <b id="vFs">14</b></small><input type="range" id="cFs" min="12" max="18" step="1" value="14"></label>
-  <div class="ctl"><small>Τυχαίο</small><button class="btn sm gh" id="cRand">Συνδυασμός</button></div>
+  <div class="ctl"><small>Τυχαίο</small><button class="btn sm gh" id="cRand">Χώρος</button></div>
   <div class="ctl"><small>Επαναφορά</small><button class="btn sm gh" id="cReset">Reset</button></div>
   <div class="ctl"><small>Εξαγωγή</small><button class="btn sm gh" id="cExport">Αναφορά</button></div>
 </div></div>
 
 <div class="wrap">
 
-<section id="ans" class="rise">
-  <div class="hd"><span class="num">01</span><h2>Οι τρεις απαντήσεις, ζωντανά</h2><span class="bar"></span></div>
-  <div class="ans">
-    <div class="ansc">
-      <h3>1 · Είναι όλα offline; <span class="tag" id="a1tag">έλεγχος…</span></h3>
-      <p id="a1txt">Η εικόνα και το κείμενο <b>δεν φεύγουν ποτέ</b>. Όμως η βιβλιοθήκη ONNX και τα μοντέλα κατεβαίνουν την πρώτη φορά. Πάτα «Κλείδωμα offline» παρακάτω για να αποθηκευτούν στη συσκευή και να μην ξαναχρειαστεί δίκτυο.</p>
+<section id="img" class="rise">
+  <div class="hd"><span class="num">01</span><h2>Φόρτωση εικόνας</h2><span class="bar"></span></div>
+
+  <div id="envbar" class="envbar" hidden>
+    <div class="g"><b>Η σελίδα τρέχει μέσα σε πλαίσιο (iframe)</b>Ο επιλογέας αρχείων συχνά μπλοκάρεται εκεί. Άνοιξέ τη σε κανονική καρτέλα από μία από τις παρακάτω διευθύνσεις — ή χρησιμοποίησε το δοκιμαστικό έγγραφο.</div>
+  </div>
+  <div class="row" id="envLinks" style="margin-bottom:11px"></div>
+
+  <div class="card">
+    <div class="drop" id="drop">
+      <p><span class="k">Τράβηξε φωτογραφία εδώ</span> ή διάλεξε με τα κουμπιά. Δουλεύει και επικόλληση (Ctrl+V) από πρόχειρο.</p>
+      <div class="row">
+        <label class="btn pri" for="fileImg" id="lblPick" tabindex="0" role="button">Επιλογή φωτογραφίας</label>
+        <label class="btn cy" for="fileCam" id="lblCam" tabindex="0" role="button">Κάμερα</label>
+        <button class="btn vi" id="btnDemo" type="button">Δοκιμαστικό έγγραφο</button>
+      </div>
+      <input class="srfile" type="file" id="fileImg" accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.webp">
+      <input class="srfile" type="file" id="fileCam" accept="image/*" capture="environment">
     </div>
-    <div class="ansc">
-      <h3>2 · Μόνο το τελευταίο αρχείο; <span class="tag a">ΟΧΙ</span></h3>
-      <p>Τα <code class="i">app.js · index.html · style.css · sw.js · ocr-parser.js</code> είναι η <b>εφαρμογή</b> και παραμένουν. Τα <code class="i">workshop / setup / studio / ocr-lab / tune</code> είναι <b>διαφορετικά εργαλεία</b>, δεν αντικαθιστούν το ένα το άλλο. Μόνο το <code class="i">patch.html</code> είναι παρωχημένο. Δες τον ζωντανό πίνακα στην ενότητα «Αρχεία».</p>
+    <div class="two" style="margin-top:10px">
+      <div><label class="lbl">Εναλλακτικά · φόρτωση από URL</label><input id="imgUrl" placeholder="./scan.jpg ή https://…" spellcheck="false"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn" id="btnUrl" type="button" style="width:100%">Φόρτωση URL</button></div>
     </div>
-    <div class="ansc">
-      <h3>3 · Ποιος συνδυασμός είναι καλύτερος; <span class="tag v">ΜΕΤΡΗΣΗ</span></h3>
-      <p>Δεν μαντεύω. Πάτα <b>Εκκίνηση σάρωσης</b>: δοκιμάζονται δεκάδες συνδυασμοί προεπεξεργασίας × κινητήρα × παραμέτρων πάνω στη <b>δική σου φωτογραφία</b>, βαθμολογούνται απέναντι στα πραγματικά πεδία του εγγράφου, και ο νικητής αποθηκεύεται ως προεπιλογή.</p>
+    <div class="intake" id="intake"><div>Έτοιμο για φόρτωση.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="stage" id="stage"><div class="ph" id="stagePh">Δεν έχει φορτωθεί εικόνα ακόμη.</div><canvas id="cv" hidden></canvas></div>
+    <div class="stats" id="imgStats"><span class="tag">χωρίς εικόνα</span></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn sm gh" id="btnAuto" type="button">Αυτόματο crop</button>
+      <button class="btn sm gh" id="btnRegen" type="button">Αναγέννηση δοκιμαστικού</button>
+      <button class="btn sm bad" id="btnClearImg" type="button">Αφαίρεση εικόνας</button>
     </div>
+    <div class="note cy">Το <b>δοκιμαστικό έγγραφο</b> παράγεται τοπικά με τα πραγματικά πεδία του εγγράφου σου και ελεγχόμενη υποβάθμιση (θόρυβος, θολούρα, σκιά, JPEG). Έτσι η σάρωση τρέχει αμέσως, ακόμη κι αν ο επιλογέας αρχείων μπλοκάρεται από το περιβάλλον.</div>
   </div>
 </section>
 
+<section id="ans">
+  <div class="hd"><span class="num">02</span><h2>Οι απαντήσεις</h2><span class="bar"></span></div>
+  <div class="ansc"><h3>Είναι όλα offline; <span class="tag" id="a1tag">έλεγχος…</span></h3>
+    <p>Η εικόνα και το κείμενο <b>δεν φεύγουν ποτέ</b>. Η βιβλιοθήκη και τα μοντέλα κατεβαίνουν την πρώτη φορά· με «Κλείδωμα offline» αποθηκεύονται στη συσκευή και μετά δεν χρειάζεται δίκτυο.</p></div>
+  <div class="ansc"><h3>Μόνο το τελευταίο αρχείο; <span class="tag a">ΟΧΙ</span></h3>
+    <p>Τα <code class="i">app.js · index.html · style.css · sw.js · ocr-parser.js</code> είναι η εφαρμογή και παραμένουν. Τα <code class="i">workshop / setup / studio / ocr-lab / tune</code> είναι διαφορετικά εργαλεία. Μόνο το <code class="i">patch.html</code> είναι παρωχημένο.</p></div>
+  <div class="ansc"><h3>Ποιος συνδυασμός είναι καλύτερος; <span class="tag v">ΜΕΤΡΗΣΗ</span></h3>
+    <p>Δεν μαντεύω. Η σάρωση δοκιμάζει δεκάδες συνδυασμούς πάνω στη δική σου εικόνα, τους βαθμολογεί απέναντι στα πραγματικά πεδία και αναδεικνύει νικητή με μετρήσιμα στοιχεία.</p></div>
+</section>
+
 <section id="gt">
-  <div class="hd"><span class="num">02</span><h2>Πεδία αναφοράς από το έγγραφό σου</h2><span class="bar"></span></div>
+  <div class="hd"><span class="num">03</span><h2>Πεδία αναφοράς</h2><span class="bar"></span></div>
   <div class="card">
-    <p class="lead">Προσυμπληρωμένα από τη φωτογραφία του <span class="k">ΤΤ ΒΟΛΟΥ / 08-10-2026</span>. Διόρθωσε ό,τι διαβάζεται διαφορετικά — η βαθμολογία κρίνει με βάση αυτά. Το χειρόγραφο <code class="i">2515/11-26/305</code> είναι σκόπιμα δύσκολο πεδίο.</p>
+    <p class="lead">Από το έγγραφο <span class="k">ΤΤ ΒΟΛΟΥ / 08-10-2026</span>. Διόρθωσε ό,τι διαβάζεται διαφορετικά — η βαθμολογία κρίνει με βάση αυτά.</p>
     <div class="gt" id="gtList"></div>
     <div class="row" style="margin-top:10px">
-      <button class="btn sm gh" id="gtReset">Επαναφορά από έγγραφο</button>
-      <button class="btn sm gh" id="gtExport">Εξαγωγή πεδίων</button>
-      <button class="btn sm gh" id="gtImport">Εισαγωγή</button>
+      <button class="btn sm gh" id="gtReset" type="button">Επαναφορά</button>
+      <button class="btn sm gh" id="gtExport" type="button">Εξαγωγή</button>
+      <label class="btn sm gh" for="gtFile" tabindex="0" role="button">Εισαγωγή</label>
     </div>
-    <input type="file" id="gtFile" accept=".json,application/json" hidden>
+    <input class="srfile" type="file" id="gtFile" accept=".json,application/json">
     <div class="stats" id="gtStats"></div>
   </div>
 </section>
 
-<section id="img">
-  <div class="hd"><span class="num">03</span><h2>Φωτογραφία δοκιμής</h2><span class="bar"></span></div>
-  <div class="card">
-    <p class="lead">Χρησιμοποίησε την <span class="k">ίδια</span> φωτογραφία για όλη τη σάρωση, ώστε η σύγκριση να είναι δίκαιη. Μετά τον νικητή, επιβεβαίωσέ τον και σε 2–3 ακόμη δύσκολες λήψεις.</p>
-    <div class="row">
-      <button class="btn pri" id="btnPick">Επιλογή εικόνας</button>
-      <button class="btn" id="btnCam">Κάμερα</button>
-      <button class="btn gh" id="btnAuto">Αυτόματο crop</button>
-    </div>
-    <input type="file" id="fileImg" accept="image/*" hidden><input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
-    <div class="stage" id="stage" style="margin-top:11px"><canvas id="cv"></canvas></div>
-    <div class="stats" id="imgStats"><span class="tag">χωρίς εικόνα</span></div>
-  </div>
-</section>
-
 <section id="sweep">
-  <div class="hd"><span class="num">04</span><h2>Σάρωση συνδυασμών</h2><span class="bar"></span></div>
+  <div class="hd"><span class="num">04</span><h2>Σάρωση</h2><span class="bar"></span></div>
   <div class="card">
     <div class="stats" id="readyStats"></div>
     <div class="row" style="margin-top:11px">
-      <button class="btn pri" id="btnRun">Εκκίνηση σάρωσης</button>
-      <button class="btn bad" id="btnStop" disabled>Διακοπή</button>
-      <button class="btn gh" id="btnClear">Καθαρισμός αποτελεσμάτων</button>
+      <button class="btn pri" id="btnRun" type="button">Εκκίνηση σάρωσης</button>
+      <button class="btn bad" id="btnStop" type="button" disabled>Διακοπή</button>
+      <button class="btn gh" id="btnClear" type="button">Καθαρισμός</button>
     </div>
     <div class="pbar" style="margin-top:11px"><i id="prog"></i></div>
     <div class="stats" id="runStats"><span class="tag">ανενεργό</span></div>
     <canvas id="spark" height="60" style="width:100%;margin-top:10px;display:block"></canvas>
   </div>
-  <div class="card">
-    <div class="hd" style="margin-bottom:8px"><h2 style="font-size:14px">Κατάταξη</h2><span class="bar"></span></div>
-    <div class="board" id="board"><div class="empty">Δεν έχουν γίνει δοκιμές.</div></div>
-  </div>
-  <div class="card">
-    <div class="hd" style="margin-bottom:8px"><h2 style="font-size:14px">Χάρτης πεδίων</h2><span class="bar"></span></div>
+  <div class="card"><div class="hd" style="margin-bottom:8px"><h2 style="font-size:14px">Κατάταξη</h2><span class="bar"></span></div>
+    <div class="board" id="board"><div class="empty">Δεν έχουν γίνει δοκιμές.</div></div></div>
+  <div class="card"><div class="hd" style="margin-bottom:8px"><h2 style="font-size:14px">Χάρτης πεδίων</h2><span class="bar"></span></div>
     <div class="heat" id="heat"><div class="empty">—</div></div>
-    <div class="legend"><span><i style="background:var(--ok)"></i>ακριβές</span><span><i style="background:var(--lime)"></i>σχεδόν</span><span><i style="background:var(--amber)"></i>μερικώς</span><span><i style="background:var(--bad)"></i>λάθος</span><span><i style="background:var(--ln2)"></i>δεν βρέθηκε</span></div>
-  </div>
+    <div class="legend"><span><i style="background:var(--ok)"></i>ακριβές</span><span><i style="background:var(--lime)"></i>σχεδόν</span><span><i style="background:var(--amber)"></i>μερικώς</span><span><i style="background:var(--bad)"></i>λάθος</span><span><i style="background:var(--ln2)"></i>δεν βρέθηκε</span></div></div>
 </section>
 
 <section id="win">
@@ -264,11 +282,11 @@ footer{color:var(--dim);font-size:11px;text-align:center;padding:22px 13px 6px;l
 <section id="off">
   <div class="hd"><span class="num">06</span><h2>Κλείδωμα offline</h2><span class="bar"></span></div>
   <div class="card">
-    <p class="lead">Αποθηκεύει στη συσκευή τη βιβλιοθήκη ONNX, το WASM και τα μοντέλα. Μετά, καμία εξωτερική κλήση δεν χρειάζεται — και το αποδεικνύει με δοκιμή με μπλοκαρισμένο δίκτυο.</p>
+    <p class="lead">Αποθηκεύει βιβλιοθήκη ONNX, WASM και μοντέλα στη συσκευή και το αποδεικνύει με δοκιμή με μπλοκαρισμένο δίκτυο.</p>
     <div class="row">
-      <button class="btn cy" id="btnProv">Κλείδωμα offline</button>
-      <button class="btn vi" id="btnVerify">Δοκιμή χωρίς δίκτυο</button>
-      <button class="btn gh" id="btnProvClear">Διαγραφή offline πακέτου</button>
+      <button class="btn cy" id="btnProv" type="button">Κλείδωμα offline</button>
+      <button class="btn vi" id="btnVerify" type="button">Δοκιμή χωρίς δίκτυο</button>
+      <button class="btn gh" id="btnProvClear" type="button">Διαγραφή πακέτου</button>
     </div>
     <div class="stats" id="offStats"></div>
     <label class="lbl">Καταγραφή δικτύου — καμία εικόνα, ποτέ</label>
@@ -281,12 +299,12 @@ footer{color:var(--dim);font-size:11px;text-align:center;padding:22px 13px 6px;l
   <div class="card">
     <label class="lbl">Πηγή ελέγχου</label>
     <input id="baseUrl" value="https://raw.githubusercontent.com/giadokimes/troxonomika/main/" spellcheck="false">
-    <div class="row" style="margin-top:9px"><button class="btn sm pri" id="btnProbe">Έλεγχος τώρα</button><button class="btn sm gh" id="btnSame">Ίδια προέλευση (./)</button></div>
+    <div class="row" style="margin-top:9px"><button class="btn sm pri" id="btnProbe" type="button">Έλεγχος τώρα</button><button class="btn sm gh" id="btnSame" type="button">Ίδια προέλευση</button></div>
     <div class="man" id="manifest" style="margin-top:11px"></div>
   </div>
 </section>
 
-<footer>ΑΥΤΟΜΑΤΗ ΒΕΛΤΙΣΤΟΠΟΙΗΣΗ troxonomika · η φωτογραφία και τα πεδία παραμένουν στη συσκευή.<br>Τα αποτελέσματα είναι μετρήσεις στη δική σου λήψη, όχι γενικοί ισχυρισμοί.</footer>
+<footer>ΒΕΛΤΙΣΤΟΠΟΙΗΣΗ OCR troxonomika · η εικόνα και τα πεδία παραμένουν στη συσκευή.</footer>
 </div>
 <div id="toast"></div>
 
@@ -296,8 +314,13 @@ footer{color:var(--dim);font-size:11px;text-align:center;padding:22px 13px 6px;l
 var $=function(s){return document.querySelector(s);};
 function clamp(v,a,b){return v<a?a:v>b?b:v;}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
-function toast(m,k){var t=document.createElement("div");t.className="tst "+(k||"");t.textContent=m;$("#toast").appendChild(t);setTimeout(function(){t.style.opacity=0;t.style.transition="opacity .3s";setTimeout(function(){t.remove();},320);},4200);}
-function dl(n,t,ty){var b=new Blob([t],{type:ty||"application/json;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=n;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);}
+function toast(m,k){var t=document.createElement("div");t.className="tst "+(k||"");t.textContent=m;$("#toast").appendChild(t);
+ setTimeout(function(){t.style.opacity=0;t.style.transition="opacity .3s";setTimeout(function(){t.remove();},320);},4600);}
+function ilog(m,k){var d=document.createElement("div");d.className=k||"";d.textContent=m;var box=$("#intake");
+ if(box.firstChild&&box.firstChild.textContent==="Έτοιμο για φόρτωση.")box.innerHTML="";
+ box.insertBefore(d,box.firstChild);while(box.children.length>40)box.removeChild(box.lastChild);}
+function dl(n,t,ty){var b=new Blob([t],{type:ty||"application/json;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");
+ a.href=u;a.download=n;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);}
 var LAT={A:"Α",B:"Β",E:"Ε",Z:"Ζ",H:"Η",I:"Ι",K:"Κ",M:"Μ",N:"Ν",O:"Ο",P:"Ρ",T:"Τ",Y:"Υ",X:"Χ"};
 function toGr(s){return String(s==null?"":s).toUpperCase().replace(/[A-Z]/g,function(c){return LAT[c]||c;});}
 function fold(s){return toGr(String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,"")).replace(/\s+/g," ").trim();}
@@ -308,35 +331,213 @@ function lev(a,b){var m=a.length,n=b.length;if(!m)return n;if(!n)return m;var p=
 var CONF={"Α":["Λ","Δ"],"Λ":["Α","Δ"],"Δ":["Α","Λ"],"Ο":["Θ","Ω","0"],"Θ":["Ο"],"Ω":["Ο"],"Ε":["Σ"],"Σ":["Ε"],"Ι":["Τ","Γ","1"],"Τ":["Ι","Γ"],"Γ":["Τ","Ι"],"Η":["Ν"],"Ν":["Η"],"Ρ":["Β"],"Β":["Ρ","8"],"Κ":["Χ"],"Χ":["Κ"],"Π":["Τ"],"0":["Ο"],"1":["Ι"],"8":["Β"]};
 function near(a,b){if(a===b)return 1;if(!a||!b)return 0;var m=Math.max(a.length,b.length),d=0,k=Math.min(a.length,b.length);
  for(var i=0;i<k;i++){var x=a[i],y=b[i];d+=x===y?0:(CONF[x]&&CONF[x].indexOf(y)>=0?.3:1);}
- d+=Math.abs(a.length-b.length);var s=1-Math.min(d,lev(a,b))/m;return s;}
+ d+=Math.abs(a.length-b.length);return 1-Math.min(d,lev(a,b))/m;}
 
-/* ---------- network audit / offline ---------- */
+/* ---------- network ---------- */
 var NET={bytes:0,lines:[],block:false},origFetch=window.fetch.bind(window);
 function netAdd(u,ok,size,blocked){
-  NET.lines.unshift({u:u,ok:ok,s:size||0,b:blocked});if(ok&&size)NET.bytes+=size;
-  $("#netLog").innerHTML=NET.lines.slice(0,40).map(function(l){
-    return '<div class="'+(l.b?"blk":l.ok?"ok":"err")+'">'+(l.b?"⛔":l.ok?"✓":"✕")+" "+esc(l.u)+(l.s?" · "+(l.s/1048576).toFixed(2)+" MB":"")+"</div>";}).join("")||"<div>—</div>";
-  var p=$("#netpill");
-  if(NET.block){p.className="netpill off";p.textContent="offline ⛔ "+(NET.bytes/1048576).toFixed(1)+" MB";}
-  else if(NET.bytes){p.className="netpill warn";p.textContent="δίκτυο "+(NET.bytes/1048576).toFixed(1)+" MB";}
-  else{p.className="netpill";p.textContent="δίκτυο: 0 B";}
+ NET.lines.unshift({u:u,ok:ok,s:size||0,b:blocked});if(ok&&size)NET.bytes+=size;
+ $("#netLog").innerHTML=NET.lines.slice(0,40).map(function(l){
+  return '<div class="'+(l.b?"blk":l.ok?"ok":"err")+'">'+(l.b?"⛔":l.ok?"✓":"✕")+" "+esc(l.u)+(l.s?" · "+(l.s/1048576).toFixed(2)+" MB":"")+"</div>";}).join("")||"<div>—</div>";
+ var p=$("#netpill");
+ if(NET.block){p.className="netpill off";p.textContent="offline ⛔";}
+ else if(NET.bytes){p.className="netpill warn";p.textContent="δίκτυο "+(NET.bytes/1048576).toFixed(1)+" MB";}
+ else{p.className="netpill";p.textContent="δίκτυο: 0 B";}
 }
-function isExternal(u){try{return new URL(u,location.href).origin!==location.origin;}catch(e){return false;}}
-window.fetch=function(u,o){
-  var url=String(typeof u==="string"?u:(u&&u.url)||"");
-  if(NET.block&&isExternal(url)&&url.indexOf("blob:")!==0){netAdd(url,false,0,true);return Promise.reject(new Error("offline: μπλοκαρίστηκε "+url));}
-  return origFetch(u,o).then(function(r){netAdd(url,r.ok,+(r.headers.get("content-length")||0));return r;})
-    .catch(function(e){netAdd(url,false,0);throw e;});
-};
+function isExt(u){try{return new URL(u,location.href).origin!==location.origin;}catch(e){return false;}}
+window.fetch=function(u,o){var url=String(typeof u==="string"?u:(u&&u.url)||"");
+ if(NET.block&&isExt(url)&&url.indexOf("blob:")!==0&&url.indexOf("data:")!==0){netAdd(url,false,0,true);return Promise.reject(new Error("offline: μπλοκαρίστηκε"));}
+ return origFetch(u,o).then(function(r){netAdd(url,r.ok,+(r.headers.get("content-length")||0));return r;})
+  .catch(function(e){netAdd(url,false,0);throw e;});};
 $("#netpill").onclick=function(){location.hash="#off";};
 
 /* ---------- IDB ---------- */
 function idb(){return new Promise(function(res,rej){var r=indexedDB.open("troxo_ocr_models",1);
  r.onupgradeneeded=function(){var d=r.result;if(!d.objectStoreNames.contains("m"))d.createObjectStore("m");};
  r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});}
-function put(k,v){return idb().then(function(d){return new Promise(function(res,rej){var t=d.transaction("m","readwrite");t.objectStore("m").put(v,k);t.oncomplete=function(){res();};t.onerror=function(){rej(t.error);};});});}
+function put(k,v){return idb().then(function(d){return new Promise(function(res,rej){var t=d.transaction("m","readwrite");t.objectStore("m").put(v,k);t.oncomplete=function(){res();};t.onerror=function(){rej(t.error);};});}).catch(function(){});}
 function get(k){return idb().then(function(d){return new Promise(function(res){var t=d.transaction("m","readonly"),q=t.objectStore("m").get(k);q.onsuccess=function(){res(q.result||null);};q.onerror=function(){res(null);};});}).catch(function(){return null;});}
 function del(k){return idb().then(function(d){return new Promise(function(res){var t=d.transaction("m","readwrite");t.objectStore("m").delete(k);t.oncomplete=function(){res();};t.onerror=function(){res();};});}).catch(function(){});}
+
+/* ---------- environment ---------- */
+(function(){
+ var framed=false;try{framed=window.self!==window.top;}catch(e){framed=true;}
+ var links=[],host=location.hostname;
+ try{
+  var u=new URL(location.href);
+  if(host.indexOf("htmlpreview")>=0){
+   var q=decodeURIComponent(u.search.replace(/^\?/,""));
+   var m=q.match(/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.+)$/);
+   if(m){links.push({t:"Άνοιγμα σε raw.githack",u:"https://raw.githack.com/"+m[1]+"/"+m[2]+"/"+m[3]+"/"+m[4]});
+         links.push({t:"Άνοιγμα σε GitHub Pages",u:"https://"+m[1]+".github.io/"+m[2]+"/"+m[4]});}
+  }
+ }catch(e){}
+ if(framed){$("#envbar").hidden=false;ilog("Ανιχνεύθηκε iframe — ο επιλογέας αρχείων μπορεί να μπλοκάρεται.","warn");}
+ if(!links.length&&framed)links.push({t:"Άνοιγμα σε νέα καρτέλα",u:location.href});
+ $("#envLinks").innerHTML=links.map(function(l){return '<a class="btn sm cy" href="'+esc(l.u)+'" target="_blank" rel="noopener">'+esc(l.t)+'</a>';}).join("");
+ var okPick="showOpenFilePicker" in window;
+ ilog("Περιβάλλον: "+(framed?"iframe":"κανονική καρτέλα")+" · "+(okPick?"σύγχρονος επιλογέας":"βασικός επιλογέας")+" · createImageBitmap:"+(!!window.createImageBitmap));
+})();
+
+/* ---------- image intake ---------- */
+var SRC=null,CROP=null,DEMO={nz:14,bl:1.2,sh:35};
+function showCanvas(){
+ var cv=$("#cv");cv.hidden=false;$("#stagePh").hidden=true;
+ cv.width=SRC.w;cv.height=SRC.h;cv.getContext("2d").drawImage(SRC.c,0,0);
+ $("#imgStats").innerHTML='<span class="tag c">'+SRC.w+"×"+SRC.h+'</span><span class="tag g">'+esc(SRC.name)+'</span><span class="tag">'+(SRC.kind||"αρχείο")+'</span>';
+ renderReady();
+}
+function adopt(src,name,kind){
+ var iw=src.width||src.naturalWidth,ih=src.height||src.naturalHeight;
+ if(!iw||!ih)throw new Error("μηδενικές διαστάσεις εικόνας");
+ var s=Math.min(1,2600/Math.max(iw,ih)),w=Math.max(24,Math.round(iw*s)),h=Math.max(24,Math.round(ih*s));
+ var c=document.createElement("canvas");c.width=w;c.height=h;
+ var x=c.getContext("2d");x.imageSmoothingQuality="high";x.fillStyle="#fff";x.fillRect(0,0,w,h);x.drawImage(src,0,0,w,h);
+ SRC={c:c,w:w,h:h,name:name||"εικόνα",kind:kind||"αρχείο"};CROP=null;showCanvas();
+ ilog("Φορτώθηκε: "+SRC.name+" ("+w+"×"+h+")","ok");toast("Η εικόνα φορτώθηκε.","ok");
+}
+function decodeFile(file){
+ return new Promise(function(resolve,reject){
+  var done=false;
+  function ok(b){if(done)return;done=true;resolve(b);}
+  function fb(){
+   var url=URL.createObjectURL(file),img=new Image();
+   img.onload=function(){ok(img);setTimeout(function(){URL.revokeObjectURL(url);},4000);};
+   img.onerror=function(){
+    URL.revokeObjectURL(url);
+    var fr=new FileReader();
+    fr.onload=function(){var i2=new Image();i2.onload=function(){ok(i2);};
+     i2.onerror=function(){if(!done){done=true;reject(new Error("Μη υποστηριζόμενη μορφή. Σε iPhone δοκίμασε «Ρυθμίσεις → Κάμερα → Μορφές → Πιο συμβατό» ή export σε JPEG."));}};
+     i2.src=String(fr.result);};
+    fr.onerror=function(){if(!done){done=true;reject(new Error("Αποτυχία ανάγνωσης αρχείου."));}};
+    fr.readAsDataURL(file);
+   };
+   img.src=url;
+  }
+  if(window.createImageBitmap){createImageBitmap(file).then(ok).catch(function(){ilog("createImageBitmap απέτυχε — δοκιμή εναλλακτικής αποκωδικοποίησης.","warn");fb();});}
+  else fb();
+  setTimeout(function(){if(!done){done=true;reject(new Error("Χρονικό όριο αποκωδικοποίησης (15s)."));}},15000);
+ });
+}
+function handleFiles(files){
+ var f=files&&files[0];
+ if(!f){ilog("Δεν επιστράφηκε αρχείο από τον επιλογέα.","warn");toast("Δεν επιλέχθηκε αρχείο.","warn");return;}
+ ilog("Αρχείο: "+(f.name||"χωρίς όνομα")+" · "+(f.type||"άγνωστος τύπος")+" · "+(f.size/1024).toFixed(0)+" KB");
+ decodeFile(f).then(function(b){adopt(b,f.name||"φωτογραφία","αρχείο");})
+  .catch(function(e){ilog("Σφάλμα: "+e.message,"err");toast(e.message,"err");});
+}
+["fileImg","fileCam"].forEach(function(id){
+ var el=document.getElementById(id);
+ el.addEventListener("change",function(){handleFiles(this.files);this.value="";});
+ el.addEventListener("input",function(){if(this.files&&this.files.length)ilog("Επιλογή αρχείου…");});
+});
+["lblPick","lblCam"].forEach(function(id){
+ var l=document.getElementById(id);
+ l.addEventListener("click",function(){ilog("Άνοιγμα επιλογέα αρχείων…");});
+ l.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();document.getElementById(l.getAttribute("for")).click();}});
+});
+var drop=$("#drop");
+["dragenter","dragover"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();drop.classList.add("hot");});});
+["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();drop.classList.remove("hot");});});
+drop.addEventListener("drop",function(e){var dt=e.dataTransfer;if(dt&&dt.files&&dt.files.length){ilog("Απόθεση αρχείου.","ok");handleFiles(dt.files);}});
+window.addEventListener("paste",function(e){
+ var it=e.clipboardData&&e.clipboardData.items;if(!it)return;
+ for(var i=0;i<it.length;i++){if(it[i].type&&it[i].type.indexOf("image")===0){ilog("Επικόλληση εικόνας από πρόχειρο.","ok");handleFiles([it[i].getAsFile()]);return;}}
+});
+$("#btnUrl").onclick=function(){
+ var u=$("#imgUrl").value.trim();if(!u){toast("Γράψε μια διεύθυνση εικόνας.","warn");return;}
+ ilog("Φόρτωση URL: "+u);
+ var img=new Image();img.crossOrigin="anonymous";
+ img.onload=function(){try{adopt(img,u.split("/").pop(),"URL");}catch(e){ilog(e.message,"err");toast(e.message,"err");}};
+ img.onerror=function(){ilog("Αποτυχία φόρτωσης URL (δίκτυο, CORS ή λάθος διαδρομή).","err");toast("Δεν φορτώθηκε η διεύθυνση.","err");};
+ img.src=u;
+};
+$("#btnClearImg").onclick=function(){SRC=null;CROP=null;$("#cv").hidden=true;$("#stagePh").hidden=false;
+ $("#imgStats").innerHTML='<span class="tag">χωρίς εικόνα</span>';ilog("Η εικόνα αφαιρέθηκε.","warn");renderReady();};
+
+/* ---------- synthetic document ---------- */
+function makeDemo(){
+ var W=1400,H=1980,c=document.createElement("canvas");c.width=W;c.height=H;var x=c.getContext("2d");
+ x.fillStyle="#f6f2e8";x.fillRect(0,0,W,H);
+ var nz=DEMO.nz;
+ if(nz>0){var id=x.getImageData(0,0,W,H),d=id.data;
+  for(var i=0;i<d.length;i+=4){var n=(Math.random()-.5)*nz*2.2;d[i]=clamp(d[i]+n,0,255);d[i+1]=clamp(d[i+1]+n,0,255);d[i+2]=clamp(d[i+2]+n*.9,0,255);}
+  x.putImageData(id,0,0);}
+ x.fillStyle="#1b1b1b";
+ function T(t,px,py,size,weight,font){x.font=(weight||"400")+" "+(size||24)+"px "+(font||"Georgia, 'Times New Roman', serif");x.fillText(t,px,py);}
+ T("ΕΛΛΗΝΙΚΗ ΔΗΜΟΚΡΑΤΙΑ",70,86,26,"700");
+ T("ΑΡΧΗΓΕΙΟ ΕΛΛΗΝΙΚΗΣ ΑΣΤΥΝΟΜΙΑΣ",70,120,21);
+ T("ΓΕΝΙΚΗ ΠΕΡΙΦΕΡΕΙΑΚΗ ΑΣΤΥΝΟΜΙΚΗ ΔΙΕΥΘΥΝΣΗ ΘΕΣΣΑΛΙΑΣ",70,150,19);
+ T("ΔΙΕΥΘΥΝΣΗ ΑΣΤΥΝΟΜΙΑΣ ΜΑΓΝΗΣΙΑΣ",70,178,19);
+ T("ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ ΒΟΛΟΥ",70,212,27,"700");
+ T("Ελευθερίου Βενιζέλου 158 & Πεσόντων Αστυνομικών, Τ.Κ. 38446 - ΒΟΛΟΣ",70,244,18);
+ T("Αρμόδιος: Αρχ/κας ΜΑΛΕΤΣΙΚΑΣ Χρήστος",70,272,18);
+ T("Αριθμ. Πρωτ.: 2515/5Α/26/3591α",70,304,22,"700");
+ x.textAlign="right";T("Βόλος, 08 Οκτωβρίου 2026",W-70,120,21);
+ T("Π Ρ Ο Σ",W-70,180,22,"700");
+ T("ΑΣΤΥΝΟΜΙΚΟ ΤΜΗΜΑ ΚΑΛΑΜΑΡΙΑΣ",W-70,214,21,"700");
+ T("Ταξιαρχών 1",W-70,244,19);T("Τ.Κ. 55132 - ΚΑΛΑΜΑΡΙΑ ΘΕΣΣΑΛΟΝΙΚΗΣ",W-70,272,19);
+ x.textAlign="left";
+ T("ΘΕΜΑ: «Εφαρμογή Κ.Ο.Κ. – Σ.Ε.Σ.Ο.»",70,352,21,"700");
+ T("ΣΧΕΤ.: α) Άρθρα 24, 106, 107, 108 και 110 του Ν.5209/2025 «Περί Κ.Ο.Κ.»",70,388,18);
+ var body=[
+  "1. Σας διαβιβάζουμε την υπ' αριθ. 625300252250 από 28/09/2026 πράξη βεβαίωσης",
+  "παράβασης, σε τρία (3) αντίτυπα, καθότι ο οδηγός του υπ' αριθ. ΒΟΟ-5701 Ι.Χ.Ε.",
+  "αυτοκινήτου με στοιχεία ιδιοκτησίας ΕΥΦΡΑΙΜΙΛΔΗΣ Ευάγγελος του Νικολάου,",
+  "κάτοικος Καλαμαριάς, οδός Φιλαδελφείας 22, περιφέρεια δικαιοδοσίας σας, στις",
+  "28/09/2026 και ώρα 14:00 στην 39+370 χ/θ της Π.Ε.Ο. Λάρισας – Βόλου",
+  "διαπιστώθηκε με ειδική ηλεκτρονική τεχνική φωτογραφική συσκευή, να κινείται",
+  "με ταχύτητα 88 χ/ω αντί του ανωτάτου επιτρεπόμενου ορίου των 50 χ/ω, κατά",
+  "παράβαση του άρθρου 24§9αγ του Ν.5209/13-06-2025 «Περί Κ.Ο.Κ.».",
+  "",
+  "2. Κατόπιν των ανωτέρω παρακαλούμε όπως:",
+  "α. Καλέσετε ενώπιον σας τον προαναφερόμενο ιδιοκτήτη και αφού συμπληρώσετε",
+  "τις ενδείξεις που λείπουν στα αντίτυπα, ως και τον Α.Φ.Μ., του επιδώσετε το ένα",
+  "αντίτυπο (ροζ) και προβείτε ΑΜΕΣΑ στην αφαίρεση της άδειας ικανότητας οδήγησης",
+  "αυτού, για χρονικό διάστημα τριάντα (30) ημερών, καθώς και την καταχώρηση αυτής",
+  "στη σχετική εφαρμογή του P.O.L., σύμφωνα με την υπ' αριθ. 1259/22/1513527 από",
+  "19/07/2022 Διαταγή του Α.Ε.Α., αποστέλλοντας στην Υπηρεσία μας τη συνημμένη",
+  "έκθεση αφαίρεσης.",
+  "",
+  "β. Κατόπιν τούτου επιστρέψτε στην Υπηρεσία μας τα δύο αντίτυπα της κλήσης",
+  "(πράσινο & κίτρινο), τη φωτογραφία καθώς και τη συνημμένη έκθεση αφαίρεσης.",
+  "",
+  "3. Σε περίπτωση άρνησης προσέλευσης, μετά από νόμιμη πρόσκληση ή άρνησης",
+  "προσκόμισης της Άδειας Ικανότητας Οδήγησης, παρακαλούμε για την εφαρμογή των",
+  "διατάξεων 169 Π.Κ. (απείθεια) κοινοποιώντας σε συντρέχουσα περίπτωση."
+ ];
+ var y=440;body.forEach(function(l){T(l,70,y,19);y+=32;});
+ x.save();x.globalAlpha=.55;x.strokeStyle="#b3202a";x.lineWidth=4;
+ x.beginPath();x.arc(W-250,H-260,96,0,7);x.stroke();
+ x.fillStyle="#b3202a";x.font="700 17px Georgia, serif";x.textAlign="center";
+ x.fillText("ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ",W-250,H-268);x.fillText("ΒΟΛΟΥ",W-250,H-244);x.restore();
+ x.save();x.translate(W-430,330);x.rotate(-.09);x.fillStyle="#1d3f9e";
+ x.font="600 40px 'Segoe Script','Comic Sans MS',cursive";x.fillText("2515/11-26/305",0,0);x.restore();
+ if(DEMO.sh>0){var g=x.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,"rgba(0,0,0,"+(DEMO.sh/260)+")");g.addColorStop(.45,"rgba(0,0,0,0)");
+  g.addColorStop(1,"rgba(0,0,0,"+(DEMO.sh/150)+")");x.fillStyle=g;x.fillRect(0,0,W,H);}
+ var out=document.createElement("canvas");out.width=W;out.height=H;var ox=out.getContext("2d");
+ ox.fillStyle="#ddd8cc";ox.fillRect(0,0,W,H);
+ ox.translate(W/2,H/2);ox.rotate(1.1*Math.PI/180);ox.drawImage(c,-W/2,-H/2);
+ if(DEMO.bl>0){var sm=document.createElement("canvas");
+  sm.width=Math.max(1,Math.round(W/(1+DEMO.bl)));sm.height=Math.max(1,Math.round(H/(1+DEMO.bl)));
+  var sx=sm.getContext("2d");sx.drawImage(out,0,0,sm.width,sm.height);
+  ox.setTransform(1,0,0,1,0,0);ox.imageSmoothingEnabled=true;ox.drawImage(sm,0,0,W,H);}
+ return out;
+}
+function loadDemo(){
+ try{var c=makeDemo();adopt(c,"δοκιμαστικό-έγγραφο.png","συνθετικό");}
+ catch(e){ilog("Σφάλμα δοκιμαστικού: "+e.message,"err");toast(e.message,"err");}
+}
+$("#btnDemo").onclick=loadDemo;
+$("#btnRegen").onclick=function(){if(!SRC||SRC.kind!=="συνθετικό"){loadDemo();return;}loadDemo();};
+[["cNz","nz","vNz"],["cBl","bl","vBl"],["cSh","sh","vSh"]].forEach(function(b){
+ $("#"+b[0]).addEventListener("input",function(){DEMO[b[1]]=+this.value;$("#"+b[2]).textContent=this.value;
+  if(SRC&&SRC.kind==="συνθετικό"){clearTimeout(loadDemo._t);loadDemo._t=setTimeout(loadDemo,180);}});
+});
+$("#btnAuto").onclick=function(){if(!SRC){toast("Φόρτωσε εικόνα.","warn");return;}
+ CROP=detectDoc(SRC.c);showCanvas();ilog(CROP?"Εντοπίστηκε περίγραμμα εγγράφου.":"Δεν εντοπίστηκε περίγραμμα.",CROP?"ok":"warn");
+ toast(CROP?"Θα εφαρμόζεται αυτόματο crop.":"Δεν βρέθηκε περίγραμμα.",CROP?"ok":"warn");};
 
 /* ---------- ground truth ---------- */
 var GT_SEED=[
@@ -348,19 +549,19 @@ var GT_SEED=[
  {k:"father",t:"Πατρώνυμο",v:"ΝΙΚΟΛΑΟΣ",w:3,m:"txt"},
  {k:"protocol",t:"Αρ. πρωτοκόλλου",v:"2515/5Α/26/3591Α",w:6,m:"proto"},
  {k:"act",t:"Αριθ. πράξης",v:"625300252250",w:6,m:"num"},
- {k:"actDate",t:"Ημ. πράξης/παράβασης",v:"2026-09-28",w:5,m:"date"},
- {k:"vtime",t:"Ώρα παράβασης",v:"14:00",w:3,m:"time"},
+ {k:"actDate",t:"Ημ. πράξης",v:"2026-09-28",w:5,m:"date"},
+ {k:"vtime",t:"Ώρα",v:"14:00",w:3,m:"time"},
  {k:"speed",t:"Ταχύτητα",v:"88",w:4,m:"num"},
  {k:"limit",t:"Όριο",v:"50",w:4,m:"num"},
  {k:"article",t:"Άρθρο",v:"24§9ΑΓ",w:6,m:"art"},
  {k:"days",t:"Ημέρες αφαίρεσης",v:"30",w:8,m:"num"},
- {k:"km",t:"Χιλιομετρική θέση",v:"39+370",w:5,m:"km"},
- {k:"road",t:"Οδικός άξονας",v:"Π.Ε.Ο. ΛΑΡΙΣΑΣ - ΒΟΛΟΥ",w:4,m:"multi"},
+ {k:"km",t:"Χ/θ",v:"39+370",w:5,m:"km"},
+ {k:"road",t:"Άξονας",v:"Π.Ε.Ο. ΛΑΡΙΣΑΣ - ΒΟΛΟΥ",w:4,m:"multi"},
  {k:"street",t:"Οδός",v:"ΦΙΛΑΔΕΛΦΕΙΑΣ",w:4,m:"txt"},
- {k:"num",t:"Αριθμός οδού",v:"22",w:3,m:"num"},
- {k:"city",t:"Πόλη κατοικίας",v:"ΚΑΛΑΜΑΡΙΑΣ",w:3,m:"txt"},
+ {k:"num",t:"Αριθμός",v:"22",w:3,m:"num"},
+ {k:"city",t:"Πόλη",v:"ΚΑΛΑΜΑΡΙΑΣ",w:3,m:"txt"},
  {k:"law",t:"Νόμος",v:"5209/2025",w:3,m:"num"},
- {k:"hand",t:"Χειρόγραφος αριθμός",v:"2515/11-26/305",w:4,m:"proto"},
+ {k:"hand",t:"Χειρόγραφο",v:"2515/11-26/305",w:4,m:"proto"},
  {k:"docDate",t:"Ημ. εγγράφου",v:"2026-10-08",w:3,m:"date"}
 ];
 var GT=JSON.parse(JSON.stringify(GT_SEED));
@@ -369,38 +570,17 @@ function saveGT(){try{localStorage.setItem("troxo_tune_gt",JSON.stringify(GT));}
 function renderGT(){
  $("#gtList").innerHTML=GT.map(function(f,i){
   return '<div class="gtr" data-i="'+i+'"><b>'+esc(f.t)+'</b><input data-g="v" value="'+esc(f.v)+'"><input class="wgt" data-g="w" type="number" min="0" max="12" value="'+f.w+'"></div>';}).join("");
- var tot=GT.reduce(function(a,f){return a+(+f.w||0);},0);
- $("#gtStats").innerHTML='<span class="tag c">'+GT.length+' πεδία</span><span class="tag">συνολικό βάρος '+tot+'</span><span class="tag g">βαθμολογία 0–100</span>';
+ $("#gtStats").innerHTML='<span class="tag c">'+GT.length+' πεδία</span><span class="tag">βάρος '+GT.reduce(function(a,f){return a+(+f.w||0);},0)+'</span><span class="tag g">κλίμακα 0–100</span>';
 }
-$("#gtList").addEventListener("input",function(e){
- var k=e.target.dataset.g;if(!k)return;var i=+e.target.closest(".gtr").dataset.i;
- GT[i][k]=k==="w"?(+e.target.value||0):e.target.value;saveGT();});
-$("#gtReset").onclick=function(){GT=JSON.parse(JSON.stringify(GT_SEED));saveGT();toast("Επαναφορά από το έγγραφο.","ok");};
+$("#gtList").addEventListener("input",function(e){var k=e.target.dataset.g;if(!k)return;
+ var i=+e.target.closest(".gtr").dataset.i;GT[i][k]=k==="w"?(+e.target.value||0):e.target.value;saveGT();});
+$("#gtReset").onclick=function(){GT=JSON.parse(JSON.stringify(GT_SEED));saveGT();toast("Επαναφορά πεδίων.","ok");};
 $("#gtExport").onclick=function(){dl("ground-truth.json",JSON.stringify(GT,null,2));};
-$("#gtImport").onclick=function(){$("#gtFile").click();};
-$("#gtFile").onchange=function(){var f=this.files[0];if(!f)return;var rd=new FileReader();
+$("#gtFile").addEventListener("change",function(){var f=this.files[0];if(!f)return;var rd=new FileReader();
  rd.onload=function(){try{var o=JSON.parse(String(rd.result));if(Array.isArray(o)){GT=o;saveGT();toast("Τα πεδία φορτώθηκαν.","ok");}}catch(e){toast("Μη έγκυρο JSON.","err");}};
- rd.readAsText(f);this.value="";};
+ rd.readAsText(f);this.value="";});
 
-/* ---------- image ---------- */
-var SRC=null,CROP=null;
-function loadFile(f){if(!f)return;createImageBitmap(f).then(function(b){
- var s=Math.min(1,2600/Math.max(b.width,b.height)),w=Math.round(b.width*s),h=Math.round(b.height*s);
- var c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(b,0,0,w,h);
- SRC={c:c,w:w,h:h,name:f.name||"photo"};CROP=null;drawSrc();
- $("#imgStats").innerHTML='<span class="tag c">'+w+"×"+h+'</span><span class="tag">'+esc(SRC.name)+'</span>';
-}).catch(function(e){toast("Σφάλμα εικόνας: "+e.message,"err");});}
-function drawSrc(){var cv=$("#cv");cv.width=SRC.w;cv.height=SRC.h;cv.getContext("2d").drawImage(SRC.c,0,0);}
-$("#btnPick").onclick=function(){$("#fileImg").click();};
-$("#btnCam").onclick=function(){$("#fileCam").click();};
-$("#fileImg").onchange=function(){loadFile(this.files[0]);this.value="";};
-$("#fileCam").onchange=function(){loadFile(this.files[0]);this.value="";};
-window.addEventListener("paste",function(e){var it=e.clipboardData&&e.clipboardData.items;if(!it)return;
- for(var i=0;i<it.length;i++)if(it[i].type.indexOf("image")===0){loadFile(it[i].getAsFile());break;}});
-$("#btnAuto").onclick=function(){if(!SRC){toast("Φόρτωσε εικόνα.","warn");return;}
- CROP=detectDoc(SRC.c);drawSrc();toast(CROP?"Εντοπίστηκε περίγραμμα — θα εφαρμόζεται σε κάθε δοκιμή.":"Δεν εντοπίστηκε περίγραμμα.",CROP?"ok":"warn");};
-
-/* ---------- preprocessing ---------- */
+/* ---------- algorithms ---------- */
 function boxBlur(g,w,h,r){if(r<1)return g.slice();var t=new Float32Array(w*h),o=new Float32Array(w*h),x,y,i,n=2*r+1;
  for(y=0;y<h;y++){var s=0,row=y*w;for(i=-r;i<=r;i++)s+=g[row+clamp(i,0,w-1)];
   for(x=0;x<w;x++){t[row+x]=s/n;s+=g[row+clamp(x+r+1,0,w-1)]-g[row+clamp(x-r,0,w-1)];}}
@@ -467,7 +647,7 @@ function tone(g,gam,con){var o=new Float32Array(g.length),c=1+con/100;
 function medianF(g,w,h,n){if(n<3)return g;var r=n>>1,o=new Float32Array(g.length),b=[];
  for(var y=0;y<h;y++)for(var x=0;x<w;x++){b.length=0;for(var dy=-r;dy<=r;dy++)for(var dx=-r;dx<=r;dx++)b.push(g[clamp(y+dy,0,h-1)*w+clamp(x+dx,0,w-1)]);
   b.sort(function(p,q){return p-q;});o[y*w+x]=b[b.length>>1];}return o;}
-function bilateral(g,w,h,st){if(st<=0)return g;var r=2,sr=28,o=new Float32Array(g.length),a=st/60,sw=[],k=0;
+function bilateral(g,w,h,st){if(st<=0)return g;var r=2,o=new Float32Array(g.length),a=st/60,sw=[],k=0;
  for(var dy=-r;dy<=r;dy++)for(var dx=-r;dx<=r;dx++)sw.push(Math.exp(-(dx*dx+dy*dy)/3.92));
  for(var y=0;y<h;y++)for(var x=0;x<w;x++){var c=g[y*w+x],s=0,wt=0;k=0;
   for(var jy=-r;jy<=r;jy++)for(var jx=-r;jx<=r;jx++){var v=g[clamp(y+jy,0,h-1)*w+clamp(x+jx,0,w-1)],d=v-c,ww=sw[k++]*Math.exp(-d*d/1568);s+=v*ww;wt+=ww;}
@@ -503,9 +683,8 @@ function rot(g,w,h,d){if(!d)return g;var r=d*Math.PI/180,co=Math.cos(r),si=Math.
   o[y*w+x]=(sx>=0&&sy>=0&&sx<w&&sy<h)?g[sy*w+sx]:255;}return o;}
 function rotC(cv,d){if(!d)return cv;var c=document.createElement("canvas");c.width=cv.width;c.height=cv.height;var x=c.getContext("2d");
  x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.translate(c.width/2,c.height/2);x.rotate(-d*Math.PI/180);x.drawImage(cv,-cv.width/2,-cv.height/2);return c;}
-function pad(g,w,h,px){if(!px)return{g:g,w:w,h:h};var W=w+2*px,H=h+2*px,o=new Float32Array(W*H);o.fill(255);
+function padImg(g,w,h,px){if(!px)return{g:g,w:w,h:h};var W=w+2*px,H=h+2*px,o=new Float32Array(W*H);o.fill(255);
  for(var y=0;y<h;y++)for(var x=0;x<w;x++)o[(y+px)*W+x+px]=g[y*w+x];return{g:o,w:W,h:H};}
-
 var PRESETS={
  photo:{ch:"luma",flat:60,clip:2,gam:1,con:8,med:0,bil:0,rl:0,sharp:45,bin:"none",k:-.2,win:31},
  shadow:{ch:"luma",flat:100,clip:3,gam:1.05,con:12,med:0,bil:15,rl:0,sharp:55,bin:"none",k:-.2,win:41},
@@ -521,9 +700,9 @@ function preprocess(cfg){
  g=flatten(g,w,h,cfg.flat);g=clahe(g,w,h,8,cfg.clip);g=tone(g,cfg.gam,cfg.con);
  if(cfg.med>=3)g=medianF(g,w,h,cfg.med);
  g=bilateral(g,w,h,cfg.bil);g=rl(g,w,h,cfg.rl,1.6);g=unsharp(g,w,h,cfg.sharp,1);
- var ang=skew(g,w,h);if(Math.abs(ang)>.15){g=rot(g,w,h,ang);}
+ var ang=skew(g,w,h);if(Math.abs(ang)>.15)g=rot(g,w,h,ang);
  g=binarize(g,w,h,cfg.bin,cfg.win,cfg.k);
- var pp=pad(g,w,h,12);
+ var pp=padImg(g,w,h,12);
  var cv=document.createElement("canvas");cv.width=pp.w;cv.height=pp.h;
  var cx=cv.getContext("2d"),id=cx.createImageData(pp.w,pp.h),d=id.data;
  for(var i=0,p=0;i<pp.g.length;i++,p+=4){var v=pp.g[i]|0;d[p]=d[p+1]=d[p+2]=v;d[p+3]=255;}
@@ -531,7 +710,7 @@ function preprocess(cfg){
  var color=rotC(r.c,Math.abs(ang)>.15?ang:0);
  var cc=document.createElement("canvas");cc.width=pp.w;cc.height=pp.h;var ccx=cc.getContext("2d");
  ccx.fillStyle="#fff";ccx.fillRect(0,0,pp.w,pp.h);ccx.drawImage(color,12,12);
- return{cv:cv,color:cc,w:pp.w,h:pp.h,angle:ang};
+ return{cv:cv,color:cc,w:pp.w,h:pp.h};
 }
 
 /* ---------- engines ---------- */
@@ -541,43 +720,35 @@ function ensureOrt(){
  return get("lib/ort").then(function(v){
   if(v&&v.text){var b=new Blob([v.text],{type:"text/javascript"}),u=URL.createObjectURL(b);
    return new Promise(function(res,rej){var s=document.createElement("script");s.src=u;s.onload=function(){res();};s.onerror=function(){rej(new Error("αποτυχία τοπικής βιβλιοθήκης"));};document.head.appendChild(s);});}
-  if(NET.block)return Promise.reject(new Error("offline: δεν υπάρχει τοπική βιβλιοθήκη ONNX"));
+  if(NET.block)return Promise.reject(new Error("offline: λείπει η τοπική βιβλιοθήκη ONNX"));
   return new Promise(function(res,rej){var s=document.createElement("script");
    s.src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js";
    s.onload=function(){res();};s.onerror=function(){rej(new Error("αποτυχία φόρτωσης ONNX"));};document.head.appendChild(s);});
- }).then(function(){
-  return get("lib/wasm").then(function(w){
-   try{window.ort.env.wasm.numThreads=1;window.ort.env.wasm.simd=true;
-    if(w&&w.buf)window.ort.env.wasm.wasmBinary=w.buf;
-    else window.ort.env.wasm.wasmPaths="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/";
-   }catch(e){}
-  });
- });
+ }).then(function(){return get("lib/wasm").then(function(w){
+  try{window.ort.env.wasm.numThreads=1;window.ort.env.wasm.simd=true;
+   if(w&&w.buf)window.ort.env.wasm.wasmBinary=w.buf;
+   else window.ort.env.wasm.wasmPaths="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/";}catch(e){}});});
 }
+function parseDict(t){var ls=String(t).split(/\r?\n/);while(ls.length&&ls[ls.length-1]==="")ls.pop();if(ls[ls.length-1]!==" ")ls.push(" ");return ls;}
 function loadModels(){
  return Promise.all(["det","rec","cls","dict"].map(function(k){return get(k).then(function(v){return{k:k,v:v};});}))
-  .then(function(list){
-   var jobs=[];
-   list.forEach(function(it){
-    if(!it.v)return;
-    if(it.k==="dict"){var ls=String(it.v.text).split(/\r?\n/);while(ls.length&&ls[ls.length-1]==="")ls.pop();
-     if(ls[ls.length-1]!==" ")ls.push(" ");DICT=ls;return;}
-    jobs.push(ensureOrt().then(function(){return window.ort.InferenceSession.create(it.v.buf,{executionProviders:["wasm"],graphOptimizationLevel:"all"});})
-      .then(function(s){M[it.k]=s;}).catch(function(){}));
-   });
-   return Promise.all(jobs);
-  }).then(function(){
-   if(!M.det||!M.rec||!DICT){
-    var base="./models/";
-    return Promise.all(["det","rec","cls","dict"].map(function(k){
-     var f=k==="dict"?"el_dict.txt":k+".onnx";
-     return window.fetch(base+f,{cache:"force-cache"}).then(function(r){return r.ok?(k==="dict"?r.text():r.arrayBuffer()):null;}).catch(function(){return null;})
-      .then(function(d){if(!d)return;
-       if(k==="dict"){var ls=String(d).split(/\r?\n/);while(ls.length&&ls[ls.length-1]==="")ls.pop();if(ls[ls.length-1]!==" ")ls.push(" ");DICT=ls;return put("dict",{text:d,name:f});}
-       return ensureOrt().then(function(){return window.ort.InferenceSession.create(d,{executionProviders:["wasm"]});}).then(function(s){M[k]=s;return put(k,{buf:d,name:f});}).catch(function(){});});
-    }));
-   }
-  }).then(renderReady);
+ .then(function(list){
+  var jobs=[];
+  list.forEach(function(it){if(!it.v)return;
+   if(it.k==="dict"){DICT=parseDict(it.v.text);return;}
+   jobs.push(ensureOrt().then(function(){return window.ort.InferenceSession.create(it.v.buf,{executionProviders:["wasm"],graphOptimizationLevel:"all"});})
+    .then(function(s){M[it.k]=s;}).catch(function(){}));});
+  return Promise.all(jobs);
+ }).then(function(){
+  if(M.det&&M.rec&&DICT)return;
+  return Promise.all(["det","rec","cls","dict"].map(function(k){
+   var f=k==="dict"?"el_dict.txt":k+".onnx";
+   return window.fetch("./models/"+f,{cache:"force-cache"}).then(function(r){return r.ok?(k==="dict"?r.text():r.arrayBuffer()):null;}).catch(function(){return null;})
+   .then(function(d){if(!d)return;
+    if(k==="dict"){DICT=parseDict(d);return put("dict",{text:d,name:f});}
+    return ensureOrt().then(function(){return window.ort.InferenceSession.create(d,{executionProviders:["wasm"]});})
+     .then(function(s){M[k]=s;return put(k,{buf:d,name:f});}).catch(function(){});});}));
+ }).then(renderReady).catch(function(){renderReady();});
 }
 function detTensor(cv,limit){var w=cv.width,h=cv.height,ra=Math.max(w,h)>limit?limit/Math.max(w,h):1;
  var W=Math.max(32,Math.round(w*ra/32)*32),H=Math.max(32,Math.round(h*ra/32)*32);
@@ -590,9 +761,8 @@ function comps(prob,W,H,th){var lab=new Int32Array(W*H),cur=0,out=[],st=new Int3
   while(sp){var p=st[--sp],y=(p/W)|0,x=p-y*W;pts.push(p);sum+=prob[p];
    for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;var nx=x+dx,ny=y+dy;
     if(nx<0||ny<0||nx>=W||ny>=H)continue;var q=ny*W+nx;if(prob[q]>th&&!lab[q]){lab[q]=cur;st[sp++]=q;}}}
-  if(pts.length>=8)out.push({pts:pts,score:sum/pts.length});}
- return out;}
-function rect(pts,W){var n=pts.length,step=Math.max(1,Math.floor(n/2000)),mx=0,my=0,c=0,i;
+  if(pts.length>=8)out.push({pts:pts,score:sum/pts.length});}return out;}
+function rectOf(pts,W){var n=pts.length,step=Math.max(1,Math.floor(n/2000)),mx=0,my=0,c=0,i;
  for(i=0;i<n;i+=step){var p=pts[i],y=(p/W)|0;mx+=p-y*W;my+=y;c++;}mx/=c;my/=c;
  var sxx=0,syy=0,sxy=0;for(i=0;i<n;i+=step){var p2=pts[i],y2=(p2/W)|0,dx=p2-y2*W-mx,dy=y2-my;sxx+=dx*dx;syy+=dy*dy;sxy+=dx*dy;}
  sxx/=c;syy/=c;sxy/=c;var tr=sxx+syy,de=sxx*syy-sxy*sxy,l1=tr/2+Math.sqrt(Math.max(0,tr*tr/4-de));
@@ -602,8 +772,8 @@ function rect(pts,W){var n=pts.length,step=Math.max(1,Math.floor(n/2000)),mx=0,m
   if(u<u0)u0=u;if(u>u1)u1=u;if(v<v0)v0=v;if(v>v1)v1=v;}
  var w=u1-u0+1,h=v1-v0+1;
  if(h>w){var t=w;w=h;h=t;var tvx=vx;vx=px;vy=py;px=-tvx;py=tvx;var t0=u0;u0=v0;v0=t0;var t1=u1;u1=v1;v1=t1;}
- return{w:w,h:h,pt:function(u,v){return[mx+vx*u+px*v,my+vy*u+py*v];},u0:u0,u1:u1,v0:v0,v1:v1};}
-function crop(cv,cs,W,H){W=Math.max(4,Math.round(W));H=Math.max(4,Math.round(H));
+ return{w:w,h:h,u0:u0,u1:u1,v0:v0,v1:v1,pt:function(u,v){return[mx+vx*u+px*v,my+vy*u+py*v];}};}
+function cropRect(cv,cs,W,H){W=Math.max(4,Math.round(W));H=Math.max(4,Math.round(H));
  var Hm=homography([[0,0],[W,0],[W,H],[0,H]],cs);if(!Hm)return null;
  var sw=cv.width,sh=cv.height,sd=cv.getContext("2d").getImageData(0,0,sw,sh).data;
  var o=document.createElement("canvas");o.width=W;o.height=H;var oc=o.getContext("2d"),od=oc.createImageData(W,H),d=od.data;
@@ -612,7 +782,8 @@ function crop(cv,cs,W,H){W=Math.max(4,Math.round(W));H=Math.max(4,Math.round(H))
  oc.putImageData(od,0,0);return o;}
 function recTensor(cv,hh){var W=clamp(Math.ceil(hh*(cv.width/cv.height)),16,1600);
  var c=document.createElement("canvas");c.width=W;c.height=hh;var x=c.getContext("2d");
- x.fillStyle="#fff";x.fillRect(0,0,W,hh);x.imageSmoothingQuality="high";x.drawImage(cv,0,0,Math.min(W,Math.ceil(hh*(cv.width/cv.height))),hh);
+ x.fillStyle="#fff";x.fillRect(0,0,W,hh);x.imageSmoothingQuality="high";
+ x.drawImage(cv,0,0,Math.min(W,Math.ceil(hh*(cv.width/cv.height))),hh);
  var d=x.getImageData(0,0,W,hh).data,n=W*hh,f=new Float32Array(3*n);
  for(var i=0;i<n;i++)for(var ch=0;ch<3;ch++)f[ch*n+i]=(d[i*4+ch]/255-.5)/.5;
  return new window.ort.Tensor("float32",f,[1,3,hh,W]);}
@@ -621,19 +792,18 @@ function ctc(data,dims){var T=dims[1],C=dims[2],res="",cf=0,cn=0,prev=-1;
   for(c=0;c<C;c++){var v=data[off+c];if(v>bv){bv=v;bi=c;}}
   var mx=-1e30;for(c=0;c<C;c++)if(data[off+c]>mx)mx=data[off+c];
   var s=0;for(c=0;c<C;c++)s+=Math.exp(data[off+c]-mx);
-  if(bi!==prev&&bi!==0){var ch=DICT[bi-1];if(ch!==undefined){res+=ch;cf+=1/s;cn++;}}
-  prev=bi;}
+  if(bi!==prev&&bi!==0){var ch=DICT[bi-1];if(ch!==undefined){res+=ch;cf+=1/s;cn++;}}prev=bi;}
  return{text:res,conf:cn?cf/cn:0};}
 function paddle(pre,detLimit){
  var pack=detTensor(pre.cv,detLimit),feeds={};feeds[M.det.inputNames[0]]=pack.t;
  return M.det.run(feeds).then(function(r){
   var o=r[M.det.outputNames[0]],dm=o.dims,H=dm[dm.length-2],W=dm[dm.length-1];
   var cs=comps(o.data,W,H,.3),sx=pre.w/W,sy=pre.h/H,boxes=[];
-  cs.forEach(function(c){if(c.score<.55)return;var R=rect(c.pts,W);if(R.w*R.h<24||R.h<4)return;
+  cs.forEach(function(c){if(c.score<.55)return;var R=rectOf(c.pts,W);if(R.w*R.h<24||R.h<4)return;
    var d=R.w*R.h*1.7/(2*(R.w+R.h)),W2=R.w+2*d,H2=R.h+2*d;
-   var cxp=(R.pt(R.u0,R.v0)[0]+R.pt(R.u1,R.v1)[0])/2,cyp=(R.pt(R.u0,R.v0)[1]+R.pt(R.u1,R.v1)[1])/2;
-   var ux=(R.pt(R.u1,R.v0)[0]-R.pt(R.u0,R.v0)[0])/R.w,uy=(R.pt(R.u1,R.v0)[1]-R.pt(R.u0,R.v0)[1])/R.w;
-   var vx=(R.pt(R.u0,R.v1)[0]-R.pt(R.u0,R.v0)[0])/R.h,vy=(R.pt(R.u0,R.v1)[1]-R.pt(R.u0,R.v0)[1])/R.h;
+   var p0=R.pt(R.u0,R.v0),p1=R.pt(R.u1,R.v1),cxp=(p0[0]+p1[0])/2,cyp=(p0[1]+p1[1])/2;
+   var a=R.pt(R.u1,R.v0),b=R.pt(R.u0,R.v1);
+   var ux=(a[0]-p0[0])/R.w,uy=(a[1]-p0[1])/R.w,vx=(b[0]-p0[0])/R.h,vy=(b[1]-p0[1])/R.h;
    function P(u,v){return[(cxp+ux*u+vx*v)*sx,(cyp+uy*u+vy*v)*sy];}
    boxes.push({c:[P(-W2/2,-H2/2),P(W2/2,-H2/2),P(W2/2,H2/2),P(-W2/2,H2/2)],w:W2*sx,h:H2*sy,y:cyp*sy,x:cxp*sx});});
   boxes.sort(function(a,b){return(a.y-b.y)||(a.x-b.x);});
@@ -641,42 +811,39 @@ function paddle(pre,detLimit){
   var idx=0,lines=[],confs=[];
   function step(){
    if(idx>=boxes.length||idx>90)return Promise.resolve();
-   var b=boxes[idx++],cr=crop(pre.color,b.c,b.w,b.h);if(!cr)return step();
+   var b=boxes[idx++],cr=cropRect(pre.color,b.c,b.w,b.h);if(!cr)return step();
    var f={};f[M.rec.inputNames[0]]=recTensor(cr,48);
    return M.rec.run(f).catch(function(){var f2={};f2[M.rec.inputNames[0]]=recTensor(cr,32);return M.rec.run(f2);})
-    .then(function(rr){var oo=rr[M.rec.outputNames[0]];if(oo.dims[2]!==DICT.length+1)throw new Error("λεξικό≠μοντέλο");
-     var d=ctc(oo.data,oo.dims);if(d.text.trim()&&d.conf>=.3){lines.push(d.text);confs.push(d.conf);}})
-    .then(step);}
-  return step().then(function(){return{text:lines.join("\n"),conf:confs.length?confs.reduce(function(a,b){return a+b;},0)/confs.length:0,lines:lines.length};});
- });
+   .then(function(rr){var oo=rr[M.rec.outputNames[0]];if(oo.dims[2]!==DICT.length+1)throw new Error("λεξικό ≠ μοντέλο ("+oo.dims[2]+" vs "+(DICT.length+1)+")");
+    var d=ctc(oo.data,oo.dims);if(d.text.trim()&&d.conf>=.3){lines.push(d.text);confs.push(d.conf);}}).then(step);}
+  return step().then(function(){return{text:lines.join("\n"),conf:confs.length?confs.reduce(function(a,b){return a+b;},0)/confs.length:0,lines:lines.length};});});
 }
 function tesseract(pre,psm){
- var lp="./tessdata",key=lp;
  var load=window.Tesseract?Promise.resolve():new Promise(function(res,rej){
   if(NET.block)return rej(new Error("offline: το Tesseract δεν είναι τοπικά διαθέσιμο"));
   var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
-  s.onload=res;s.onerror=function(){rej(new Error("αποτυχία βιβλιοθήκης"));};document.head.appendChild(s);});
+  s.onload=res;s.onerror=function(){rej(new Error("αποτυχία βιβλιοθήκης Tesseract"));};document.head.appendChild(s);});
  return load.then(function(){
-  if(tw&&tkey===key)return tw;
+  if(tw&&tkey==="ell")return tw;
   if(tw)return tw.terminate().catch(function(){}).then(mk);
   return mk();
-  function mk(){return window.Tesseract.createWorker("ell",1,{langPath:lp}).then(function(w){tw=w;tkey=key;return w;});}
+  function mk(){return window.Tesseract.createWorker("ell",1,{langPath:"https://tessdata.projectnaptha.com/4.0.0"})
+   .then(function(w){tw=w;tkey="ell";return w;});}
  }).then(function(w){return w.setParameters({tessedit_pageseg_mode:String(psm)}).then(function(){return w.recognize(pre.cv);});})
-  .then(function(r){return{text:r.data.text||"",conf:(r.data.confidence||0)/100,lines:(r.data.text||"").split("\n").filter(Boolean).length};});
+ .then(function(r){return{text:r.data.text||"",conf:(r.data.confidence||0)/100,lines:(r.data.text||"").split("\n").filter(Boolean).length};});
 }
 
-/* ---------- extraction & scoring ---------- */
+/* ---------- extraction / scoring ---------- */
 var MONTHS={ΙΑΝΟΥΑΡΙΟΥ:1,ΦΕΒΡΟΥΑΡΙΟΥ:2,ΜΑΡΤΙΟΥ:3,ΑΠΡΙΛΙΟΥ:4,ΜΑΙΟΥ:5,ΙΟΥΝΙΟΥ:6,ΙΟΥΛΙΟΥ:7,ΑΥΓΟΥΣΤΟΥ:8,ΣΕΠΤΕΜΒΡΙΟΥ:9,ΟΚΤΩΒΡΙΟΥ:10,ΝΟΕΜΒΡΙΟΥ:11,ΔΕΚΕΜΒΡΙΟΥ:12};
 function iso(y,m,d){return y+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0");}
 function extract(text){
  var flat=String(text||"").replace(/\s+/g," "),F=fold(flat),o={};
  var pm=F.match(/([Α-Ω0-9]{3})\s*[-–]?\s*([Α-Ω0-9]{4})/);
  if(pm){var L="",D="",mp={"0":"Ο","1":"Ι","8":"Β","2":"Ζ"},md={"Ο":"0","Ι":"1","Ζ":"2","Β":"8","S":"5"};
-  pm[1].split("").forEach(function(c){L+=mp[c]||c;});pm[2].split("").forEach(function(c){D+=md[c]!==undefined?md[c]:c;});
-  o.plate=L+D;}
- var sm=F.match(/(ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ|ΤΤ|ΑΣΤΥΝΟΜΙΚΟ ΤΜΗΜΑ|ΑΤ|ΥΔΝΣΗ|ΥΠΟΔ\/ΝΣΗ)\s+([Α-Ω]{3,})/);
- if(sm)o.service=(sm[1].indexOf("ΤΡΟΧΑΙΑΣ")>=0?"ΤΤ ":sm[1].indexOf("ΑΣΤΥΝΟΜΙΚΟ")>=0?"ΑΤ ":sm[1].indexOf("ΤΤ")===0?"ΤΤ ":sm[1].indexOf("ΑΤ")===0?"ΑΤ ":"ΥΔΝΣΗ ")+sm[2];
- var rm=F.match(/Π\s*Ρ\s*Ο\s*Σ[\s\S]{0,40}?(ΑΣΤΥΝΟΜΙΚΟ ΤΜΗΜΑ|ΑΤ|ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ|ΤΤ)\s+([Α-Ω]{3,})/);
+  pm[1].split("").forEach(function(c){L+=mp[c]||c;});pm[2].split("").forEach(function(c){D+=md[c]!==undefined?md[c]:c;});o.plate=L+D;}
+ var sm=F.match(/(ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ|ΤΤ|ΑΣΤΥΝΟΜΙΚΟ ΤΜΗΜΑ|ΑΤ|ΥΔΝΣΗ)\s+([Α-Ω]{3,})/);
+ if(sm)o.service=(sm[1].indexOf("ΤΡΟΧΑΙΑΣ")>=0||sm[1]==="ΤΤ"?"ΤΤ ":sm[1].indexOf("ΑΣΤΥΝΟΜΙΚΟ")>=0||sm[1]==="ΑΤ"?"ΑΤ ":"ΥΔΝΣΗ ")+sm[2];
+ var rm=F.match(/Π\s*Ρ\s*Ο\s*Σ[\s\S]{0,60}?(ΑΣΤΥΝΟΜΙΚΟ ΤΜΗΜΑ|ΑΤ|ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ|ΤΤ)\s+([Α-Ω]{3,})/);
  if(rm)o.recipient=(rm[1].indexOf("ΤΡΟΧΑΙΑΣ")>=0||rm[1]==="ΤΤ"?"ΤΤ ":"ΑΤ ")+rm[2];
  var nm=F.match(/([Α-Ω]{5,})\s+([Α-Ω]{4,})\s+ΤΟΥ\s+([Α-Ω]{4,})/);
  if(nm){o.surname=nm[1];o.given=nm[2];o.father=nm[3];}
@@ -696,23 +863,19 @@ function extract(text){
  var dd=F.match(/(ΤΡΙΑΝΤΑ|ΕΙΚΟΣΙ|ΣΑΡΑΝΤΑ|ΠΕΝΗΝΤΑ|ΕΞΗΝΤΑ|ΕΒΔΟΜΗΝΤΑ|ΟΓΔΟΝΤΑ)\s*\(?(\d{1,3})?\)?\s*ΗΜΕΡ/);
  if(dd)o.days=String(dd[2]||W[dd[1]]||"");
  var km=F.match(/(\d{1,3})\s*\+\s*(\d{2,3})/);if(km)o.km=km[1]+"+"+km[2];
- if(F.indexOf("Π.Ε.Ο")>=0||F.indexOf("ΠΕΟ")>=0){var cs=[];["ΛΑΡΙΣΑΣ","ΒΟΛΟΥ","ΘΕΣΣΑΛΟΝΙΚΗΣ","ΚΑΒΑΛΑΣ","ΛΑΜΙΑΣ"].forEach(function(c){if(F.indexOf(c)>=0&&cs.indexOf(c)<0)cs.push(c);});
-  o.road="Π.Ε.Ο. "+cs.join(" - ");}
+ if(F.indexOf("Π.Ε.Ο")>=0||F.indexOf("ΠΕΟ")>=0){var cs=[];["ΛΑΡΙΣΑΣ","ΒΟΛΟΥ","ΘΕΣΣΑΛΟΝΙΚΗΣ","ΚΑΒΑΛΑΣ"].forEach(function(c){if(F.indexOf(c)>=0&&cs.indexOf(c)<0)cs.push(c);});o.road="Π.Ε.Ο. "+cs.join(" - ");}
  var ad=F.match(/ΟΔΟΣ\s+([Α-Ω\s]{4,30}?)\s+(\d{1,4})/);if(ad){o.street=ad[1].trim();o.num=ad[2];}
- ["ΚΑΛΑΜΑΡΙΑΣ","ΘΕΣΣΑΛΟΝΙΚΗΣ","ΒΟΛΟΥ","ΛΑΡΙΣΑΣ","ΛΗΤΗΣ","ΘΕΡΜΗΣ"].some(function(c){if(F.indexOf("ΚΑΤΟΙΚΟΣ "+c)>=0||F.indexOf("ΚΑΤΟΙΚΟΣ "+c.replace(/Σ$/,""))>=0){o.city=c;return true;}return false;});
- if(!o.city&&F.indexOf("ΚΑΛΑΜΑΡΙΑ")>=0)o.city="ΚΑΛΑΜΑΡΙΑΣ";
+ if(F.indexOf("ΚΑΛΑΜΑΡΙΑ")>=0)o.city="ΚΑΛΑΜΑΡΙΑΣ";
  var lw=F.match(/Ν\.?\s*(\d{4})\s*\/\s*(\d{4})/);if(lw)o.law=lw[1]+"/"+lw[2];
  return o;
 }
 function scoreField(f,got){
  if(got==null||got==="")return{s:0,cls:"x"};
  var a,b;
- if(f.m==="num"){a=digits(f.v);b=digits(got);}
+ if(f.m==="num"||f.m==="km"){a=digits(f.v);b=digits(got);}
  else if(f.m==="plate"){a=fold(f.v).replace(/-/g,"");b=fold(got).replace(/-/g,"");}
- else if(f.m==="km"){a=digits(f.v);b=digits(got);}
  else if(f.m==="proto"){a=fold(f.v).replace(/[\s\-–\/]/g,"");b=fold(got).replace(/[\s\-–\/]/g,"");}
  else if(f.m==="art"){a=fold(f.v).replace(/\s/g,"");b=fold(got).replace(/\s/g,"");}
- else if(f.m==="date"){a=fold(f.v);b=fold(got);}
  else if(f.m==="time"){a=f.v.replace(/\D/g,"");b=String(got).replace(/\D/g,"");}
  else if(f.m==="multi"){var ta=fold(f.v).split(/[\s\-\.]+/).filter(Boolean),tb=fold(got).split(/[\s\-\.]+/).filter(Boolean);
   var hit=ta.filter(function(t){return tb.some(function(u){return near(t,u)>.85;});}).length;
@@ -724,256 +887,202 @@ function scoreField(f,got){
  if(n>=.78)return{s:.55,cls:"p"};
  return{s:0,cls:"m"};
 }
-function scoreText(text){
- var got=extract(text),tot=0,acc=0,detail={};
+function scoreText(text){var got=extract(text),tot=0,acc=0,detail={};
  GT.forEach(function(f){var r=scoreField(f,got[f.k]);detail[f.k]={cls:r.cls,s:r.s,got:got[f.k]||""};tot+=+f.w||0;acc+=(+f.w||0)*r.s;});
- return{score:tot?100*acc/tot:0,detail:detail,got:got};
-}
+ return{score:tot?100*acc/tot:0,detail:detail};}
 
 /* ---------- sweep ---------- */
-var RUNS=[],running=false,cancel=false,best=null;
+var RUNS=[],best=null,cancel=false;
 function combos(){
  var mode=$("#cMode").value,eng=$("#cEng").value;
  var scales=$("#cScales").value==="1"?[2000]:$("#cScales").value==="2"?[1500,2400]:[1400,2000,2800];
- var binSet=$("#cBins").value;
- var bins=binSet==="keep"?["keep"]:binSet==="gn"?["keep","nick"]:binSet==="gnw"?["keep","nick","wolf"]:["keep","none","nick","wolf","sauvola"];
+ var bs=$("#cBins").value;
+ var bins=bs==="keep"?["keep"]:bs==="gn"?["keep","nick"]:bs==="gnw"?["keep","nick","wolf"]:["keep","none","nick","wolf","sauvola"];
  var dets=$("#cDet").value==="both"?[736,1280]:[+$("#cDet").value];
- var psms=eng==="tess"||eng==="both"?[6,4]:[6];
  var engines=eng==="both"?["paddle","tess"]:[eng];
- var names=Object.keys(PRESETS);
- if(mode==="quick"){scales=[2000];bins=["keep"];dets=[960];psms=[6];}
- if(mode==="max"){scales=$("#cScales").value==="1"?[1600,2400]:scales;}
+ if(mode==="quick"){scales=[2000];bins=["keep"];dets=[960];}
  var out=[];
- names.forEach(function(p){scales.forEach(function(sc){bins.forEach(function(bn){
+ Object.keys(PRESETS).forEach(function(p){scales.forEach(function(sc){bins.forEach(function(bn){
   engines.forEach(function(en){
-   if(en==="paddle")dets.forEach(function(dl2){out.push({preset:p,scale:sc,bin:bn,engine:en,det:dl2,psm:6});});
-   else psms.forEach(function(ps){out.push({preset:p,scale:sc,bin:bn,engine:en,det:960,psm:ps});});
+   if(en==="paddle")dets.forEach(function(d){out.push({preset:p,scale:sc,bin:bn,engine:en,det:d,psm:6});});
+   else [6,4].forEach(function(ps){out.push({preset:p,scale:sc,bin:bn,engine:en,det:960,psm:ps});});
   });});});});
  return out;
 }
-function cfgFor(c){
- var p=PRESETS[c.preset],o={};for(var k in p)o[k]=p[k];
- o.scale=c.scale;
- if(c.bin!=="keep")o.bin=c.bin;
- if(c.bin==="nick"||c.bin==="wolf")o.k=-.2;
- if(c.bin==="sauvola")o.k=.2;
- if(c.rl!==undefined)o.rl=c.rl;
- if(c.sharp!==undefined)o.sharp=c.sharp;
- return o;
-}
+function cfgFor(c){var p=PRESETS[c.preset],o={};for(var k in p)o[k]=p[k];o.scale=c.scale;
+ if(c.bin!=="keep"){o.bin=c.bin;o.k=(c.bin==="sauvola")?.2:-.2;}return o;}
 function renderReady(){
- var pad=M.det&&M.rec&&DICT;
- $("#readyStats").innerHTML='<span class="tag '+(pad?"g":"r")+'">PaddleOCR: '+(pad?"έτοιμο":"λείπουν μοντέλα")+'</span>'+
-  '<span class="tag '+(DICT?"g":"r")+'">λεξικό: '+(DICT?DICT.length:"—")+'</span>'+
-  '<span class="tag '+(SRC?"g":"a")+'">εικόνα: '+(SRC?"ναι":"όχι")+'</span>'+
-  '<span class="tag c">'+combos().length+' συνδυασμοί</span>'+
-  (pad?'':'<span class="tag a">φόρτωσε μοντέλα από το setup.html</span>');
- var a1=$("#a1tag");
+ var pad=!!(M.det&&M.rec&&DICT);
+ $("#readyStats").innerHTML='<span class="tag '+(SRC?"g":"r")+'">εικόνα: '+(SRC?"ναι":"όχι")+'</span>'+
+  '<span class="tag '+(pad?"g":"a")+'">Paddle: '+(pad?"έτοιμο":"χωρίς μοντέλα")+'</span>'+
+  '<span class="tag '+(DICT?"g":"a")+'">λεξικό: '+(DICT?DICT.length:"—")+'</span>'+
+  '<span class="tag c">'+combos().length+' συνδυασμοί</span>';
  get("lib/ort").then(function(o){get("lib/wasm").then(function(w){
-  var full=o&&w&&pad;
-  a1.className="tag "+(full?"g":"a");a1.textContent=full?"ΝΑΙ, πλήρως":"μερικώς — χρειάζεται κλείδωμα";
- });});
+  var full=o&&w&&pad,t=$("#a1tag");t.className="tag "+(full?"g":"a");t.textContent=full?"ΝΑΙ, πλήρως":"μερικώς — χρειάζεται κλείδωμα";});});
 }
 function renderBoard(){
- if(!RUNS.length){$("#board").innerHTML='<div class="empty">Δεν έχουν γίνει δοκιμές.</div>';$("#heat").innerHTML='<div class="empty">—</div>';return;}
- var sorted=RUNS.slice().sort(function(a,b){return b.score-a.score||b.conf-a.conf||a.ms-b.ms;});
+ if(!RUNS.length){$("#board").innerHTML='<div class="empty">Δεν έχουν γίνει δοκιμές.</div>';$("#heat").innerHTML='<div class="empty">—</div>';drawSpark();return;}
+ var sorted=RUNS.slice().sort(function(a,b){return b.score-a.score||b.conf-a.conf;});
  best=sorted[0];
  $("#board").innerHTML=sorted.slice(0,40).map(function(r,i){
   return '<div class="run '+(i===0?"win":"")+'" data-id="'+r.id+'"><div class="rk">'+(i+1)+'</div><div class="g">'+
-   '<div class="t">'+esc(r.label)+'</div><div class="s">'+r.engine+' · '+r.scale+'px · '+r.bin+' · det'+r.det+' · psm'+r.psm+' · '+r.lines+' γραμμές · '+r.ms+'ms</div></div>'+
+   '<div class="t">'+esc(r.label)+'</div><div class="s">'+r.engine+' · '+r.scale+'px · '+r.bin+' · det'+r.det+' · psm'+r.psm+' · '+r.lines+' γραμμές</div></div>'+
    '<div class="scorebar"><i style="width:'+r.score.toFixed(0)+'%"></i></div><span class="tag '+(r.score>75?"g":r.score>50?"a":"r")+'">'+r.score.toFixed(1)+'</span></div>';}).join("");
- var top=sorted.slice(0,14);
- var h='<table><thead><tr><th>συνδυασμός</th>'+GT.map(function(f){return '<th title="'+esc(f.t)+'">'+esc(f.k.slice(0,6))+'</th>';}).join("")+'<th>score</th></tr></thead><tbody>';
- top.forEach(function(r){h+='<tr><td class="lbl2">'+esc(r.label)+'</td>'+GT.map(function(f){
-  var d=r.detail[f.k]||{cls:"x"};return '<td><span class="cell '+d.cls+'" title="'+esc(f.t+": "+(d.got||"—"))+'"></span></td>';}).join("")+
-  '<td class="lbl2">'+r.score.toFixed(1)+'</td></tr>';});
+ var top=sorted.slice(0,14),h='<table><thead><tr><th>συνδυασμός</th>'+GT.map(function(f){return '<th>'+esc(f.k.slice(0,6))+'</th>';}).join("")+'<th>score</th></tr></thead><tbody>';
+ top.forEach(function(r){h+='<tr><td class="lbl2">'+esc(r.label)+'</td>'+GT.map(function(f){var d=r.detail[f.k]||{cls:"x"};
+  return '<td><span class="cell '+d.cls+'" title="'+esc(f.t+": "+(d.got||"—"))+'"></span></td>';}).join("")+'<td class="lbl2">'+r.score.toFixed(1)+'</td></tr>';});
  $("#heat").innerHTML=h+'</tbody></table>';
  renderWinner();drawSpark();
 }
 function drawSpark(){
- var cv=$("#spark"),w=cv.clientWidth||300;cv.width=w*devicePixelRatio;cv.height=60*devicePixelRatio;
- var x=cv.getContext("2d");x.scale(devicePixelRatio,devicePixelRatio);x.clearRect(0,0,w,60);
+ var cv=$("#spark"),w=cv.clientWidth||300;if(w<10)return;
+ cv.width=Math.round(w*devicePixelRatio);cv.height=Math.round(60*devicePixelRatio);
+ var x=cv.getContext("2d");x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);x.clearRect(0,0,w,60);
  if(RUNS.length<2)return;
  var mx=Math.max.apply(null,RUNS.map(function(r){return r.score;}))||100;
  x.strokeStyle="rgba(255,176,32,.9)";x.lineWidth=2;x.beginPath();
- RUNS.forEach(function(r,i){var px=8+(w-16)*i/(RUNS.length-1),py=54-48*(r.score/Math.max(mx,1));
-  if(i===0)x.moveTo(px,py);else x.lineTo(px,py);});
- x.stroke();
- x.fillStyle="rgba(34,211,238,.85)";
+ RUNS.forEach(function(r,i){var px=8+(w-16)*i/(RUNS.length-1),py=54-48*(r.score/Math.max(mx,1));i?x.lineTo(px,py):x.moveTo(px,py);});
+ x.stroke();x.fillStyle="rgba(34,211,238,.85)";
  RUNS.forEach(function(r,i){var px=8+(w-16)*i/(RUNS.length-1),py=54-48*(r.score/Math.max(mx,1));x.beginPath();x.arc(px,py,2,0,7);x.fill();});
 }
 function renderWinner(){
  if(!best){$("#winCard").innerHTML='<div class="empty">Τρέξε τη σάρωση για να αναδειχθεί νικητής.</div>';return;}
  var hits=GT.filter(function(f){return best.detail[f.k]&&best.detail[f.k].cls==="e";}).length;
  var miss=GT.filter(function(f){return !best.detail[f.k]||best.detail[f.k].cls==="x"||best.detail[f.k].cls==="m";});
- $("#winCard").innerHTML=
-  '<div class="stats"><span class="tag g">ΝΙΚΗΤΗΣ</span><span class="tag c">'+esc(best.label)+'</span>'+
+ $("#winCard").innerHTML='<div class="stats"><span class="tag g">ΝΙΚΗΤΗΣ</span><span class="tag c">'+esc(best.label)+'</span>'+
   '<span class="tag">'+best.engine+' · '+best.scale+'px · '+best.bin+' · det'+best.det+'</span>'+
-  '<span class="tag g">'+best.score.toFixed(1)+' / 100</span><span class="tag">'+hits+'/'+GT.length+' ακριβή</span>'+
-  '<span class="tag">'+best.ms+' ms</span></div>'+
-  '<div class="note cy">Η βαθμολογία προκύπτει από τη <b>δική σου φωτογραφία</b> και τα δικά σου πεδία. Δεν είναι γενικός ισχυρισμός για άλλες λήψεις — επιβεβαίωσέ τον σε 2–3 ακόμη δύσκολες φωτογραφίες πριν τον κλειδώσεις οριστικά.</div>'+
-  (miss.length?'<div class="note bad">Πεδία που αποτυγχάνουν: '+miss.map(function(f){return esc(f.t);}).join(", ")+'</div>':'')+
-  '<div class="row" style="margin-top:10px"><button class="btn go" id="wSave">Αποθήκευση ως προεπιλογή</button>'+
-  '<button class="btn cy" id="wPng">Λήψη PNG νικητή</button><button class="btn gh" id="wJson">Λήψη συνταγής</button>'+
-  '<a class="btn vi" href="./ocr-lab.html">Άνοιγμα Εργαστηρίου</a></div>'+
+  '<span class="tag g">'+best.score.toFixed(1)+' / 100</span><span class="tag">'+hits+'/'+GT.length+' ακριβή</span></div>'+
+  '<div class="note cy">Η βαθμολογία αφορά τη <b>δική σου εικόνα</b>. Επιβεβαίωσέ τον σε 2–3 ακόμη λήψεις πριν τον κλειδώσεις.</div>'+
+  (miss.length?'<div class="note bad">Αποτυγχάνουν: '+miss.map(function(f){return esc(f.t);}).join(", ")+'</div>':'')+
+  '<div class="row" style="margin-top:10px"><button class="btn go" id="wSave" type="button">Αποθήκευση προεπιλογής</button>'+
+  '<button class="btn cy" id="wPng" type="button">Λήψη PNG</button><button class="btn gh" id="wJson" type="button">Λήψη συνταγής</button></div>'+
   '<label class="lbl">Κείμενο νικητή</label><div class="txt">'+esc(best.text||"—")+'</div>';
- $("#wSave").onclick=function(){try{localStorage.setItem("troxo_best_recipe",JSON.stringify(best.cfg));}catch(e){}
-  toast("Ο νικητής αποθηκεύτηκε ως προεπιλογή.","ok");};
+ $("#wSave").onclick=function(){try{localStorage.setItem("troxo_best_recipe",JSON.stringify(best.cfg));}catch(e){}toast("Αποθηκεύτηκε.","ok");};
  $("#wJson").onclick=function(){dl("best-recipe.json",JSON.stringify({label:best.label,score:best.score,cfg:best.cfg,engine:best.engine,det:best.det,psm:best.psm},null,2));};
- $("#wPng").onclick=function(){var pre=preprocess(best.cfg);pre.cv.toBlob(function(b){var u=URL.createObjectURL(b),a=document.createElement("a");
+ $("#wPng").onclick=function(){preprocess(best.cfg).cv.toBlob(function(b){var u=URL.createObjectURL(b),a=document.createElement("a");
   a.href=u;a.download="winner.png";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);},"image/png");};
 }
 $("#btnRun").onclick=function(){
- if(!SRC){toast("Φόρτωσε πρώτα τη φωτογραφία.","err");return;}
+ if(!SRC){toast("Φόρτωσε εικόνα ή πάτα «Δοκιμαστικό έγγραφο».","err");location.hash="#img";return;}
  var eng=$("#cEng").value;
- if((eng==="paddle"||eng==="both")&&(!M.det||!M.rec||!DICT)){toast("Λείπουν μοντέλα PaddleOCR — φόρτωσέ τα από το setup.html.","err");return;}
- var list=combos();running=true;cancel=false;$("#btnRun").disabled=true;$("#btnStop").disabled=false;
- var i=0,t0=performance.now(),cache={};
+ if((eng==="paddle"||eng==="both")&&!(M.det&&M.rec&&DICT)){
+  toast("Λείπουν μοντέλα PaddleOCR. Διάλεξε Tesseract ή φόρτωσε μοντέλα.","err");return;}
+ var list=combos(),i=0,t0=performance.now(),cache={};cancel=false;
+ $("#btnRun").disabled=true;$("#btnStop").disabled=false;
  function next(){
   if(cancel||i>=list.length){finish();return;}
   var c=list[i++],cfg=cfgFor(c),key=JSON.stringify(cfg);
   $("#prog").style.width=(100*i/list.length)+"%";
-  $("#runStats").innerHTML='<span class="tag v">δοκιμή '+i+'/'+list.length+'</span><span class="tag">'+esc(c.preset)+'</span><span class="tag c">'+c.engine+'</span><span class="tag">'+Math.round((performance.now()-t0)/1000)+'s</span>';
+  $("#runStats").innerHTML='<span class="tag v">'+i+'/'+list.length+'</span><span class="tag">'+esc(c.preset)+'</span><span class="tag c">'+c.engine+'</span><span class="tag">'+Math.round((performance.now()-t0)/1000)+'s</span>';
   Promise.resolve().then(function(){
    var pre=cache[key];if(!pre){pre=preprocess(cfg);cache[key]=pre;}
    return (c.engine==="paddle"?paddle(pre,c.det):tesseract(pre,c.psm)).then(function(r){
     var sc=scoreText(r.text);
-    RUNS.push({id:"r"+Date.now()+"_"+i,label:c.preset+" · "+c.scale+" · "+(c.bin==="keep"?PRESETS[c.preset].bin:c.bin),
-      engine:c.engine,scale:c.scale,bin:c.bin==="keep"?PRESETS[c.preset].bin:c.bin,det:c.det,psm:c.psm,
-      score:sc.score,detail:sc.detail,text:r.text,conf:r.conf,lines:r.lines,ms:0,cfg:cfg});
-    renderBoard();
+    RUNS.push({id:"r"+i+"_"+Date.now(),label:c.preset+" · "+c.scale+" · "+(c.bin==="keep"?PRESETS[c.preset].bin:c.bin),
+     engine:c.engine,scale:c.scale,bin:cfg.bin,det:c.det,psm:c.psm,score:sc.score,detail:sc.detail,text:r.text,conf:r.conf,lines:r.lines,cfg:cfg});
    }).catch(function(e){
-    RUNS.push({id:"e"+i,label:c.preset+" · απέτυχε",engine:c.engine,scale:c.scale,bin:c.bin,det:c.det,psm:c.psm,
-     score:0,detail:{},text:"Σφάλμα: "+e.message,conf:0,lines:0,ms:0,cfg:cfg});
+    RUNS.push({id:"e"+i,label:c.preset+" · απέτυχε",engine:c.engine,scale:c.scale,bin:cfg.bin,det:c.det,psm:c.psm,
+     score:0,detail:{},text:"Σφάλμα: "+e.message,conf:0,lines:0,cfg:cfg});
+    ilog("Σάρωση: "+e.message,"err");
    });
-  }).then(function(){setTimeout(next,0);});
+  }).then(function(){renderBoard();setTimeout(next,0);});
  }
  function finish(){
-  running=false;$("#btnRun").disabled=false;$("#btnStop").disabled=true;$("#prog").style.width="100%";
-  var el=Math.round((performance.now()-t0)/1000);
-  RUNS.forEach(function(r){if(!r.ms)r.ms=Math.round(el*1000/Math.max(RUNS.length,1));});
-  renderBoard();
+  $("#btnRun").disabled=false;$("#btnStop").disabled=true;$("#prog").style.width="100%";
+  var el=Math.round((performance.now()-t0)/1000);renderBoard();
   $("#runStats").innerHTML='<span class="tag g">ολοκληρώθηκε</span><span class="tag">'+RUNS.length+' δοκιμές</span><span class="tag c">'+el+' s</span>'+(best?'<span class="tag g">νικητής '+best.score.toFixed(1)+'</span>':'');
-  toast(cancel?"Η σάρωση διακόπηκε.":"Ολοκληρώθηκε — νικητής "+(best?best.score.toFixed(1):"—"),"ok");
+  toast(cancel?"Διακόπηκε.":"Ολοκληρώθηκε — νικητής "+(best?best.score.toFixed(1):"—"),"ok");
  }
  next();
 };
 $("#btnStop").onclick=function(){cancel=true;toast("Διακοπή μετά την τρέχουσα δοκιμή.","warn");};
 $("#btnClear").onclick=function(){RUNS=[];best=null;renderBoard();$("#runStats").innerHTML='<span class="tag">ανενεργό</span>';$("#prog").style.width="0%";};
 $("#board").addEventListener("click",function(e){var r=e.target.closest("[data-id]");if(!r)return;
- var run=RUNS.filter(function(x){return x.id===r.dataset.id;})[0];if(!run)return;
- best=run;renderWinner();location.hash="#win";toast("Επιλέχθηκε: "+run.label,"ok");});
+ var run=RUNS.filter(function(x){return x.id===r.dataset.id;})[0];if(!run)return;best=run;renderWinner();location.hash="#win";});
 
-/* ---------- offline provisioning ---------- */
-var ORT_VER="1.19.2",ORT_BASE="https://cdn.jsdelivr.net/npm/onnxruntime-web@"+ORT_VER+"/dist/";
+/* ---------- offline ---------- */
+var ORT_BASE="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/";
 $("#btnProv").onclick=function(){
- var wasBlock=NET.block;NET.block=false;
- toast("Λήψη πακέτου offline…","warn");
+ var was=NET.block;NET.block=false;toast("Λήψη πακέτου offline…","warn");
  var jobs=[origFetch(ORT_BASE+"ort.min.js").then(function(r){if(!r.ok)throw new Error("ort.min.js");return r.text();})
-   .then(function(t){netAdd(ORT_BASE+"ort.min.js",true,new Blob([t]).size);return put("lib/ort",{text:t,name:"ort.min.js"});})];
- var names=["ort-wasm-simd-threaded.wasm","ort-wasm-simd.wasm","ort-wasm.wasm"];
- jobs.push(names.reduce(function(p,n){return p.then(function(done){
-  if(done)return true;
-  return origFetch(ORT_BASE+n).then(function(r){if(!r.ok)return false;return r.arrayBuffer().then(function(b){
-   netAdd(ORT_BASE+n,true,b.byteLength);return put("lib/wasm",{buf:b,name:n}).then(function(){return true;});});}).catch(function(){return false;});
+  .then(function(t){netAdd(ORT_BASE+"ort.min.js",true,new Blob([t]).size);return put("lib/ort",{text:t,name:"ort.min.js"});})];
+ jobs.push(["ort-wasm-simd-threaded.wasm","ort-wasm-simd.wasm","ort-wasm.wasm"].reduce(function(p,n){
+  return p.then(function(done){if(done)return true;
+   return origFetch(ORT_BASE+n).then(function(r){if(!r.ok)return false;return r.arrayBuffer().then(function(b){
+    netAdd(ORT_BASE+n,true,b.byteLength);return put("lib/wasm",{buf:b,name:n}).then(function(){return true;});});}).catch(function(){return false;});});
  },Promise.resolve(false)));
- ["det","rec","cls","dict"].forEach(function(k){
-  jobs.push(get(k).then(function(v){if(v)return;
-   var f=k==="dict"?"el_dict.txt":k+".onnx";
-   return window.fetch("./models/"+f,{cache:"force-cache"}).then(function(r){return r.ok?(k==="dict"?r.text():r.arrayBuffer()):null;})
-    .then(function(d){if(!d)return;return put(k,k==="dict"?{text:d,name:f}:{buf:d,name:f});}).catch(function(){});}));
- });
- Promise.all(jobs).then(function(){NET.block=wasBlock;return loadModels();}).then(function(){
-  renderOff();renderReady();toast("Το πακέτο offline αποθηκεύτηκε.","ok");
- }).catch(function(e){NET.block=wasBlock;toast("Αποτυχία: "+e.message,"err");});
+ ["det","rec","cls","dict"].forEach(function(k){jobs.push(get(k).then(function(v){if(v)return;
+  var f=k==="dict"?"el_dict.txt":k+".onnx";
+  return window.fetch("./models/"+f,{cache:"force-cache"}).then(function(r){return r.ok?(k==="dict"?r.text():r.arrayBuffer()):null;})
+   .then(function(d){if(!d)return;return put(k,k==="dict"?{text:d,name:f}:{buf:d,name:f});}).catch(function(){});}));});
+ Promise.all(jobs).then(function(){NET.block=was;return loadModels();}).then(function(){renderOff();renderReady();toast("Το πακέτο αποθηκεύτηκε.","ok");})
+ .catch(function(e){NET.block=was;toast("Αποτυχία: "+e.message,"err");});
 };
-$("#btnProvClear").onclick=function(){Promise.all([del("lib/ort"),del("lib/wasm")]).then(function(){renderOff();renderReady();toast("Το offline πακέτο διαγράφηκε.","warn");});};
+$("#btnProvClear").onclick=function(){Promise.all([del("lib/ort"),del("lib/wasm")]).then(function(){renderOff();renderReady();toast("Διαγράφηκε.","warn");});};
 $("#btnVerify").onclick=function(){
- if(!SRC){toast("Φόρτωσε εικόνα για τη δοκιμή.","warn");return;}
- if(!M.det||!M.rec||!DICT){toast("Λείπουν μοντέλα.","err");return;}
+ if(!SRC){toast("Φόρτωσε εικόνα.","warn");return;}
+ if(!(M.det&&M.rec&&DICT)){toast("Λείπουν μοντέλα Paddle.","err");return;}
  NET.block=true;renderOff();
  var cfg=best?best.cfg:cfgFor({preset:"photo",scale:2000,bin:"keep"});
- var pre=preprocess(cfg);
- paddle(pre,best?best.det:960).then(function(r){
-  var sc=scoreText(r.text);
-  toast("Χωρίς δίκτυο: "+sc.score.toFixed(1)+"/100 — λειτουργεί.","ok");
-  $("#runStats").innerHTML='<span class="tag g">offline δοκιμή ΟΚ</span><span class="tag">'+sc.score.toFixed(1)+'</span><span class="tag c">0 εξωτερικές κλήσεις</span>';
- }).catch(function(e){toast("Αποτυχία offline: "+e.message,"err");})
- .then(function(){NET.block=false;renderOff();});
+ paddle(preprocess(cfg),best?best.det:960).then(function(r){
+  var sc=scoreText(r.text);toast("Χωρίς δίκτυο: "+sc.score.toFixed(1)+"/100 — λειτουργεί.","ok");
+  $("#runStats").innerHTML='<span class="tag g">offline ΟΚ</span><span class="tag">'+sc.score.toFixed(1)+'</span>';
+ }).catch(function(e){toast("Αποτυχία offline: "+e.message,"err");}).then(function(){NET.block=false;renderOff();});
 };
 function renderOff(){
  Promise.all([get("lib/ort"),get("lib/wasm"),get("det"),get("rec"),get("dict")]).then(function(v){
-  $("#offStats").innerHTML='<span class="tag '+(v[0]?"g":"r")+'">βιβλιοθήκη ONNX</span>'+
-   '<span class="tag '+(v[1]?"g":"r")+'">WASM</span><span class="tag '+(v[2]?"g":"r")+'">det</span>'+
-   '<span class="tag '+(v[3]?"g":"r")+'">rec</span><span class="tag '+(v[4]?"g":"r")+'">λεξικό</span>'+
-   '<span class="tag '+(NET.block?"c":"")+'">'+(NET.block?"δίκτυο ΜΠΛΟΚΑΡΙΣΜΕΝΟ":"δίκτυο επιτρέπεται")+'</span>';
- });
+  $("#offStats").innerHTML='<span class="tag '+(v[0]?"g":"r")+'">ONNX js</span><span class="tag '+(v[1]?"g":"r")+'">WASM</span>'+
+   '<span class="tag '+(v[2]?"g":"r")+'">det</span><span class="tag '+(v[3]?"g":"r")+'">rec</span><span class="tag '+(v[4]?"g":"r")+'">λεξικό</span>'+
+   '<span class="tag '+(NET.block?"c":"")+'">'+(NET.block?"δίκτυο ΜΠΛΟΚ":"δίκτυο ΟΚ")+'</span>';});
 }
 $("#cOff").onclick=function(){NET.block=!NET.block;this.classList.toggle("on",NET.block);renderOff();
- toast(NET.block?"Όλες οι εξωτερικές κλήσεις μπλοκάρονται.":"Το δίκτυο επιτρέπεται ξανά.","warn");};
+ toast(NET.block?"Εξωτερικές κλήσεις μπλοκάρονται.":"Το δίκτυο επιτρέπεται.","warn");};
 
 /* ---------- manifest ---------- */
 var FILES=[
- {f:"index.html",r:"app",d:"Η εφαρμογή — απαραίτητο"},
- {f:"app.js",r:"app",d:"Λογική υποθέσεων — απαραίτητο"},
- {f:"style.css",r:"app",d:"Εμφάνιση εφαρμογής — απαραίτητο"},
- {f:"sw.js",r:"app",d:"Service worker / cache — απαραίτητο"},
- {f:"ocr-parser.js",r:"app",d:"Parser πεδίων — απαραίτητο"},
- {f:"manifest.json",r:"app",d:"PWA manifest"},
- {f:"icon-192.png",r:"app",d:"Εικονίδιο PWA"},
- {f:"models/det.onnx",r:"model",d:"PaddleOCR εντοπισμός — απαραίτητο για OCR"},
- {f:"models/rec.onnx",r:"model",d:"PaddleOCR αναγνώριση — απαραίτητο για OCR"},
- {f:"models/el_dict.txt",r:"model",d:"Λεξικό χαρακτήρων — απαραίτητο για OCR"},
- {f:"models/cls.onnx",r:"opt",d:"Διόρθωση 180° — προαιρετικό"},
- {f:"tessdata/ell.traineddata.gz",r:"opt",d:"ΜΟΝΟ για σύγκριση με Tesseract — δεν χρειάζεται για Paddle"},
- {f:"workshop.html",r:"tool",d:"Ενημέρωση αρχείων εφαρμογής (αντικαθιστά το patch.html)"},
- {f:"setup.html",r:"tool",d:"Φόρτωση & επικύρωση μοντέλων"},
- {f:"studio.html",r:"tool",d:"Χειροκίνητη προεπεξεργασία & λεξικά"},
- {f:"ocr-lab.html",r:"tool",d:"Αναγνώριση & εξαγωγή πεδίων"},
- {f:"tune.html",r:"tool",d:"Αυτόματη σάρωση & επιλογή νικητή (αυτό)"},
- {f:"patch.html",r:"old",d:"ΠΑΡΩΧΗΜΕΝΟ — αντικαταστάθηκε από το workshop.html"}
+ {f:"index.html",r:"app",d:"Η εφαρμογή — απαραίτητο"},{f:"app.js",r:"app",d:"Λογική υποθέσεων — απαραίτητο"},
+ {f:"style.css",r:"app",d:"Εμφάνιση — απαραίτητο"},{f:"sw.js",r:"app",d:"Service worker — απαραίτητο"},
+ {f:"ocr-parser.js",r:"app",d:"Parser πεδίων — απαραίτητο"},{f:"manifest.json",r:"app",d:"PWA manifest"},
+ {f:"models/det.onnx",r:"model",d:"PaddleOCR εντοπισμός"},{f:"models/rec.onnx",r:"model",d:"PaddleOCR αναγνώριση"},
+ {f:"models/el_dict.txt",r:"model",d:"Λεξικό χαρακτήρων"},{f:"models/cls.onnx",r:"opt",d:"Διόρθωση 180° — προαιρετικό"},
+ {f:"tessdata/ell.traineddata.gz",r:"opt",d:"Μόνο για Tesseract — δεν χρειάζεται για Paddle"},
+ {f:"workshop.html",r:"tool",d:"Ενημέρωση αρχείων εφαρμογής"},{f:"setup.html",r:"tool",d:"Φόρτωση & επικύρωση μοντέλων"},
+ {f:"studio.html",r:"tool",d:"Χειροκίνητη προεπεξεργασία & λεξικά"},{f:"ocr-lab.html",r:"tool",d:"Αναγνώριση & πεδία"},
+ {f:"tune.html",r:"tool",d:"Σάρωση & νικητής (αυτό)"},{f:"patch.html",r:"old",d:"Παρωχημένο — αντικαταστάθηκε"}
 ];
 var FS={};
-function renderMan(){
- var lbl={app:"ΕΦΑΡΜΟΓΗ",model:"ΜΟΝΤΕΛΟ",opt:"ΠΡΟΑΙΡΕΤΙΚΟ",tool:"ΕΡΓΑΛΕΙΟ",old:"ΠΑΡΩΧΗΜΕΝΟ"};
- $("#manifest").innerHTML=FILES.map(function(x){
-  var v=FS[x.f],c=v===true?"g":v===false?(x.r==="opt"||x.r==="old"?"a":"r"):v==="busy"?"busy":"";
-  return '<div class="manr"><i class="'+c+'"></i><span class="f">'+esc(x.f)+'</span>'+
-   '<span class="tag '+(x.r==="app"?"c":x.r==="model"?"v":x.r==="old"?"r":"")+'">'+lbl[x.r]+'</span>'+
-   '<span class="tag '+(v===true?"g":v===false?"a":"")+'">'+(v===true?"υπάρχει":v===false?"λείπει":"—")+'</span>'+
-   '<span class="d">'+esc(x.d)+'</span></div>';}).join("");
-}
-function probe(){
- var base=$("#baseUrl").value.trim().replace(/\/?$/,"/");
+function renderMan(){var lbl={app:"ΕΦΑΡΜΟΓΗ",model:"ΜΟΝΤΕΛΟ",opt:"ΠΡΟΑΙΡΕΤΙΚΟ",tool:"ΕΡΓΑΛΕΙΟ",old:"ΠΑΡΩΧΗΜΕΝΟ"};
+ $("#manifest").innerHTML=FILES.map(function(x){var v=FS[x.f],c=v===true?"g":v===false?(x.r==="opt"||x.r==="old"?"a":"r"):v==="busy"?"busy":"";
+  return '<div class="manr"><i class="'+c+'"></i><span class="f">'+esc(x.f)+'</span><span class="tag '+(x.r==="app"?"c":x.r==="model"?"v":x.r==="old"?"r":"")+'">'+lbl[x.r]+'</span>'+
+   '<span class="tag '+(v===true?"g":v===false?"a":"")+'">'+(v===true?"υπάρχει":v===false?"λείπει":"—")+'</span><span class="d">'+esc(x.d)+'</span></div>';}).join("");}
+function probe(){var base=$("#baseUrl").value.trim().replace(/\/?$/,"/");
  FILES.forEach(function(x){FS[x.f]="busy";});renderMan();
- FILES.forEach(function(x){
-  origFetch(base+x.f,{method:"HEAD",cache:"no-store"}).then(function(r){FS[x.f]=r.ok;renderMan();})
-   .catch(function(){FS[x.f]=false;renderMan();});
- });
-}
+ FILES.forEach(function(x){origFetch(base+x.f,{method:"HEAD",cache:"no-store"}).then(function(r){FS[x.f]=r.ok;renderMan();})
+  .catch(function(){FS[x.f]=false;renderMan();});});}
 $("#btnProbe").onclick=probe;
 $("#btnSame").onclick=function(){$("#baseUrl").value="./";probe();};
 
 /* ---------- rail ---------- */
 ["cMode","cEng","cScales","cBins","cDet"].forEach(function(id){$("#"+id).onchange=renderReady;});
-$("#cRef").onclick=function(){this.classList.toggle("on");};
 $("#cTheme").onchange=function(){document.documentElement.setAttribute("data-theme",this.value==="paper"?"paper":"dark");};
 $("#cDens").onchange=function(){document.documentElement.setAttribute("data-density",this.value);};
 $("#cFs").oninput=function(){document.documentElement.style.setProperty("--fs",this.value+"px");$("#vFs").textContent=this.value;};
-$("#cReset").onclick=function(){$("#cMode").value="full";$("#cEng").value="paddle";$("#cScales").value="2";$("#cBins").value="keep";$("#cDet").value="960";renderReady();toast("Ρυθμίσεις επανήλθαν.","ok");};
-$("#cRand").onclick=function(){
- var m=["quick","full","max"],s=["1","2","3"],b=["keep","gn","gnw","all"];
+$("#cReset").onclick=function(){$("#cMode").value="full";$("#cScales").value="1";$("#cBins").value="keep";$("#cDet").value="960";
+ $("#cNz").value=14;$("#cBl").value=1.2;$("#cSh").value=35;DEMO={nz:14,bl:1.2,sh:35};
+ $("#vNz").textContent="14";$("#vBl").textContent="1.2";$("#vSh").textContent="35";renderReady();toast("Επαναφορά.","ok");};
+$("#cRand").onclick=function(){var m=["quick","full","max"],s=["1","2","3"],b=["keep","gn","gnw","all"];
  $("#cMode").value=m[Math.floor(Math.random()*3)];$("#cScales").value=s[Math.floor(Math.random()*3)];$("#cBins").value=b[Math.floor(Math.random()*4)];
- renderReady();toast("Τυχαίος χώρος αναζήτησης: "+combos().length+" συνδυασμοί.","warn");};
-$("#cExport").onclick=function(){
- if(!RUNS.length){toast("Δεν υπάρχουν αποτελέσματα.","warn");return;}
- dl("sweep-report.json",JSON.stringify({at:new Date().toISOString(),image:SRC?SRC.name:null,
-  groundTruth:GT,runs:RUNS.map(function(r){return{label:r.label,engine:r.engine,scale:r.scale,bin:r.bin,det:r.det,psm:r.psm,score:r.score,conf:r.conf,lines:r.lines,cfg:r.cfg,detail:r.detail};}),
+ renderReady();toast("Τυχαίος χώρος: "+combos().length+" συνδυασμοί.","warn");};
+$("#cExport").onclick=function(){if(!RUNS.length){toast("Δεν υπάρχουν αποτελέσματα.","warn");return;}
+ dl("sweep-report.json",JSON.stringify({at:new Date().toISOString(),image:SRC?SRC.name:null,groundTruth:GT,
+  runs:RUNS.map(function(r){return{label:r.label,engine:r.engine,scale:r.scale,bin:r.bin,det:r.det,psm:r.psm,score:r.score,conf:r.conf,cfg:r.cfg,detail:r.detail};}),
   winner:best?{label:best.label,score:best.score,cfg:best.cfg}:null},null,2));};
 
 /* ---------- boot ---------- */
 renderGT();renderMan();renderOff();renderReady();
-loadModels().then(function(){renderReady();renderOff();});
+loadModels().then(function(){
+ if(!(M.det&&M.rec&&DICT)&&$("#cEng").value==="paddle"){$("#cEng").value="tess";renderReady();}
+});
 window.addEventListener("resize",drawSpark);
 var secs=[].slice.call(document.querySelectorAll("section")),links=[].slice.call(document.querySelectorAll("#tabs a"));
 function spy(){var y=window.scrollY+240,cur=secs[0];secs.forEach(function(s){if(s.offsetTop<=y)cur=s;});
@@ -982,4 +1091,4 @@ window.addEventListener("scroll",spy,{passive:true});spy();
 })();
 </script>
 </body>
-  </html>
+</html>
