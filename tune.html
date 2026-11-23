@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04070C">
+<title>ΑΥΤΟΜΑΤΗ ΒΕΛΤΙΣΤΟΠΟΙΗΣΗ · troxonomika</title>
+<style>
+:root{
+  --a9:#04070C;--a8:#080D14;--a7:#0E1620;--sf:#111A25;--sf2:#17222E;--ln:#1F2E3D;--ln2:#2B3F52;
+  --ink:#EAF2F9;--mut:#8BA2B8;--dim:#5B7084;
+  --amber:#FFB020;--cyan:#22D3EE;--violet:#A855F7;--plate:#2F6BFF;--lime:#A3E635;
+  --ok:#16DB65;--bad:#FF4D4F;--warn:#FFB020;--info:#38BDF8;--magenta:#FF3D9A;
+  --pad:15px;--r:14px;--fs:14px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+[data-theme="paper"]{--a9:#ECE6D9;--a8:#F4EFE4;--a7:#FCF8F0;--sf:#FFFDF8;--sf2:#F3EDE1;--ln:#DCD2C0;--ln2:#C4B8A2;
+--ink:#121820;--mut:#566173;--dim:#798492;--amber:#A56800;--cyan:#0E7490;--violet:#7C22CE;--plate:#1B4FD8;--lime:#4D7C0F;--ok:#0E8F45;--bad:#C62828;--warn:#A56800;--info:#0369A1;--magenta:#BE185D}
+[data-density="tight"]{--pad:10px;--r:11px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--a9);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:100px;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:
+ radial-gradient(780px 480px at 2% -12%,rgba(255,176,32,.15),transparent 62%),
+ radial-gradient(640px 430px at 100% -2%,rgba(168,85,247,.16),transparent 60%),
+ radial-gradient(900px 620px at 44% 118%,rgba(34,211,238,.12),transparent 62%),
+ linear-gradient(180deg,var(--a9),var(--a8) 44%,var(--a9))}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.36;
+ background-image:linear-gradient(rgba(255,255,255,.026) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.026) 1px,transparent 1px);
+ background-size:42px 42px;mask-image:radial-gradient(circle at 50% 10%,#000,transparent 74%);animation:drift 48s linear infinite}
+@keyframes drift{to{background-position:420px 0,0 420px}}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:var(--a8);border-left:1px solid var(--ln)}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--amber),var(--violet));border-radius:20px;border:2px solid var(--a8)}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--cyan),var(--lime))}
+*{scrollbar-color:var(--amber) var(--a8);scrollbar-width:thin}
+.wrap{max-width:1080px;margin:0 auto;padding:0 13px}
+header.top{position:sticky;top:0;z-index:70;backdrop-filter:blur(14px);background:color-mix(in srgb,var(--a9) 88%,transparent);border-bottom:1px solid var(--ln)}
+.topin{display:flex;align-items:center;gap:11px;padding:9px 13px;max-width:1080px;margin:0 auto}
+.mark{width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;background:linear-gradient(145deg,var(--amber),#7A4A00);box-shadow:0 0 0 1px var(--ln2),0 8px 20px rgba(255,176,32,.3);position:relative;overflow:hidden}
+.mark::after{content:"";position:absolute;left:0;right:0;height:2px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:scan 2.6s ease-in-out infinite}
+@keyframes scan{0%,100%{top:6px;opacity:.2}50%{top:28px;opacity:1}}
+.brand b{display:block;font-size:14px;letter-spacing:.16em;text-transform:uppercase}
+.brand span{display:block;font-size:10.5px;color:var(--mut)}
+.netpill{margin-left:auto;font-size:10.5px;padding:6px 10px;border-radius:999px;white-space:nowrap;border:1px solid color-mix(in srgb,var(--ok) 40%,var(--ln));color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,transparent);cursor:pointer}
+.netpill.warn{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--ln));background:color-mix(in srgb,var(--amber) 9%,transparent)}
+.netpill.off{color:var(--cyan);border-color:color-mix(in srgb,var(--cyan) 45%,var(--ln));background:color-mix(in srgb,var(--cyan) 9%,transparent)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 11px 7px;max-width:1080px;margin:0 auto}
+nav.tabs a{flex:none;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);text-decoration:none;padding:7px 11px;border-radius:9px;border:1px solid transparent;white-space:nowrap}
+nav.tabs a.on{color:var(--ink);background:var(--sf);border-color:var(--ln2);box-shadow:inset 0 -2px 0 var(--amber)}
+.rail{position:sticky;top:92px;z-index:60;background:color-mix(in srgb,var(--a8) 94%,transparent);backdrop-filter:blur(12px);border-block:1px solid var(--ln)}
+.railin{display:flex;gap:8px;overflow-x:auto;padding:9px 13px;max-width:1080px;margin:0 auto}
+.ctl{flex:none;width:136px;display:flex;flex-direction:column;gap:4px;background:var(--a7);border:1px solid var(--ln);border-radius:11px;padding:8px 9px}
+.ctl.w{width:180px}
+.ctl>small{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between}
+.ctl>small b{color:var(--amber);font-weight:700}
+input,select,textarea,button{font-family:inherit;font-size:var(--fs);color:var(--ink)}
+input,select,textarea{width:100%;background:var(--a7);border:1px solid var(--ln);border-radius:10px;padding:9px 10px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--amber)}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 14px) 17px,calc(100% - 9px) 17px;background-size:5px 5px;background-repeat:no-repeat;padding-right:26px}
+.ctl select,.ctl input{padding:6px 8px;font-size:12.5px;border-radius:8px}
+.ctl select{background-position:calc(100% - 12px) 14px,calc(100% - 8px) 14px}
+textarea{font-family:var(--mono);font-size:12.5px;line-height:1.5;resize:vertical;min-height:70px}
+input[type=range]{padding:0;height:22px;background:transparent;border:0;accent-color:var(--amber)}
+.sw{display:flex;align-items:center;gap:7px;background:var(--a7);border:1px solid var(--ln);border-radius:10px;padding:8px 9px;cursor:pointer;user-select:none;min-height:38px}
+.sw i{width:31px;height:17px;border-radius:999px;background:var(--ln2);position:relative;flex:none;transition:.18s}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--mut);transition:.18s}
+.sw.on i{background:linear-gradient(90deg,var(--amber),var(--cyan))}.sw.on i::after{left:16px;background:#fff}
+.sw span{font-size:11px;color:var(--mut);line-height:1.2}.sw.on span{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--ln2);background:var(--sf2);border-radius:11px;padding:11px 14px;font-weight:650;cursor:pointer;transition:.14s;min-height:44px;text-decoration:none}
+.btn:hover{border-color:var(--amber);transform:translateY(-1px)}.btn:active{transform:translateY(1px) scale(.99)}
+.btn.pri{background:linear-gradient(135deg,var(--amber),#B07000);border-color:transparent;color:#241700;box-shadow:0 10px 24px rgba(255,176,32,.28)}
+.btn.go{background:linear-gradient(135deg,var(--ok),#0A7A3B);border-color:transparent;color:#03210F}
+.btn.vi{background:linear-gradient(135deg,var(--violet),#5B21B6);border-color:transparent;color:#fff}
+.btn.cy{background:linear-gradient(135deg,var(--cyan),#0E7490);border-color:transparent;color:#04212A}
+.btn.gh{background:transparent}.btn.sm{padding:7px 10px;min-height:36px;font-size:12.5px;border-radius:9px}
+.btn.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--ln))}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>.btn{flex:1 1 148px}
+section{scroll-margin-top:190px;padding:24px 0 4px}
+.hd{display:flex;align-items:center;gap:9px;margin:0 0 11px}.hd h2{margin:0;font-size:16.5px;letter-spacing:.04em}
+.hd .num{font-size:10px;letter-spacing:.13em;color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 40%,var(--ln));padding:3px 7px;border-radius:6px}
+.hd .bar{flex:1;height:6px;border-radius:3px;opacity:.5;background:repeating-linear-gradient(45deg,var(--amber) 0 7px,transparent 7px 14px)}
+.card{background:linear-gradient(180deg,var(--sf),var(--a7));border:1px solid var(--ln);border-radius:var(--r);padding:var(--pad);box-shadow:0 16px 44px rgba(0,0,0,.45);margin-bottom:11px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
+.lead{color:var(--mut);font-size:13px;margin:0 0 10px}.k{color:var(--ink);font-weight:650}
+code.i{font-family:var(--mono);font-size:12px;background:var(--a9);border:1px solid var(--ln);padding:2px 5px;border-radius:5px;color:var(--cyan);word-break:break-all}
+.note{font-size:12.5px;color:var(--mut);border-left:3px solid var(--amber);padding:8px 11px;background:color-mix(in srgb,var(--amber) 7%,transparent);border-radius:0 10px 10px 0;margin:10px 0}
+.note.cy{border-left-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 7%,transparent)}
+.note.vi{border-left-color:var(--violet);background:color-mix(in srgb,var(--violet) 7%,transparent)}
+.note.bad{border-left-color:var(--bad);background:color-mix(in srgb,var(--bad) 7%,transparent)}
+.tag{font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:3px 7px;border-radius:6px;border:1px solid var(--ln2);color:var(--mut);white-space:nowrap}
+.tag.g{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 42%,var(--ln));background:color-mix(in srgb,var(--ok) 9%,transparent)}
+.tag.a{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--ln));background:color-mix(in srgb,var(--amber) 9%,transparent)}
+.tag.r{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--ln));background:color-mix(in srgb,var(--bad) 9%,transparent)}
+.tag.c{color:var(--cyan);border-color:color-mix(in srgb,var(--cyan) 40%,var(--ln))}
+.tag.v{color:var(--violet);border-color:color-mix(in srgb,var(--violet) 45%,var(--ln))}
+.stats{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.lbl{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);display:block;margin:9px 0 4px}
+.two{display:grid;gap:9px;grid-template-columns:1fr 1fr}.three{display:grid;gap:9px;grid-template-columns:repeat(3,1fr)}
+@media(max-width:680px){.two,.three{grid-template-columns:1fr}}
+.ans{display:grid;gap:10px}
+.ansc{border:1px solid var(--ln2);border-radius:13px;padding:12px;background:var(--a7);position:relative;overflow:hidden}
+.ansc::after{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,var(--amber),var(--cyan))}
+.ansc h3{margin:0 0 5px;font-size:14.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ansc p{margin:0;font-size:12.5px;color:var(--mut)}
+.gt{display:grid;gap:7px}
+.gtr{display:grid;gap:7px;grid-template-columns:1fr 1.5fr 62px;align-items:center;border:1px solid var(--ln);border-radius:10px;padding:8px 9px;background:var(--a7)}
+.gtr b{font-size:12px}
+.gtr input{padding:6px 8px;font-size:12.5px;font-family:var(--mono)}
+@media(max-width:560px){.gtr{grid-template-columns:1fr 1fr}.gtr .wgt{grid-column:1/-1}}
+.stage{position:relative;border:1px solid var(--ln2);border-radius:12px;overflow:hidden;background:#000}
+.stage canvas{display:block;width:100%;height:auto}
+.pbar{height:8px;border-radius:4px;background:var(--a9);border:1px solid var(--ln);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--violet),var(--cyan));transition:width .15s}
+.board{display:grid;gap:7px;max-height:420px;overflow:auto}
+.run{display:flex;gap:9px;align-items:center;border:1px solid var(--ln);border-radius:11px;padding:9px 10px;background:var(--a7);cursor:pointer}
+.run:hover{border-color:var(--ln2)}
+.run.win{border-color:color-mix(in srgb,var(--ok) 45%,var(--ln));background:color-mix(in srgb,var(--ok) 7%,var(--a7))}
+.run .rk{width:26px;height:26px;flex:none;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:12px;background:var(--sf2);border:1px solid var(--ln2);color:var(--mut)}
+.run.win .rk{background:linear-gradient(135deg,var(--ok),#0A7A3B);color:#03210F;border-color:transparent}
+.run .g{flex:1;min-width:0}
+.run .t{font-size:12.5px;font-weight:650}
+.run .s{font-size:11px;color:var(--dim);font-family:var(--mono)}
+.scorebar{width:74px;height:7px;border-radius:4px;background:var(--a9);border:1px solid var(--ln);overflow:hidden;flex:none}
+.scorebar i{display:block;height:100%;background:linear-gradient(90deg,var(--bad),var(--amber),var(--lime))}
+.heat{overflow:auto;border:1px solid var(--ln);border-radius:11px;background:var(--a9)}
+.heat table{border-collapse:collapse;font-size:10.5px;font-family:var(--mono)}
+.heat th{position:sticky;top:0;background:var(--sf2);color:var(--dim);font-size:9px;letter-spacing:.06em;padding:6px 5px;border-bottom:1px solid var(--ln);text-align:left;white-space:nowrap}
+.heat td{padding:0;border-bottom:1px solid var(--ln);border-right:1px solid var(--ln)}
+.heat td.lbl2{padding:5px 7px;color:var(--mut);white-space:nowrap;background:var(--a7);position:sticky;left:0}
+.cell{width:22px;height:22px;display:block}
+.cell.e{background:var(--ok)}.cell.n{background:var(--lime)}.cell.p{background:var(--amber)}.cell.m{background:var(--bad)}.cell.x{background:var(--ln2)}
+.legend{display:flex;gap:9px;flex-wrap:wrap;font-size:11px;color:var(--mut);margin-top:8px;align-items:center}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:-2px}
+.man{display:grid;gap:7px}
+.manr{display:flex;gap:9px;align-items:center;border:1px solid var(--ln);border-radius:10px;padding:9px 10px;background:var(--a7);flex-wrap:wrap}
+.manr i{width:9px;height:9px;border-radius:50%;background:var(--dim);flex:none;font-style:normal}
+.manr i.g{background:var(--ok);box-shadow:0 0 8px var(--ok)}.manr i.r{background:var(--bad)}.manr i.a{background:var(--amber)}.manr i.busy{background:var(--cyan);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.manr .f{font-family:var(--mono);font-size:12.5px;flex:1;min-width:130px}
+.manr .d{font-size:11px;color:var(--dim);flex-basis:100%}
+.net{font-family:var(--mono);font-size:11px;max-height:160px;overflow:auto;background:var(--a9);border:1px solid var(--ln);border-radius:10px;padding:9px}
+.net div{padding:2px 0;color:var(--dim)}.net div.ok{color:var(--ok)}.net div.err{color:var(--bad)}.net div.blk{color:var(--cyan)}
+.txt{font-family:var(--mono);font-size:12px;white-space:pre-wrap;word-break:break-word;background:var(--a9);border:1px solid var(--ln);border-radius:11px;padding:11px;max-height:260px;overflow:auto}
+.empty{color:var(--dim);font-size:13px;text-align:center;padding:16px}
+#toast{position:fixed;left:12px;right:12px;bottom:14px;z-index:99;display:grid;gap:8px;pointer-events:none}
+.tst{background:var(--sf2);border:1px solid var(--ln2);border-left:4px solid var(--amber);border-radius:12px;padding:11px 13px;font-size:13px;box-shadow:0 16px 40px rgba(0,0,0,.55);animation:up .22s ease}
+.tst.ok{border-left-color:var(--ok)}.tst.err{border-left-color:var(--bad)}.tst.warn{border-left-color:var(--cyan)}
+@keyframes up{from{opacity:0;transform:translateY(14px)}}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.3,1) both}@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+footer{color:var(--dim);font-size:11px;text-align:center;padding:22px 13px 6px;line-height:1.7}
+@media(max-width:520px){.brand span{display:none}section{scroll-margin-top:214px}.rail{top:90px}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="topin">
+    <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#241700" stroke-width="2.2" stroke-linecap="round"><path d="M3 17l4-6 4 3 4-7 6 10"/><circle cx="7" cy="7" r="1.6"/></svg></div>
+    <div class="brand"><b>Βελτιστοποίηση</b><span>σάρωση scan × parser · επιλογή νικητή</span></div>
+    <div class="netpill" id="netpill">δίκτυο: 0 B</div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <a href="#ans" class="on">Απαντήσεις</a><a href="#gt">Πεδία</a><a href="#img">Εικόνα</a>
+    <a href="#sweep">Σάρωση</a><a href="#win">Νικητής</a><a href="#off">Offline</a><a href="#files">Αρχεία</a>
+  </nav>
+</header>
+
+<div class="rail"><div class="railin">
+  <label class="ctl w"><small>Ένταση σάρωσης</small><select id="cMode">
+    <option value="quick">Γρήγορη · 7</option><option value="full" selected>Πλήρης · 28+</option><option value="max">Εξαντλητική · 84+</option></select></label>
+  <label class="ctl"><small>Κινητήρας</small><select id="cEng"><option value="paddle" selected>PaddleOCR</option><option value="tess">Tesseract</option><option value="both">Και οι δύο</option></select></label>
+  <label class="ctl"><small>Κλίμακες</small><select id="cScales"><option value="1">1 (2000)</option><option value="2" selected>2 (1500/2400)</option><option value="3">3 (1400/2000/2800)</option></select></label>
+  <label class="ctl"><small>Δυαδικό</small><select id="cBins"><option value="keep" selected>Όπως η προεπιλογή</option><option value="gn">Γκρι + NICK</option><option value="gnw">Γκρι+NICK+Wolf</option><option value="all">Όλα</option></select></label>
+  <label class="ctl"><small>Det όριο</small><select id="cDet"><option value="960" selected>960</option><option value="both">736 & 1280</option><option value="1280">1280</option></select></label>
+  <label class="ctl"><small>Refine</small><div class="sw on" id="cRef"><i></i><span>2ο πέρασμα</span></div></div>
+  <label class="ctl"><small>Αυστηρή offline</small><div class="sw" id="cOff"><i></i><span>μπλοκάρει δίκτυο</span></div></div>
+  <label class="ctl"><small>Θέμα</small><select id="cTheme"><option value="dark">Ασφάλτινο</option><option value="paper">Χαρτί</option></select></label>
+  <label class="ctl"><small>Πυκνότητα</small><select id="cDens"><option value="cozy">Άνετη</option><option value="tight">Συμπαγής</option></select></label>
+  <label class="ctl"><small>Γραμματοσειρά <b id="vFs">14</b></small><input type="range" id="cFs" min="12" max="18" step="1" value="14"></label>
+  <div class="ctl"><small>Τυχαίο</small><button class="btn sm gh" id="cRand">Συνδυασμός</button></div>
+  <div class="ctl"><small>Επαναφορά</small><button class="btn sm gh" id="cReset">Reset</button></div>
+  <div class="ctl"><small>Εξαγωγή</small><button class="btn sm gh" id="cExport">Αναφορά</button></div>
+</div></div>
+
+<div class="wrap">
+
+<section id="ans" class="rise">
+  <div class="hd"><span class="num">01</span><h2>Οι τρεις απαντήσεις, ζωντανά</h2><span class="bar"></span></div>
+  <div class="ans">
+    <div class="ansc">
+      <h3>1 · Είναι όλα offline; <span class="tag" id="a1tag">έλεγχος…</span></h3>
+      <p id="a1txt">Η εικόνα και το κείμενο <b>δεν φεύγουν ποτέ</b>. Όμως η βιβλιοθήκη ONNX και τα μοντέλα κατεβαίνουν την πρώτη φορά. Πάτα «Κλείδωμα offline» παρακάτω για να αποθηκευτούν στη συσκευή και να μην ξαναχρειαστεί δίκτυο.</p>
+    </div>
+    <div class="ansc">
+      <h3>2 · Μόνο το τελευταίο αρχείο; <span class="tag a">ΟΧΙ</span></h3>
+      <p>Τα <code class="i">app.js · index.html · style.css · sw.js · ocr-parser.js</code> είναι η <b>εφαρμογή</b> και παραμένουν. Τα <code class="i">workshop / setup / studio / ocr-lab / tune</code> είναι <b>διαφορετικά εργαλεία</b>, δεν αντικαθιστούν το ένα το άλλο. Μόνο το <code class="i">patch.html</code> είναι παρωχημένο. Δες τον ζωντανό πίνακα στην ενότητα «Αρχεία».</p>
+    </div>
+    <div class="ansc">
+      <h3>3 · Ποιος συνδυασμός είναι καλύτερος; <span class="tag v">ΜΕΤΡΗΣΗ</span></h3>
+      <p>Δεν μαντεύω. Πάτα <b>Εκκίνηση σάρωσης</b>: δοκιμάζονται δεκάδες συνδυασμοί προεπεξεργασίας × κινητήρα × παραμέτρων πάνω στη <b>δική σου φωτογραφία</b>, βαθμολογούνται απέναντι στα πραγματικά πεδία του εγγράφου, και ο νικητής αποθηκεύεται ως προεπιλογή.</p>
+    </div>
+  </div>
+</section>
+
+<section id="gt">
+  <div class="hd"><span class="num">02</span><h2>Πεδία αναφοράς από το έγγραφό σου</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Προσυμπληρωμένα από τη φωτογραφία του <span class="k">ΤΤ ΒΟΛΟΥ / 08-10-2026</span>. Διόρθωσε ό,τι διαβάζεται διαφορετικά — η βαθμολογία κρίνει με βάση αυτά. Το χειρόγραφο <code class="i">2515/11-26/305</code> είναι σκόπιμα δύσκολο πεδίο.</p>
+    <div class="gt" id="gtList"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn sm gh" id="gtReset">Επαναφορά από έγγραφο</button>
+      <button class="btn sm gh" id="gtExport">Εξαγωγή πεδίων</button>
+      <button class="btn sm gh" id="gtImport">Εισαγωγή</button>
+    </div>
+    <input type="file" id="gtFile" accept=".json,application/json" hidden>
+    <div class="stats" id="gtStats"></div>
+  </div>
+</section>
+
+<section id="img">
+  <div class="hd"><span class="num">03</span><h2>Φωτογραφία δοκιμής</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Χρησιμοποίησε την <span class="k">ίδια</span> φωτογραφία για όλη τη σάρωση, ώστε η σύγκριση να είναι δίκαιη. Μετά τον νικητή, επιβεβαίωσέ τον και σε 2–3 ακόμη δύσκολες λήψεις.</p>
+    <div class="row">
+      <button class="btn pri" id="btnPick">Επιλογή εικόνας</button>
+      <button class="btn" id="btnCam">Κάμερα</button>
+      <button class="btn gh" id="btnAuto">Αυτόματο crop</button>
+    </div>
+    <input type="file" id="fileImg" accept="image/*" hidden><input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
+    <div class="stage" id="stage" style="margin-top:11px"><canvas id="cv"></canvas></div>
+    <div class="stats" id="imgStats"><span class="tag">χωρίς εικόνα</span></div>
+  </div>
+</section>
+
+<section id="sweep">
+  <div class="hd"><span class="num">04</span><h2>Σάρωση συνδυασμών</h2><span class="bar"></span></div>
+  <div class="card">
+    <div class="stats" id="readyStats"></div>
+    <div class="row" style="margin-top:11px">
+      <button class="btn pri" id="btnRun">Εκκίνηση σάρωσης</button>
+      <button class="btn bad" id="btnStop" disabled>Διακοπή</button>
+      <button class="btn gh" id="btnClear">Καθαρισμός αποτελεσμάτων</button>
+    </div>
+    <div class="pbar" style="margin-top:11px"><i id="prog"></i></div>
+    <div class="stats" id="runStats"><span class="tag">ανενεργό</span></div>
+    <canvas id="spark" height="60" style="width:100%;margin-top:10px;display:block"></canvas>
+  </div>
+  <div class="card">
+    <div class="hd" style="margin-bottom:8px"><h2 style="font-size:14px">Κατάταξη</h2><span class="bar"></span></div>
+    <div class="board" id="board"><div class="empty">Δεν έχουν γίνει δοκιμές.</div></div>
+  </div>
+  <div class="card">
+    <div class="hd" style="margin-bottom:8px"><h2 style="font-size:14px">Χάρτης πεδίων</h2><span class="bar"></span></div>
+    <div class="heat" id="heat"><div class="empty">—</div></div>
+    <div class="legend"><span><i style="background:var(--ok)"></i>ακριβές</span><span><i style="background:var(--lime)"></i>σχεδόν</span><span><i style="background:var(--amber)"></i>μερικώς</span><span><i style="background:var(--bad)"></i>λάθος</span><span><i style="background:var(--ln2)"></i>δεν βρέθηκε</span></div>
+  </div>
+</section>
+
+<section id="win">
+  <div class="hd"><span class="num">05</span><h2>Νικητής</h2><span class="bar"></span></div>
+  <div class="card" id="winCard"><div class="empty">Τρέξε τη σάρωση για να αναδειχθεί νικητής.</div></div>
+</section>
+
+<section id="off">
+  <div class="hd"><span class="num">06</span><h2>Κλείδωμα offline</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Αποθηκεύει στη συσκευή τη βιβλιοθήκη ONNX, το WASM και τα μοντέλα. Μετά, καμία εξωτερική κλήση δεν χρειάζεται — και το αποδεικνύει με δοκιμή με μπλοκαρισμένο δίκτυο.</p>
+    <div class="row">
+      <button class="btn cy" id="btnProv">Κλείδωμα offline</button>
+      <button class="btn vi" id="btnVerify">Δοκιμή χωρίς δίκτυο</button>
+      <button class="btn gh" id="btnProvClear">Διαγραφή offline πακέτου</button>
+    </div>
+    <div class="stats" id="offStats"></div>
+    <label class="lbl">Καταγραφή δικτύου — καμία εικόνα, ποτέ</label>
+    <div class="net" id="netLog"><div>—</div></div>
+  </div>
+</section>
+
+<section id="files">
+  <div class="hd"><span class="num">07</span><h2>Ποια αρχεία εγκαθιστώ</h2><span class="bar"></span></div>
+  <div class="card">
+    <label class="lbl">Πηγή ελέγχου</label>
+    <input id="baseUrl" value="https://raw.githubusercontent.com/giadokimes/troxonomika/main/" spellcheck="false">
+    <div class="row" style="margin-top:9px"><button class="btn sm pri" id="btnProbe">Έλεγχος τώρα</button><button class="btn sm gh" id="btnSame">Ίδια προέλευση (./)</button></div>
+    <div class="man" id="manifest" style="margin-top:11px"></div>
+  </div>
+</section>
+
+<footer>ΑΥΤΟΜΑΤΗ ΒΕΛΤΙΣΤΟΠΟΙΗΣΗ troxonomika · η φωτογραφία και τα πεδία παραμένουν στη συσκευή.<br>Τα αποτελέσματα είναι μετρήσεις στη δική σου λήψη, όχι γενικοί ισχυρισμοί.</footer>
+</div>
+<div id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+var $=function(s){return document.querySelector(s);};
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function toast(m,k){var t=document.createElement("div");t.className="tst "+(k||"");t.textContent=m;$("#toast").appendChild(t);setTimeout(function(){t.style.opacity=0;t.style.transition="opacity .3s";setTimeout(function(){t.remove();},320);},4200);}
+function dl(n,t,ty){var b=new Blob([t],{type:ty||"application/json;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=n;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);}
+var LAT={A:"Α",B:"Β",E:"Ε",Z:"Ζ",H:"Η",I:"Ι",K:"Κ",M:"Μ",N:"Ν",O:"Ο",P:"Ρ",T:"Τ",Y:"Υ",X:"Χ"};
+function toGr(s){return String(s==null?"":s).toUpperCase().replace(/[A-Z]/g,function(c){return LAT[c]||c;});}
+function fold(s){return toGr(String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,"")).replace(/\s+/g," ").trim();}
+function digits(s){var o="",m={"Ο":"0","O":"0","Ι":"1","I":"1","L":"1","|":"1","Ζ":"2","Β":"8","S":"5"};
+ String(s||"").split("").forEach(function(c){if(/[0-9]/.test(c))o+=c;else if(m[c]!==undefined)o+=m[c];});return o;}
+function lev(a,b){var m=a.length,n=b.length;if(!m)return n;if(!n)return m;var p=[],c=[],i,j;for(j=0;j<=n;j++)p[j]=j;
+ for(i=1;i<=m;i++){c=[i];for(j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c;}return p[n];}
+var CONF={"Α":["Λ","Δ"],"Λ":["Α","Δ"],"Δ":["Α","Λ"],"Ο":["Θ","Ω","0"],"Θ":["Ο"],"Ω":["Ο"],"Ε":["Σ"],"Σ":["Ε"],"Ι":["Τ","Γ","1"],"Τ":["Ι","Γ"],"Γ":["Τ","Ι"],"Η":["Ν"],"Ν":["Η"],"Ρ":["Β"],"Β":["Ρ","8"],"Κ":["Χ"],"Χ":["Κ"],"Π":["Τ"],"0":["Ο"],"1":["Ι"],"8":["Β"]};
+function near(a,b){if(a===b)return 1;if(!a||!b)return 0;var m=Math.max(a.length,b.length),d=0,k=Math.min(a.length,b.length);
+ for(var i=0;i<k;i++){var x=a[i],y=b[i];d+=x===y?0:(CONF[x]&&CONF[x].indexOf(y)>=0?.3:1);}
+ d+=Math.abs(a.length-b.length);var s=1-Math.min(d,lev(a,b))/m;return s;}
+
+/* ---------- network audit / offline ---------- */
+var NET={bytes:0,lines:[],block:false},origFetch=window.fetch.bind(window);
+function netAdd(u,ok,size,blocked){
+  NET.lines.unshift({u:u,ok:ok,s:size||0,b:blocked});if(ok&&size)NET.bytes+=size;
+  $("#netLog").innerHTML=NET.lines.slice(0,40).map(function(l){
+    return '<div class="'+(l.b?"blk":l.ok?"ok":"err")+'">'+(l.b?"⛔":l.ok?"✓":"✕")+" "+esc(l.u)+(l.s?" · "+(l.s/1048576).toFixed(2)+" MB":"")+"</div>";}).join("")||"<div>—</div>";
+  var p=$("#netpill");
+  if(NET.block){p.className="netpill off";p.textContent="offline ⛔ "+(NET.bytes/1048576).toFixed(1)+" MB";}
+  else if(NET.bytes){p.className="netpill warn";p.textContent="δίκτυο "+(NET.bytes/1048576).toFixed(1)+" MB";}
+  else{p.className="netpill";p.textContent="δίκτυο: 0 B";}
+}
+function isExternal(u){try{return new URL(u,location.href).origin!==location.origin;}catch(e){return false;}}
+window.fetch=function(u,o){
+  var url=String(typeof u==="string"?u:(u&&u.url)||"");
+  if(NET.block&&isExternal(url)&&url.indexOf("blob:")!==0){netAdd(url,false,0,true);return Promise.reject(new Error("offline: μπλοκαρίστηκε "+url));}
+  return origFetch(u,o).then(function(r){netAdd(url,r.ok,+(r.headers.get("content-length")||0));return r;})
+    .catch(function(e){netAdd(url,false,0);throw e;});
+};
+$("#netpill").onclick=function(){location.hash="#off";};
+
+/* ---------- IDB ---------- */
+function idb(){return new Promise(function(res,rej){var r=indexedDB.open("troxo_ocr_models",1);
+ r.onupgradeneeded=function(){var d=r.result;if(!d.objectStoreNames.contains("m"))d.createObjectStore("m");};
+ r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});}
+function put(k,v){return idb().then(function(d){return new Promise(function(res,rej){var t=d.transaction("m","readwrite");t.objectStore("m").put(v,k);t.oncomplete=function(){res();};t.onerror=function(){rej(t.error);};});});}
+function get(k){return idb().then(function(d){return new Promise(function(res){var t=d.transaction("m","readonly"),q=t.objectStore("m").get(k);q.onsuccess=function(){res(q.result||null);};q.onerror=function(){res(null);};});}).catch(function(){return null;});}
+function del(k){return idb().then(function(d){return new Promise(function(res){var t=d.transaction("m","readwrite");t.objectStore("m").delete(k);t.oncomplete=function(){res();};t.onerror=function(){res();};});}).catch(function(){});}
+
+/* ---------- ground truth ---------- */
+var GT_SEED=[
+ {k:"plate",t:"Πινακίδα",v:"ΒΟΟ5701",w:10,m:"plate"},
+ {k:"service",t:"Υπηρεσία αποστολέα",v:"ΤΤ ΒΟΛΟΥ",w:8,m:"svc"},
+ {k:"recipient",t:"Υπηρεσία παραλήπτη",v:"ΑΤ ΚΑΛΑΜΑΡΙΑΣ",w:5,m:"svc"},
+ {k:"surname",t:"Επώνυμο",v:"ΕΥΦΡΑΙΜΙΛΔΗΣ",w:6,m:"txt"},
+ {k:"given",t:"Όνομα",v:"ΕΥΑΓΓΕΛΟΣ",w:4,m:"txt"},
+ {k:"father",t:"Πατρώνυμο",v:"ΝΙΚΟΛΑΟΣ",w:3,m:"txt"},
+ {k:"protocol",t:"Αρ. πρωτοκόλλου",v:"2515/5Α/26/3591Α",w:6,m:"proto"},
+ {k:"act",t:"Αριθ. πράξης",v:"625300252250",w:6,m:"num"},
+ {k:"actDate",t:"Ημ. πράξης/παράβασης",v:"2026-09-28",w:5,m:"date"},
+ {k:"vtime",t:"Ώρα παράβασης",v:"14:00",w:3,m:"time"},
+ {k:"speed",t:"Ταχύτητα",v:"88",w:4,m:"num"},
+ {k:"limit",t:"Όριο",v:"50",w:4,m:"num"},
+ {k:"article",t:"Άρθρο",v:"24§9ΑΓ",w:6,m:"art"},
+ {k:"days",t:"Ημέρες αφαίρεσης",v:"30",w:8,m:"num"},
+ {k:"km",t:"Χιλιομετρική θέση",v:"39+370",w:5,m:"km"},
+ {k:"road",t:"Οδικός άξονας",v:"Π.Ε.Ο. ΛΑΡΙΣΑΣ - ΒΟΛΟΥ",w:4,m:"multi"},
+ {k:"street",t:"Οδός",v:"ΦΙΛΑΔΕΛΦΕΙΑΣ",w:4,m:"txt"},
+ {k:"num",t:"Αριθμός οδού",v:"22",w:3,m:"num"},
+ {k:"city",t:"Πόλη κατοικίας",v:"ΚΑΛΑΜΑΡΙΑΣ",w:3,m:"txt"},
+ {k:"law",t:"Νόμος",v:"5209/2025",w:3,m:"num"},
+ {k:"hand",t:"Χειρόγραφος αριθμός",v:"2515/11-26/305",w:4,m:"proto"},
+ {k:"docDate",t:"Ημ. εγγράφου",v:"2026-10-08",w:3,m:"date"}
+];
+var GT=JSON.parse(JSON.stringify(GT_SEED));
+try{var g0=JSON.parse(localStorage.getItem("troxo_tune_gt")||"null");if(Array.isArray(g0)&&g0.length)GT=g0;}catch(e){}
+function saveGT(){try{localStorage.setItem("troxo_tune_gt",JSON.stringify(GT));}catch(e){}renderGT();}
+function renderGT(){
+ $("#gtList").innerHTML=GT.map(function(f,i){
+  return '<div class="gtr" data-i="'+i+'"><b>'+esc(f.t)+'</b><input data-g="v" value="'+esc(f.v)+'"><input class="wgt" data-g="w" type="number" min="0" max="12" value="'+f.w+'"></div>';}).join("");
+ var tot=GT.reduce(function(a,f){return a+(+f.w||0);},0);
+ $("#gtStats").innerHTML='<span class="tag c">'+GT.length+' πεδία</span><span class="tag">συνολικό βάρος '+tot+'</span><span class="tag g">βαθμολογία 0–100</span>';
+}
+$("#gtList").addEventListener("input",function(e){
+ var k=e.target.dataset.g;if(!k)return;var i=+e.target.closest(".gtr").dataset.i;
+ GT[i][k]=k==="w"?(+e.target.value||0):e.target.value;saveGT();});
+$("#gtReset").onclick=function(){GT=JSON.parse(JSON.stringify(GT_SEED));saveGT();toast("Επαναφορά από το έγγραφο.","ok");};
+$("#gtExport").onclick=function(){dl("ground-truth.json",JSON.stringify(GT,null,2));};
+$("#gtImport").onclick=function(){$("#gtFile").click();};
+$("#gtFile").onchange=function(){var f=this.files[0];if(!f)return;var rd=new FileReader();
+ rd.onload=function(){try{var o=JSON.parse(String(rd.result));if(Array.isArray(o)){GT=o;saveGT();toast("Τα πεδία φορτώθηκαν.","ok");}}catch(e){toast("Μη έγκυρο JSON.","err");}};
+ rd.readAsText(f);this.value="";};
+
+/* ---------- image ---------- */
+var SRC=null,CROP=null;
+function loadFile(f){if(!f)return;createImageBitmap(f).then(function(b){
+ var s=Math.min(1,2600/Math.max(b.width,b.height)),w=Math.round(b.width*s),h=Math.round(b.height*s);
+ var c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(b,0,0,w,h);
+ SRC={c:c,w:w,h:h,name:f.name||"photo"};CROP=null;drawSrc();
+ $("#imgStats").innerHTML='<span class="tag c">'+w+"×"+h+'</span><span class="tag">'+esc(SRC.name)+'</span>';
+}).catch(function(e){toast("Σφάλμα εικόνας: "+e.message,"err");});}
+function drawSrc(){var cv=$("#cv");cv.width=SRC.w;cv.height=SRC.h;cv.getContext("2d").drawImage(SRC.c,0,0);}
+$("#btnPick").onclick=function(){$("#fileImg").click();};
+$("#btnCam").onclick=function(){$("#fileCam").click();};
+$("#fileImg").onchange=function(){loadFile(this.files[0]);this.value="";};
+$("#fileCam").onchange=function(){loadFile(this.files[0]);this.value="";};
+window.addEventListener("paste",function(e){var it=e.clipboardData&&e.clipboardData.items;if(!it)return;
+ for(var i=0;i<it.length;i++)if(it[i].type.indexOf("image")===0){loadFile(it[i].getAsFile());break;}});
+$("#btnAuto").onclick=function(){if(!SRC){toast("Φόρτωσε εικόνα.","warn");return;}
+ CROP=detectDoc(SRC.c);drawSrc();toast(CROP?"Εντοπίστηκε περίγραμμα — θα εφαρμόζεται σε κάθε δοκιμή.":"Δεν εντοπίστηκε περίγραμμα.",CROP?"ok":"warn");};
+
+/* ---------- preprocessing ---------- */
+function boxBlur(g,w,h,r){if(r<1)return g.slice();var t=new Float32Array(w*h),o=new Float32Array(w*h),x,y,i,n=2*r+1;
+ for(y=0;y<h;y++){var s=0,row=y*w;for(i=-r;i<=r;i++)s+=g[row+clamp(i,0,w-1)];
+  for(x=0;x<w;x++){t[row+x]=s/n;s+=g[row+clamp(x+r+1,0,w-1)]-g[row+clamp(x-r,0,w-1)];}}
+ for(x=0;x<w;x++){var s2=0;for(i=-r;i<=r;i++)s2+=t[clamp(i,0,h-1)*w+x];
+  for(y=0;y<h;y++){o[y*w+x]=s2/n;s2+=t[clamp(y+r+1,0,h-1)*w+x]-t[clamp(y-r,0,h-1)*w+x];}}return o;}
+function gauss(g,w,h,r){var b=boxBlur(g,w,h,Math.max(1,Math.round(r)));b=boxBlur(b,w,h,Math.max(1,Math.round(r)));return boxBlur(b,w,h,Math.max(1,Math.round(r)));}
+function otsu(g){var H=new Int32Array(256),i;for(i=0;i<g.length;i++)H[clamp(g[i]|0,0,255)]++;
+ var tot=g.length,sum=0;for(i=0;i<256;i++)sum+=i*H[i];var sb=0,wb=0,best=0,thr=128;
+ for(i=0;i<256;i++){wb+=H[i];if(!wb)continue;var wf=tot-wb;if(!wf)break;sb+=i*H[i];var d=sb/wb-(sum-sb)/wf,v=wb*wf*d*d;if(v>best){best=v;thr=i;}}return thr;}
+function homography(src,dst){var A=[],b=[],i;for(i=0;i<4;i++){var x=src[i][0],y=src[i][1],X=dst[i][0],Y=dst[i][1];
+ A.push([x,y,1,0,0,0,-X*x,-X*y]);b.push(X);A.push([0,0,0,x,y,1,-Y*x,-Y*y]);b.push(Y);}
+ for(i=0;i<8;i++){var p=i;for(var r=i+1;r<8;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;
+  var t=A[i];A[i]=A[p];A[p]=t;var tb=b[i];b[i]=b[p];b[p]=tb;if(Math.abs(A[i][i])<1e-9)return null;
+  for(r=i+1;r<8;r++){var f=A[r][i]/A[i][i];for(var c=i;c<8;c++)A[r][c]-=f*A[i][c];b[r]-=f*b[i];}}
+ var h=new Array(8);for(i=7;i>=0;i--){var s=b[i];for(var j=i+1;j<8;j++)s-=A[i][j]*h[j];h[i]=s/A[i][i];}return h;}
+function warp(cv,cs){var w=cv.width,h=cv.height,s=cs.map(function(p){return[p[0]*w,p[1]*h];});
+ var W=Math.max(64,Math.round(Math.max(Math.hypot(s[1][0]-s[0][0],s[1][1]-s[0][1]),Math.hypot(s[2][0]-s[3][0],s[2][1]-s[3][1]))));
+ var H=Math.max(64,Math.round(Math.max(Math.hypot(s[3][0]-s[0][0],s[3][1]-s[0][1]),Math.hypot(s[2][0]-s[1][0],s[2][1]-s[1][1]))));
+ var Hm=homography([[0,0],[W,0],[W,H],[0,H]],s);if(!Hm)return cv;
+ var sd=cv.getContext("2d").getImageData(0,0,w,h).data,o=document.createElement("canvas");o.width=W;o.height=H;
+ var oc=o.getContext("2d"),od=oc.createImageData(W,H),d=od.data;
+ for(var y=0;y<H;y++)for(var x=0;x<W;x++){var dd=Hm[6]*x+Hm[7]*y+1,sx=Math.round((Hm[0]*x+Hm[1]*y+Hm[2])/dd),sy=Math.round((Hm[3]*x+Hm[4]*y+Hm[5])/dd),p=(y*W+x)*4;
+  if(sx>=0&&sy>=0&&sx<w&&sy<h){var q=(sy*w+sx)*4;d[p]=sd[q];d[p+1]=sd[q+1];d[p+2]=sd[q+2];}else{d[p]=d[p+1]=d[p+2]=255;}d[p+3]=255;}
+ oc.putImageData(od,0,0);return o;}
+function detectDoc(cv){
+ var s=Math.min(1,340/Math.max(cv.width,cv.height)),W=Math.max(32,Math.round(cv.width*s)),H=Math.max(32,Math.round(cv.height*s));
+ var c=document.createElement("canvas");c.width=W;c.height=H;var x=c.getContext("2d");x.drawImage(cv,0,0,W,H);
+ var d=x.getImageData(0,0,W,H).data,g=new Float32Array(W*H);
+ for(var i=0,p=0;i<g.length;i++,p+=4)g[i]=.299*d[p]+.587*d[p+1]+.114*d[p+2];
+ g=boxBlur(g,W,H,3);var t=otsu(g),lab=new Int32Array(W*H),best=null,bn=0,cur=0,st=new Int32Array(W*H);
+ for(i=0;i<W*H;i++){if(g[i]<t||lab[i])continue;cur++;var sp=0;st[sp++]=i;lab[i]=cur;var pts=[];
+  while(sp){var q=st[--sp],y=(q/W)|0,xx=q-y*W;pts.push(q);
+   for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;var nx=xx+dx,ny=y+dy;
+    if(nx<0||ny<0||nx>=W||ny>=H)continue;var nq=ny*W+nx;if(g[nq]>=t&&!lab[nq]){lab[nq]=cur;st[sp++]=nq;}}}
+  if(pts.length>bn){bn=pts.length;best=pts;}}
+ if(!best||bn<W*H*.12)return null;
+ var tl,tr,br,bl,sM=-1e9,sm=1e9,dM=-1e9,dm=1e9;
+ best.forEach(function(q){var y=(q/W)|0,xx=q-y*W,su=xx+y,di=xx-y;
+  if(su<sm){sm=su;tl=[xx,y];}if(su>sM){sM=su;br=[xx,y];}if(di>dM){dM=di;tr=[xx,y];}if(di<dm){dm=di;bl=[xx,y];}});
+ if(!tl||!tr||!br||!bl)return null;
+ return [tl,tr,br,bl].map(function(p2){return[clamp(p2[0]/W,.005,.995),clamp(p2[1]/H,.005,.995)];});}
+function toGray(cv,scale,mode){
+ var w=cv.width,h=cv.height,s=Math.min(1,scale/Math.max(w,h)),W=Math.max(24,Math.round(w*s)),H=Math.max(24,Math.round(h*s));
+ var c=document.createElement("canvas");c.width=W;c.height=H;var x=c.getContext("2d");x.imageSmoothingQuality="high";x.drawImage(cv,0,0,W,H);
+ var d=x.getImageData(0,0,W,H).data,g=new Float32Array(W*H);
+ for(var i=0,p=0;i<g.length;i++,p+=4){var r=d[p],gg=d[p+1],b=d[p+2];
+  g[i]=mode==="red"?r:mode==="max"?Math.max(r,gg,b):mode==="min"?Math.min(r,gg,b):.299*r+.587*gg+.114*b;}
+ return{g:g,w:W,h:H,c:c};}
+function flatten(g,w,h,a){if(a<=0)return g;var bg=boxBlur(g,w,h,Math.max(10,Math.round(Math.min(w,h)/9))),m=0,i;
+ for(i=0;i<g.length;i++)m+=g[i];m/=g.length;var o=new Float32Array(g.length),k=a/100;
+ for(i=0;i<g.length;i++){var v=clamp(g[i]*(m/Math.max(bg[i],8)),0,255);o[i]=g[i]*(1-k)+v*k;}return o;}
+function clahe(g,w,h,T,clip){if(clip<=0)return g;var tw=Math.ceil(w/T),th=Math.ceil(h/T),maps=[],tx,ty;
+ for(ty=0;ty<T;ty++)for(tx=0;tx<T;tx++){var x0=tx*tw,y0=ty*th,x1=Math.min(w,x0+tw),y1=Math.min(h,y0+th),H=new Int32Array(256),n=0,x,y;
+  for(y=y0;y<y1;y++)for(x=x0;x<x1;x++){H[clamp(g[y*w+x]|0,0,255)]++;n++;}if(!n){maps.push(null);continue;}
+  var lim=Math.max(1,Math.round(clip*n/256)),ex=0,i;for(i=0;i<256;i++)if(H[i]>lim){ex+=H[i]-lim;H[i]=lim;}
+  var ad=Math.floor(ex/256),rm=ex-ad*256;for(i=0;i<256;i++){H[i]+=ad;if(i<rm)H[i]++;}
+  var lut=new Float32Array(256),ac=0;for(i=0;i<256;i++){ac+=H[i];lut[i]=255*ac/n;}maps.push(lut);}
+ var o=new Float32Array(g.length);
+ for(y=0;y<h;y++)for(x=0;x<w;x++){var gx=(x-tw/2)/tw,gy=(y-th/2)/th,i0=Math.floor(gx),j0=Math.floor(gy),fx=gx-i0,fy=gy-j0,v=clamp(g[y*w+x]|0,0,255);
+  function L(a,b){a=clamp(a,0,T-1);b=clamp(b,0,T-1);var m=maps[b*T+a];return m?m[v]:v;}
+  var A=L(i0,j0)*(1-fx)+L(i0+1,j0)*fx,B=L(i0,j0+1)*(1-fx)+L(i0+1,j0+1)*fx;o[y*w+x]=A*(1-fy)+B*fy;}return o;}
+function tone(g,gam,con){var o=new Float32Array(g.length),c=1+con/100;
+ for(var i=0;i<g.length;i++){var v=g[i]/255;if(gam!==1)v=Math.pow(clamp(v,0,1),gam);o[i]=clamp(((v-.5)*c+.5)*255,0,255);}return o;}
+function medianF(g,w,h,n){if(n<3)return g;var r=n>>1,o=new Float32Array(g.length),b=[];
+ for(var y=0;y<h;y++)for(var x=0;x<w;x++){b.length=0;for(var dy=-r;dy<=r;dy++)for(var dx=-r;dx<=r;dx++)b.push(g[clamp(y+dy,0,h-1)*w+clamp(x+dx,0,w-1)]);
+  b.sort(function(p,q){return p-q;});o[y*w+x]=b[b.length>>1];}return o;}
+function bilateral(g,w,h,st){if(st<=0)return g;var r=2,sr=28,o=new Float32Array(g.length),a=st/60,sw=[],k=0;
+ for(var dy=-r;dy<=r;dy++)for(var dx=-r;dx<=r;dx++)sw.push(Math.exp(-(dx*dx+dy*dy)/3.92));
+ for(var y=0;y<h;y++)for(var x=0;x<w;x++){var c=g[y*w+x],s=0,wt=0;k=0;
+  for(var jy=-r;jy<=r;jy++)for(var jx=-r;jx<=r;jx++){var v=g[clamp(y+jy,0,h-1)*w+clamp(x+jx,0,w-1)],d=v-c,ww=sw[k++]*Math.exp(-d*d/1568);s+=v*ww;wt+=ww;}
+  o[y*w+x]=g[y*w+x]*(1-a)+(s/wt)*a;}return o;}
+function rl(g,w,h,it,rad){if(it<=0)return g;var e=g.slice(),i,t;
+ for(t=0;t<it;t++){var be=gauss(e,w,h,rad),ra=new Float32Array(g.length);
+  for(i=0;i<g.length;i++)ra[i]=g[i]/Math.max(be[i],1.2);var co=gauss(ra,w,h,rad);
+  for(i=0;i<g.length;i++)e[i]=clamp(e[i]*co[i],0,255);}return e;}
+function unsharp(g,w,h,a,r){if(a<=0)return g;var b=boxBlur(g,w,h,Math.max(1,r)),o=new Float32Array(g.length),k=a/100;
+ for(var i=0;i<g.length;i++)o[i]=clamp(g[i]+k*(g[i]-b[i]),0,255);return o;}
+function binarize(g,w,h,m,win,k){var o=new Float32Array(g.length),i;if(m==="none")return g;
+ if(m==="otsu"){var t=otsu(g);for(i=0;i<g.length;i++)o[i]=g[i]>t?255:0;return o;}
+ var W=w+1,I=new Float64Array(W*(h+1)),I2=new Float64Array(W*(h+1));
+ for(var y=1;y<=h;y++){var rs=0,rs2=0;for(var x=1;x<=w;x++){var v=g[(y-1)*w+x-1];rs+=v;rs2+=v*v;I[y*W+x]=I[(y-1)*W+x]+rs;I2[y*W+x]=I2[(y-1)*W+x]+rs2;}}
+ var mn=255,sum=0;for(i=0;i<g.length;i++){if(g[i]<mn)mn=g[i];sum+=g[i];}
+ var gm=sum/g.length,gv=0;for(i=0;i<g.length;i++){var d=g[i]-gm;gv+=d*d;}
+ var gs=Math.sqrt(gv/g.length),R=m==="wolf"?Math.max(gs,1):128,r=win>>1;
+ for(y=0;y<h;y++)for(x=0;x<w;x++){var x0=Math.max(0,x-r),y0=Math.max(0,y-r),x1=Math.min(w-1,x+r),y1=Math.min(h-1,y+r),n=(x1-x0+1)*(y1-y0+1);
+  var s=I[(y1+1)*W+x1+1]-I[y0*W+x1+1]-I[(y1+1)*W+x0]+I[y0*W+x0];
+  var s2=I2[(y1+1)*W+x1+1]-I2[y0*W+x1+1]-I2[(y1+1)*W+x0]+I2[y0*W+x0];
+  var mm=s/n,sd=Math.sqrt(Math.max(0,s2/n-mm*mm)),T;
+  if(m==="sauvola")T=mm*(1+k*(sd/R-1));else if(m==="wolf")T=mm-k*(1-sd/R)*(mm-mn);else T=mm+k*sd;
+  o[y*w+x]=g[y*w+x]>T?255:0;}return o;}
+function skew(g,w,h){var s=Math.min(1,520/w),W=Math.max(32,Math.round(w*s)),H=Math.max(32,Math.round(h*s)),sm=new Float32Array(W*H);
+ for(var y=0;y<H;y++)for(var x=0;x<W;x++)sm[y*W+x]=g[Math.min(h-1,Math.round(y/s))*w+Math.min(w-1,Math.round(x/s))];
+ var t=otsu(sm),b=new Uint8Array(W*H);for(var i=0;i<b.length;i++)b[i]=sm[i]<t?1:0;
+ function sc(d){var r=d*Math.PI/180,co=Math.cos(r),si=Math.sin(r),pr=new Float64Array(H),cx=W/2,cy=H/2;
+  for(var y=0;y<H;y+=2)for(var x=0;x<W;x+=2){if(!b[y*W+x])continue;var yy=Math.round((x-cx)*si+(y-cy)*co+cy);if(yy>=0&&yy<H)pr[yy]++;}
+  var v=0;for(var i=1;i<H;i++){var dd=pr[i]-pr[i-1];v+=dd*dd;}return v;}
+ var best=0,bs=-1;for(var a=-7;a<=7;a+=.5){var v=sc(a);if(v>bs){bs=v;best=a;}}return Math.round(best*10)/10;}
+function rot(g,w,h,d){if(!d)return g;var r=d*Math.PI/180,co=Math.cos(r),si=Math.sin(r),cx=w/2,cy=h/2,o=new Float32Array(w*h);
+ for(var y=0;y<h;y++)for(var x=0;x<w;x++){var dx=x-cx,dy=y-cy,sx=Math.round(dx*co+dy*si+cx),sy=Math.round(-dx*si+dy*co+cy);
+  o[y*w+x]=(sx>=0&&sy>=0&&sx<w&&sy<h)?g[sy*w+sx]:255;}return o;}
+function rotC(cv,d){if(!d)return cv;var c=document.createElement("canvas");c.width=cv.width;c.height=cv.height;var x=c.getContext("2d");
+ x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.translate(c.width/2,c.height/2);x.rotate(-d*Math.PI/180);x.drawImage(cv,-cv.width/2,-cv.height/2);return c;}
+function pad(g,w,h,px){if(!px)return{g:g,w:w,h:h};var W=w+2*px,H=h+2*px,o=new Float32Array(W*H);o.fill(255);
+ for(var y=0;y<h;y++)for(var x=0;x<w;x++)o[(y+px)*W+x+px]=g[y*w+x];return{g:o,w:W,h:H};}
+
+var PRESETS={
+ photo:{ch:"luma",flat:60,clip:2,gam:1,con:8,med:0,bil:0,rl:0,sharp:45,bin:"none",k:-.2,win:31},
+ shadow:{ch:"luma",flat:100,clip:3,gam:1.05,con:12,med:0,bil:15,rl:0,sharp:55,bin:"none",k:-.2,win:41},
+ blur:{ch:"luma",flat:50,clip:2.5,gam:.95,con:18,med:0,bil:0,rl:8,sharp:70,bin:"none",k:-.2,win:31},
+ faint:{ch:"luma",flat:80,clip:4,gam:1.2,con:26,med:0,bil:20,rl:3,sharp:90,bin:"nick",k:-.2,win:41},
+ stamp:{ch:"red",flat:60,clip:2,gam:1,con:14,med:0,bil:0,rl:0,sharp:50,bin:"none",k:-.2,win:31},
+ clean:{ch:"luma",flat:0,clip:0,gam:1,con:0,med:0,bil:0,rl:0,sharp:20,bin:"none",k:-.2,win:31},
+ binary:{ch:"luma",flat:70,clip:2.5,gam:1,con:10,med:3,bil:0,rl:0,sharp:60,bin:"sauvola",k:.2,win:31}
+};
+function preprocess(cfg){
+ var base=CROP?warp(SRC.c,CROP):SRC.c;
+ var r=toGray(base,cfg.scale,cfg.ch),g=r.g,w=r.w,h=r.h;
+ g=flatten(g,w,h,cfg.flat);g=clahe(g,w,h,8,cfg.clip);g=tone(g,cfg.gam,cfg.con);
+ if(cfg.med>=3)g=medianF(g,w,h,cfg.med);
+ g=bilateral(g,w,h,cfg.bil);g=rl(g,w,h,cfg.rl,1.6);g=unsharp(g,w,h,cfg.sharp,1);
+ var ang=skew(g,w,h);if(Math.abs(ang)>.15){g=rot(g,w,h,ang);}
+ g=binarize(g,w,h,cfg.bin,cfg.win,cfg.k);
+ var pp=pad(g,w,h,12);
+ var cv=document.createElement("canvas");cv.width=pp.w;cv.height=pp.h;
+ var cx=cv.getContext("2d"),id=cx.createImageData(pp.w,pp.h),d=id.data;
+ for(var i=0,p=0;i<pp.g.length;i++,p+=4){var v=pp.g[i]|0;d[p]=d[p+1]=d[p+2]=v;d[p+3]=255;}
+ cx.putImageData(id,0,0);
+ var color=rotC(r.c,Math.abs(ang)>.15?ang:0);
+ var cc=document.createElement("canvas");cc.width=pp.w;cc.height=pp.h;var ccx=cc.getContext("2d");
+ ccx.fillStyle="#fff";ccx.fillRect(0,0,pp.w,pp.h);ccx.drawImage(color,12,12);
+ return{cv:cv,color:cc,w:pp.w,h:pp.h,angle:ang};
+}
+
+/* ---------- engines ---------- */
+var M={det:null,rec:null,cls:null},DICT=null,tw=null,tkey="";
+function ensureOrt(){
+ if(window.ort)return Promise.resolve();
+ return get("lib/ort").then(function(v){
+  if(v&&v.text){var b=new Blob([v.text],{type:"text/javascript"}),u=URL.createObjectURL(b);
+   return new Promise(function(res,rej){var s=document.createElement("script");s.src=u;s.onload=function(){res();};s.onerror=function(){rej(new Error("αποτυχία τοπικής βιβλιοθήκης"));};document.head.appendChild(s);});}
+  if(NET.block)return Promise.reject(new Error("offline: δεν υπάρχει τοπική βιβλιοθήκη ONNX"));
+  return new Promise(function(res,rej){var s=document.createElement("script");
+   s.src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js";
+   s.onload=function(){res();};s.onerror=function(){rej(new Error("αποτυχία φόρτωσης ONNX"));};document.head.appendChild(s);});
+ }).then(function(){
+  return get("lib/wasm").then(function(w){
+   try{window.ort.env.wasm.numThreads=1;window.ort.env.wasm.simd=true;
+    if(w&&w.buf)window.ort.env.wasm.wasmBinary=w.buf;
+    else window.ort.env.wasm.wasmPaths="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/";
+   }catch(e){}
+  });
+ });
+}
+function loadModels(){
+ return Promise.all(["det","rec","cls","dict"].map(function(k){return get(k).then(function(v){return{k:k,v:v};});}))
+  .then(function(list){
+   var jobs=[];
+   list.forEach(function(it){
+    if(!it.v)return;
+    if(it.k==="dict"){var ls=String(it.v.text).split(/\r?\n/);while(ls.length&&ls[ls.length-1]==="")ls.pop();
+     if(ls[ls.length-1]!==" ")ls.push(" ");DICT=ls;return;}
+    jobs.push(ensureOrt().then(function(){return window.ort.InferenceSession.create(it.v.buf,{executionProviders:["wasm"],graphOptimizationLevel:"all"});})
+      .then(function(s){M[it.k]=s;}).catch(function(){}));
+   });
+   return Promise.all(jobs);
+  }).then(function(){
+   if(!M.det||!M.rec||!DICT){
+    var base="./models/";
+    return Promise.all(["det","rec","cls","dict"].map(function(k){
+     var f=k==="dict"?"el_dict.txt":k+".onnx";
+     return window.fetch(base+f,{cache:"force-cache"}).then(function(r){return r.ok?(k==="dict"?r.text():r.arrayBuffer()):null;}).catch(function(){return null;})
+      .then(function(d){if(!d)return;
+       if(k==="dict"){var ls=String(d).split(/\r?\n/);while(ls.length&&ls[ls.length-1]==="")ls.pop();if(ls[ls.length-1]!==" ")ls.push(" ");DICT=ls;return put("dict",{text:d,name:f});}
+       return ensureOrt().then(function(){return window.ort.InferenceSession.create(d,{executionProviders:["wasm"]});}).then(function(s){M[k]=s;return put(k,{buf:d,name:f});}).catch(function(){});});
+    }));
+   }
+  }).then(renderReady);
+}
+function detTensor(cv,limit){var w=cv.width,h=cv.height,ra=Math.max(w,h)>limit?limit/Math.max(w,h):1;
+ var W=Math.max(32,Math.round(w*ra/32)*32),H=Math.max(32,Math.round(h*ra/32)*32);
+ var c=document.createElement("canvas");c.width=W;c.height=H;var x=c.getContext("2d");x.imageSmoothingQuality="high";x.drawImage(cv,0,0,W,H);
+ var d=x.getImageData(0,0,W,H).data,n=W*H,f=new Float32Array(3*n),me=[.485,.456,.406],st=[.229,.224,.225];
+ for(var i=0;i<n;i++)for(var ch=0;ch<3;ch++)f[ch*n+i]=(d[i*4+ch]/255-me[ch])/st[ch];
+ return{t:new window.ort.Tensor("float32",f,[1,3,H,W]),W:W,H:H};}
+function comps(prob,W,H,th){var lab=new Int32Array(W*H),cur=0,out=[],st=new Int32Array(W*H);
+ for(var i=0;i<W*H;i++){if(prob[i]<=th||lab[i])continue;cur++;var sp=0;st[sp++]=i;lab[i]=cur;var pts=[],sum=0;
+  while(sp){var p=st[--sp],y=(p/W)|0,x=p-y*W;pts.push(p);sum+=prob[p];
+   for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;var nx=x+dx,ny=y+dy;
+    if(nx<0||ny<0||nx>=W||ny>=H)continue;var q=ny*W+nx;if(prob[q]>th&&!lab[q]){lab[q]=cur;st[sp++]=q;}}}
+  if(pts.length>=8)out.push({pts:pts,score:sum/pts.length});}
+ return out;}
+function rect(pts,W){var n=pts.length,step=Math.max(1,Math.floor(n/2000)),mx=0,my=0,c=0,i;
+ for(i=0;i<n;i+=step){var p=pts[i],y=(p/W)|0;mx+=p-y*W;my+=y;c++;}mx/=c;my/=c;
+ var sxx=0,syy=0,sxy=0;for(i=0;i<n;i+=step){var p2=pts[i],y2=(p2/W)|0,dx=p2-y2*W-mx,dy=y2-my;sxx+=dx*dx;syy+=dy*dy;sxy+=dx*dy;}
+ sxx/=c;syy/=c;sxy/=c;var tr=sxx+syy,de=sxx*syy-sxy*sxy,l1=tr/2+Math.sqrt(Math.max(0,tr*tr/4-de));
+ var vx=sxy,vy=l1-sxx;if(Math.abs(vx)<1e-6&&Math.abs(vy)<1e-6){vx=1;vy=0;}
+ var vl=Math.hypot(vx,vy);vx/=vl;vy/=vl;var px=-vy,py=vx,u0=1e9,u1=-1e9,v0=1e9,v1=-1e9;
+ for(i=0;i<n;i+=step){var p3=pts[i],y3=(p3/W)|0,dx3=p3-y3*W-mx,dy3=y3-my,u=dx3*vx+dy3*vy,v=dx3*px+dy3*py;
+  if(u<u0)u0=u;if(u>u1)u1=u;if(v<v0)v0=v;if(v>v1)v1=v;}
+ var w=u1-u0+1,h=v1-v0+1;
+ if(h>w){var t=w;w=h;h=t;var tvx=vx;vx=px;vy=py;px=-tvx;py=tvx;var t0=u0;u0=v0;v0=t0;var t1=u1;u1=v1;v1=t1;}
+ return{w:w,h:h,pt:function(u,v){return[mx+vx*u+px*v,my+vy*u+py*v];},u0:u0,u1:u1,v0:v0,v1:v1};}
+function crop(cv,cs,W,H){W=Math.max(4,Math.round(W));H=Math.max(4,Math.round(H));
+ var Hm=homography([[0,0],[W,0],[W,H],[0,H]],cs);if(!Hm)return null;
+ var sw=cv.width,sh=cv.height,sd=cv.getContext("2d").getImageData(0,0,sw,sh).data;
+ var o=document.createElement("canvas");o.width=W;o.height=H;var oc=o.getContext("2d"),od=oc.createImageData(W,H),d=od.data;
+ for(var y=0;y<H;y++)for(var x=0;x<W;x++){var dd=Hm[6]*x+Hm[7]*y+1,sx=Math.round((Hm[0]*x+Hm[1]*y+Hm[2])/dd),sy=Math.round((Hm[3]*x+Hm[4]*y+Hm[5])/dd),p=(y*W+x)*4;
+  if(sx>=0&&sy>=0&&sx<sw&&sy<sh){var q=(sy*sw+sx)*4;d[p]=sd[q];d[p+1]=sd[q+1];d[p+2]=sd[q+2];}else{d[p]=d[p+1]=d[p+2]=255;}d[p+3]=255;}
+ oc.putImageData(od,0,0);return o;}
+function recTensor(cv,hh){var W=clamp(Math.ceil(hh*(cv.width/cv.height)),16,1600);
+ var c=document.createElement("canvas");c.width=W;c.height=hh;var x=c.getContext("2d");
+ x.fillStyle="#fff";x.fillRect(0,0,W,hh);x.imageSmoothingQuality="high";x.drawImage(cv,0,0,Math.min(W,Math.ceil(hh*(cv.width/cv.height))),hh);
+ var d=x.getImageData(0,0,W,hh).data,n=W*hh,f=new Float32Array(3*n);
+ for(var i=0;i<n;i++)for(var ch=0;ch<3;ch++)f[ch*n+i]=(d[i*4+ch]/255-.5)/.5;
+ return new window.ort.Tensor("float32",f,[1,3,hh,W]);}
+function ctc(data,dims){var T=dims[1],C=dims[2],res="",cf=0,cn=0,prev=-1;
+ for(var t=0;t<T;t++){var bi=0,bv=-1e30,off=t*C,c;
+  for(c=0;c<C;c++){var v=data[off+c];if(v>bv){bv=v;bi=c;}}
+  var mx=-1e30;for(c=0;c<C;c++)if(data[off+c]>mx)mx=data[off+c];
+  var s=0;for(c=0;c<C;c++)s+=Math.exp(data[off+c]-mx);
+  if(bi!==prev&&bi!==0){var ch=DICT[bi-1];if(ch!==undefined){res+=ch;cf+=1/s;cn++;}}
+  prev=bi;}
+ return{text:res,conf:cn?cf/cn:0};}
+function paddle(pre,detLimit){
+ var pack=detTensor(pre.cv,detLimit),feeds={};feeds[M.det.inputNames[0]]=pack.t;
+ return M.det.run(feeds).then(function(r){
+  var o=r[M.det.outputNames[0]],dm=o.dims,H=dm[dm.length-2],W=dm[dm.length-1];
+  var cs=comps(o.data,W,H,.3),sx=pre.w/W,sy=pre.h/H,boxes=[];
+  cs.forEach(function(c){if(c.score<.55)return;var R=rect(c.pts,W);if(R.w*R.h<24||R.h<4)return;
+   var d=R.w*R.h*1.7/(2*(R.w+R.h)),W2=R.w+2*d,H2=R.h+2*d;
+   var cxp=(R.pt(R.u0,R.v0)[0]+R.pt(R.u1,R.v1)[0])/2,cyp=(R.pt(R.u0,R.v0)[1]+R.pt(R.u1,R.v1)[1])/2;
+   var ux=(R.pt(R.u1,R.v0)[0]-R.pt(R.u0,R.v0)[0])/R.w,uy=(R.pt(R.u1,R.v0)[1]-R.pt(R.u0,R.v0)[1])/R.w;
+   var vx=(R.pt(R.u0,R.v1)[0]-R.pt(R.u0,R.v0)[0])/R.h,vy=(R.pt(R.u0,R.v1)[1]-R.pt(R.u0,R.v0)[1])/R.h;
+   function P(u,v){return[(cxp+ux*u+vx*v)*sx,(cyp+uy*u+vy*v)*sy];}
+   boxes.push({c:[P(-W2/2,-H2/2),P(W2/2,-H2/2),P(W2/2,H2/2),P(-W2/2,H2/2)],w:W2*sx,h:H2*sy,y:cyp*sy,x:cxp*sx});});
+  boxes.sort(function(a,b){return(a.y-b.y)||(a.x-b.x);});
+  if(!boxes.length)return{text:"",conf:0,lines:0};
+  var idx=0,lines=[],confs=[];
+  function step(){
+   if(idx>=boxes.length||idx>90)return Promise.resolve();
+   var b=boxes[idx++],cr=crop(pre.color,b.c,b.w,b.h);if(!cr)return step();
+   var f={};f[M.rec.inputNames[0]]=recTensor(cr,48);
+   return M.rec.run(f).catch(function(){var f2={};f2[M.rec.inputNames[0]]=recTensor(cr,32);return M.rec.run(f2);})
+    .then(function(rr){var oo=rr[M.rec.outputNames[0]];if(oo.dims[2]!==DICT.length+1)throw new Error("λεξικό≠μοντέλο");
+     var d=ctc(oo.data,oo.dims);if(d.text.trim()&&d.conf>=.3){lines.push(d.text);confs.push(d.conf);}})
+    .then(step);}
+  return step().then(function(){return{text:lines.join("\n"),conf:confs.length?confs.reduce(function(a,b){return a+b;},0)/confs.length:0,lines:lines.length};});
+ });
+}
+function tesseract(pre,psm){
+ var lp="./tessdata",key=lp;
+ var load=window.Tesseract?Promise.resolve():new Promise(function(res,rej){
+  if(NET.block)return rej(new Error("offline: το Tesseract δεν είναι τοπικά διαθέσιμο"));
+  var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+  s.onload=res;s.onerror=function(){rej(new Error("αποτυχία βιβλιοθήκης"));};document.head.appendChild(s);});
+ return load.then(function(){
+  if(tw&&tkey===key)return tw;
+  if(tw)return tw.terminate().catch(function(){}).then(mk);
+  return mk();
+  function mk(){return window.Tesseract.createWorker("ell",1,{langPath:lp}).then(function(w){tw=w;tkey=key;return w;});}
+ }).then(function(w){return w.setParameters({tessedit_pageseg_mode:String(psm)}).then(function(){return w.recognize(pre.cv);});})
+  .then(function(r){return{text:r.data.text||"",conf:(r.data.confidence||0)/100,lines:(r.data.text||"").split("\n").filter(Boolean).length};});
+}
+
+/* ---------- extraction & scoring ---------- */
+var MONTHS={ΙΑΝΟΥΑΡΙΟΥ:1,ΦΕΒΡΟΥΑΡΙΟΥ:2,ΜΑΡΤΙΟΥ:3,ΑΠΡΙΛΙΟΥ:4,ΜΑΙΟΥ:5,ΙΟΥΝΙΟΥ:6,ΙΟΥΛΙΟΥ:7,ΑΥΓΟΥΣΤΟΥ:8,ΣΕΠΤΕΜΒΡΙΟΥ:9,ΟΚΤΩΒΡΙΟΥ:10,ΝΟΕΜΒΡΙΟΥ:11,ΔΕΚΕΜΒΡΙΟΥ:12};
+function iso(y,m,d){return y+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0");}
+function extract(text){
+ var flat=String(text||"").replace(/\s+/g," "),F=fold(flat),o={};
+ var pm=F.match(/([Α-Ω0-9]{3})\s*[-–]?\s*([Α-Ω0-9]{4})/);
+ if(pm){var L="",D="",mp={"0":"Ο","1":"Ι","8":"Β","2":"Ζ"},md={"Ο":"0","Ι":"1","Ζ":"2","Β":"8","S":"5"};
+  pm[1].split("").forEach(function(c){L+=mp[c]||c;});pm[2].split("").forEach(function(c){D+=md[c]!==undefined?md[c]:c;});
+  o.plate=L+D;}
+ var sm=F.match(/(ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ|ΤΤ|ΑΣΤΥΝΟΜΙΚΟ ΤΜΗΜΑ|ΑΤ|ΥΔΝΣΗ|ΥΠΟΔ\/ΝΣΗ)\s+([Α-Ω]{3,})/);
+ if(sm)o.service=(sm[1].indexOf("ΤΡΟΧΑΙΑΣ")>=0?"ΤΤ ":sm[1].indexOf("ΑΣΤΥΝΟΜΙΚΟ")>=0?"ΑΤ ":sm[1].indexOf("ΤΤ")===0?"ΤΤ ":sm[1].indexOf("ΑΤ")===0?"ΑΤ ":"ΥΔΝΣΗ ")+sm[2];
+ var rm=F.match(/Π\s*Ρ\s*Ο\s*Σ[\s\S]{0,40}?(ΑΣΤΥΝΟΜΙΚΟ ΤΜΗΜΑ|ΑΤ|ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ|ΤΤ)\s+([Α-Ω]{3,})/);
+ if(rm)o.recipient=(rm[1].indexOf("ΤΡΟΧΑΙΑΣ")>=0||rm[1]==="ΤΤ"?"ΤΤ ":"ΑΤ ")+rm[2];
+ var nm=F.match(/([Α-Ω]{5,})\s+([Α-Ω]{4,})\s+ΤΟΥ\s+([Α-Ω]{4,})/);
+ if(nm){o.surname=nm[1];o.given=nm[2];o.father=nm[3];}
+ var pr=flat.match(/(\d{4})\s*\/\s*([0-9Α-Ωa-ω]{1,3})\s*\/\s*(\d{2})\s*\/\s*(\d{3,5}\s*[α-ωA-Ω]?)/i);
+ if(pr)o.protocol=fold(pr[1]+"/"+pr[2]+"/"+pr[3]+"/"+pr[4].replace(/\s/g,""));
+ var hd=flat.match(/(\d{4})\s*\/\s*(\d{2})\s*[-–]\s*(\d{2})\s*\/\s*(\d{2,4})/);
+ if(hd)o.hand=fold(hd[1]+"/"+hd[2]+"-"+hd[3]+"/"+hd[4]);
+ var ac=F.match(/(\d{12})/);if(ac)o.act=ac[1];
+ var dt=F.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(dt)o.actDate=iso(dt[3],+dt[2],+dt[1]);
+ var dm2=F.match(/(\d{1,2})\s+(ΙΑΝΟΥΑΡΙΟΥ|ΦΕΒΡΟΥΑΡΙΟΥ|ΜΑΡΤΙΟΥ|ΑΠΡΙΛΙΟΥ|ΜΑΙΟΥ|ΙΟΥΝΙΟΥ|ΙΟΥΛΙΟΥ|ΑΥΓΟΥΣΤΟΥ|ΣΕΠΤΕΜΒΡΙΟΥ|ΟΚΤΩΒΡΙΟΥ|ΝΟΕΜΒΡΙΟΥ|ΔΕΚΕΜΒΡΙΟΥ)\s+(\d{4})/);
+ if(dm2)o.docDate=iso(dm2[3],MONTHS[dm2[2]],+dm2[1]);
+ var tm=F.match(/ΩΡΑ\s*(\d{1,2})[:.](\d{2})/);if(tm)o.vtime=String(+tm[1]).padStart(2,"0")+":"+tm[2];
+ var sp=F.match(/ΤΑΧΥΤΗΤΑ\s*(\d{2,3})/);if(sp)o.speed=sp[1];
+ var li=F.match(/ΟΡΙΟΥ\s*ΤΩΝ\s*(\d{2,3})/);if(li)o.limit=li[1];
+ var ar=F.match(/(\d{1,3})\s*[§Σς]\s*(\d{1,2})\s*([Α-Ω]{1,3})/);if(ar)o.article=ar[1]+"§"+ar[2]+ar[3];
+ var W={"ΕΙΚΟΣΙ":20,"ΤΡΙΑΝΤΑ":30,"ΣΑΡΑΝΤΑ":40,"ΠΕΝΗΝΤΑ":50,"ΕΞΗΝΤΑ":60,"ΕΒΔΟΜΗΝΤΑ":70,"ΟΓΔΟΝΤΑ":80};
+ var dd=F.match(/(ΤΡΙΑΝΤΑ|ΕΙΚΟΣΙ|ΣΑΡΑΝΤΑ|ΠΕΝΗΝΤΑ|ΕΞΗΝΤΑ|ΕΒΔΟΜΗΝΤΑ|ΟΓΔΟΝΤΑ)\s*\(?(\d{1,3})?\)?\s*ΗΜΕΡ/);
+ if(dd)o.days=String(dd[2]||W[dd[1]]||"");
+ var km=F.match(/(\d{1,3})\s*\+\s*(\d{2,3})/);if(km)o.km=km[1]+"+"+km[2];
+ if(F.indexOf("Π.Ε.Ο")>=0||F.indexOf("ΠΕΟ")>=0){var cs=[];["ΛΑΡΙΣΑΣ","ΒΟΛΟΥ","ΘΕΣΣΑΛΟΝΙΚΗΣ","ΚΑΒΑΛΑΣ","ΛΑΜΙΑΣ"].forEach(function(c){if(F.indexOf(c)>=0&&cs.indexOf(c)<0)cs.push(c);});
+  o.road="Π.Ε.Ο. "+cs.join(" - ");}
+ var ad=F.match(/ΟΔΟΣ\s+([Α-Ω\s]{4,30}?)\s+(\d{1,4})/);if(ad){o.street=ad[1].trim();o.num=ad[2];}
+ ["ΚΑΛΑΜΑΡΙΑΣ","ΘΕΣΣΑΛΟΝΙΚΗΣ","ΒΟΛΟΥ","ΛΑΡΙΣΑΣ","ΛΗΤΗΣ","ΘΕΡΜΗΣ"].some(function(c){if(F.indexOf("ΚΑΤΟΙΚΟΣ "+c)>=0||F.indexOf("ΚΑΤΟΙΚΟΣ "+c.replace(/Σ$/,""))>=0){o.city=c;return true;}return false;});
+ if(!o.city&&F.indexOf("ΚΑΛΑΜΑΡΙΑ")>=0)o.city="ΚΑΛΑΜΑΡΙΑΣ";
+ var lw=F.match(/Ν\.?\s*(\d{4})\s*\/\s*(\d{4})/);if(lw)o.law=lw[1]+"/"+lw[2];
+ return o;
+}
+function scoreField(f,got){
+ if(got==null||got==="")return{s:0,cls:"x"};
+ var a,b;
+ if(f.m==="num"){a=digits(f.v);b=digits(got);}
+ else if(f.m==="plate"){a=fold(f.v).replace(/-/g,"");b=fold(got).replace(/-/g,"");}
+ else if(f.m==="km"){a=digits(f.v);b=digits(got);}
+ else if(f.m==="proto"){a=fold(f.v).replace(/[\s\-–\/]/g,"");b=fold(got).replace(/[\s\-–\/]/g,"");}
+ else if(f.m==="art"){a=fold(f.v).replace(/\s/g,"");b=fold(got).replace(/\s/g,"");}
+ else if(f.m==="date"){a=fold(f.v);b=fold(got);}
+ else if(f.m==="time"){a=f.v.replace(/\D/g,"");b=String(got).replace(/\D/g,"");}
+ else if(f.m==="multi"){var ta=fold(f.v).split(/[\s\-\.]+/).filter(Boolean),tb=fold(got).split(/[\s\-\.]+/).filter(Boolean);
+  var hit=ta.filter(function(t){return tb.some(function(u){return near(t,u)>.85;});}).length;
+  var r=ta.length?hit/ta.length:0;return{s:r,cls:r>=.99?"e":r>=.7?"n":r>0?"p":"m"};}
+ else{a=fold(f.v);b=fold(got);}
+ if(a===b)return{s:1,cls:"e"};
+ var n=near(a,b);
+ if(n>=.93)return{s:.9,cls:"n"};
+ if(n>=.78)return{s:.55,cls:"p"};
+ return{s:0,cls:"m"};
+}
+function scoreText(text){
+ var got=extract(text),tot=0,acc=0,detail={};
+ GT.forEach(function(f){var r=scoreField(f,got[f.k]);detail[f.k]={cls:r.cls,s:r.s,got:got[f.k]||""};tot+=+f.w||0;acc+=(+f.w||0)*r.s;});
+ return{score:tot?100*acc/tot:0,detail:detail,got:got};
+}
+
+/* ---------- sweep ---------- */
+var RUNS=[],running=false,cancel=false,best=null;
+function combos(){
+ var mode=$("#cMode").value,eng=$("#cEng").value;
+ var scales=$("#cScales").value==="1"?[2000]:$("#cScales").value==="2"?[1500,2400]:[1400,2000,2800];
+ var binSet=$("#cBins").value;
+ var bins=binSet==="keep"?["keep"]:binSet==="gn"?["keep","nick"]:binSet==="gnw"?["keep","nick","wolf"]:["keep","none","nick","wolf","sauvola"];
+ var dets=$("#cDet").value==="both"?[736,1280]:[+$("#cDet").value];
+ var psms=eng==="tess"||eng==="both"?[6,4]:[6];
+ var engines=eng==="both"?["paddle","tess"]:[eng];
+ var names=Object.keys(PRESETS);
+ if(mode==="quick"){scales=[2000];bins=["keep"];dets=[960];psms=[6];}
+ if(mode==="max"){scales=$("#cScales").value==="1"?[1600,2400]:scales;}
+ var out=[];
+ names.forEach(function(p){scales.forEach(function(sc){bins.forEach(function(bn){
+  engines.forEach(function(en){
+   if(en==="paddle")dets.forEach(function(dl2){out.push({preset:p,scale:sc,bin:bn,engine:en,det:dl2,psm:6});});
+   else psms.forEach(function(ps){out.push({preset:p,scale:sc,bin:bn,engine:en,det:960,psm:ps});});
+  });});});});
+ return out;
+}
+function cfgFor(c){
+ var p=PRESETS[c.preset],o={};for(var k in p)o[k]=p[k];
+ o.scale=c.scale;
+ if(c.bin!=="keep")o.bin=c.bin;
+ if(c.bin==="nick"||c.bin==="wolf")o.k=-.2;
+ if(c.bin==="sauvola")o.k=.2;
+ if(c.rl!==undefined)o.rl=c.rl;
+ if(c.sharp!==undefined)o.sharp=c.sharp;
+ return o;
+}
+function renderReady(){
+ var pad=M.det&&M.rec&&DICT;
+ $("#readyStats").innerHTML='<span class="tag '+(pad?"g":"r")+'">PaddleOCR: '+(pad?"έτοιμο":"λείπουν μοντέλα")+'</span>'+
+  '<span class="tag '+(DICT?"g":"r")+'">λεξικό: '+(DICT?DICT.length:"—")+'</span>'+
+  '<span class="tag '+(SRC?"g":"a")+'">εικόνα: '+(SRC?"ναι":"όχι")+'</span>'+
+  '<span class="tag c">'+combos().length+' συνδυασμοί</span>'+
+  (pad?'':'<span class="tag a">φόρτωσε μοντέλα από το setup.html</span>');
+ var a1=$("#a1tag");
+ get("lib/ort").then(function(o){get("lib/wasm").then(function(w){
+  var full=o&&w&&pad;
+  a1.className="tag "+(full?"g":"a");a1.textContent=full?"ΝΑΙ, πλήρως":"μερικώς — χρειάζεται κλείδωμα";
+ });});
+}
+function renderBoard(){
+ if(!RUNS.length){$("#board").innerHTML='<div class="empty">Δεν έχουν γίνει δοκιμές.</div>';$("#heat").innerHTML='<div class="empty">—</div>';return;}
+ var sorted=RUNS.slice().sort(function(a,b){return b.score-a.score||b.conf-a.conf||a.ms-b.ms;});
+ best=sorted[0];
+ $("#board").innerHTML=sorted.slice(0,40).map(function(r,i){
+  return '<div class="run '+(i===0?"win":"")+'" data-id="'+r.id+'"><div class="rk">'+(i+1)+'</div><div class="g">'+
+   '<div class="t">'+esc(r.label)+'</div><div class="s">'+r.engine+' · '+r.scale+'px · '+r.bin+' · det'+r.det+' · psm'+r.psm+' · '+r.lines+' γραμμές · '+r.ms+'ms</div></div>'+
+   '<div class="scorebar"><i style="width:'+r.score.toFixed(0)+'%"></i></div><span class="tag '+(r.score>75?"g":r.score>50?"a":"r")+'">'+r.score.toFixed(1)+'</span></div>';}).join("");
+ var top=sorted.slice(0,14);
+ var h='<table><thead><tr><th>συνδυασμός</th>'+GT.map(function(f){return '<th title="'+esc(f.t)+'">'+esc(f.k.slice(0,6))+'</th>';}).join("")+'<th>score</th></tr></thead><tbody>';
+ top.forEach(function(r){h+='<tr><td class="lbl2">'+esc(r.label)+'</td>'+GT.map(function(f){
+  var d=r.detail[f.k]||{cls:"x"};return '<td><span class="cell '+d.cls+'" title="'+esc(f.t+": "+(d.got||"—"))+'"></span></td>';}).join("")+
+  '<td class="lbl2">'+r.score.toFixed(1)+'</td></tr>';});
+ $("#heat").innerHTML=h+'</tbody></table>';
+ renderWinner();drawSpark();
+}
+function drawSpark(){
+ var cv=$("#spark"),w=cv.clientWidth||300;cv.width=w*devicePixelRatio;cv.height=60*devicePixelRatio;
+ var x=cv.getContext("2d");x.scale(devicePixelRatio,devicePixelRatio);x.clearRect(0,0,w,60);
+ if(RUNS.length<2)return;
+ var mx=Math.max.apply(null,RUNS.map(function(r){return r.score;}))||100;
+ x.strokeStyle="rgba(255,176,32,.9)";x.lineWidth=2;x.beginPath();
+ RUNS.forEach(function(r,i){var px=8+(w-16)*i/(RUNS.length-1),py=54-48*(r.score/Math.max(mx,1));
+  if(i===0)x.moveTo(px,py);else x.lineTo(px,py);});
+ x.stroke();
+ x.fillStyle="rgba(34,211,238,.85)";
+ RUNS.forEach(function(r,i){var px=8+(w-16)*i/(RUNS.length-1),py=54-48*(r.score/Math.max(mx,1));x.beginPath();x.arc(px,py,2,0,7);x.fill();});
+}
+function renderWinner(){
+ if(!best){$("#winCard").innerHTML='<div class="empty">Τρέξε τη σάρωση για να αναδειχθεί νικητής.</div>';return;}
+ var hits=GT.filter(function(f){return best.detail[f.k]&&best.detail[f.k].cls==="e";}).length;
+ var miss=GT.filter(function(f){return !best.detail[f.k]||best.detail[f.k].cls==="x"||best.detail[f.k].cls==="m";});
+ $("#winCard").innerHTML=
+  '<div class="stats"><span class="tag g">ΝΙΚΗΤΗΣ</span><span class="tag c">'+esc(best.label)+'</span>'+
+  '<span class="tag">'+best.engine+' · '+best.scale+'px · '+best.bin+' · det'+best.det+'</span>'+
+  '<span class="tag g">'+best.score.toFixed(1)+' / 100</span><span class="tag">'+hits+'/'+GT.length+' ακριβή</span>'+
+  '<span class="tag">'+best.ms+' ms</span></div>'+
+  '<div class="note cy">Η βαθμολογία προκύπτει από τη <b>δική σου φωτογραφία</b> και τα δικά σου πεδία. Δεν είναι γενικός ισχυρισμός για άλλες λήψεις — επιβεβαίωσέ τον σε 2–3 ακόμη δύσκολες φωτογραφίες πριν τον κλειδώσεις οριστικά.</div>'+
+  (miss.length?'<div class="note bad">Πεδία που αποτυγχάνουν: '+miss.map(function(f){return esc(f.t);}).join(", ")+'</div>':'')+
+  '<div class="row" style="margin-top:10px"><button class="btn go" id="wSave">Αποθήκευση ως προεπιλογή</button>'+
+  '<button class="btn cy" id="wPng">Λήψη PNG νικητή</button><button class="btn gh" id="wJson">Λήψη συνταγής</button>'+
+  '<a class="btn vi" href="./ocr-lab.html">Άνοιγμα Εργαστηρίου</a></div>'+
+  '<label class="lbl">Κείμενο νικητή</label><div class="txt">'+esc(best.text||"—")+'</div>';
+ $("#wSave").onclick=function(){try{localStorage.setItem("troxo_best_recipe",JSON.stringify(best.cfg));}catch(e){}
+  toast("Ο νικητής αποθηκεύτηκε ως προεπιλογή.","ok");};
+ $("#wJson").onclick=function(){dl("best-recipe.json",JSON.stringify({label:best.label,score:best.score,cfg:best.cfg,engine:best.engine,det:best.det,psm:best.psm},null,2));};
+ $("#wPng").onclick=function(){var pre=preprocess(best.cfg);pre.cv.toBlob(function(b){var u=URL.createObjectURL(b),a=document.createElement("a");
+  a.href=u;a.download="winner.png";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);},"image/png");};
+}
+$("#btnRun").onclick=function(){
+ if(!SRC){toast("Φόρτωσε πρώτα τη φωτογραφία.","err");return;}
+ var eng=$("#cEng").value;
+ if((eng==="paddle"||eng==="both")&&(!M.det||!M.rec||!DICT)){toast("Λείπουν μοντέλα PaddleOCR — φόρτωσέ τα από το setup.html.","err");return;}
+ var list=combos();running=true;cancel=false;$("#btnRun").disabled=true;$("#btnStop").disabled=false;
+ var i=0,t0=performance.now(),cache={};
+ function next(){
+  if(cancel||i>=list.length){finish();return;}
+  var c=list[i++],cfg=cfgFor(c),key=JSON.stringify(cfg);
+  $("#prog").style.width=(100*i/list.length)+"%";
+  $("#runStats").innerHTML='<span class="tag v">δοκιμή '+i+'/'+list.length+'</span><span class="tag">'+esc(c.preset)+'</span><span class="tag c">'+c.engine+'</span><span class="tag">'+Math.round((performance.now()-t0)/1000)+'s</span>';
+  Promise.resolve().then(function(){
+   var pre=cache[key];if(!pre){pre=preprocess(cfg);cache[key]=pre;}
+   return (c.engine==="paddle"?paddle(pre,c.det):tesseract(pre,c.psm)).then(function(r){
+    var sc=scoreText(r.text);
+    RUNS.push({id:"r"+Date.now()+"_"+i,label:c.preset+" · "+c.scale+" · "+(c.bin==="keep"?PRESETS[c.preset].bin:c.bin),
+      engine:c.engine,scale:c.scale,bin:c.bin==="keep"?PRESETS[c.preset].bin:c.bin,det:c.det,psm:c.psm,
+      score:sc.score,detail:sc.detail,text:r.text,conf:r.conf,lines:r.lines,ms:0,cfg:cfg});
+    renderBoard();
+   }).catch(function(e){
+    RUNS.push({id:"e"+i,label:c.preset+" · απέτυχε",engine:c.engine,scale:c.scale,bin:c.bin,det:c.det,psm:c.psm,
+     score:0,detail:{},text:"Σφάλμα: "+e.message,conf:0,lines:0,ms:0,cfg:cfg});
+   });
+  }).then(function(){setTimeout(next,0);});
+ }
+ function finish(){
+  running=false;$("#btnRun").disabled=false;$("#btnStop").disabled=true;$("#prog").style.width="100%";
+  var el=Math.round((performance.now()-t0)/1000);
+  RUNS.forEach(function(r){if(!r.ms)r.ms=Math.round(el*1000/Math.max(RUNS.length,1));});
+  renderBoard();
+  $("#runStats").innerHTML='<span class="tag g">ολοκληρώθηκε</span><span class="tag">'+RUNS.length+' δοκιμές</span><span class="tag c">'+el+' s</span>'+(best?'<span class="tag g">νικητής '+best.score.toFixed(1)+'</span>':'');
+  toast(cancel?"Η σάρωση διακόπηκε.":"Ολοκληρώθηκε — νικητής "+(best?best.score.toFixed(1):"—"),"ok");
+ }
+ next();
+};
+$("#btnStop").onclick=function(){cancel=true;toast("Διακοπή μετά την τρέχουσα δοκιμή.","warn");};
+$("#btnClear").onclick=function(){RUNS=[];best=null;renderBoard();$("#runStats").innerHTML='<span class="tag">ανενεργό</span>';$("#prog").style.width="0%";};
+$("#board").addEventListener("click",function(e){var r=e.target.closest("[data-id]");if(!r)return;
+ var run=RUNS.filter(function(x){return x.id===r.dataset.id;})[0];if(!run)return;
+ best=run;renderWinner();location.hash="#win";toast("Επιλέχθηκε: "+run.label,"ok");});
+
+/* ---------- offline provisioning ---------- */
+var ORT_VER="1.19.2",ORT_BASE="https://cdn.jsdelivr.net/npm/onnxruntime-web@"+ORT_VER+"/dist/";
+$("#btnProv").onclick=function(){
+ var wasBlock=NET.block;NET.block=false;
+ toast("Λήψη πακέτου offline…","warn");
+ var jobs=[origFetch(ORT_BASE+"ort.min.js").then(function(r){if(!r.ok)throw new Error("ort.min.js");return r.text();})
+   .then(function(t){netAdd(ORT_BASE+"ort.min.js",true,new Blob([t]).size);return put("lib/ort",{text:t,name:"ort.min.js"});})];
+ var names=["ort-wasm-simd-threaded.wasm","ort-wasm-simd.wasm","ort-wasm.wasm"];
+ jobs.push(names.reduce(function(p,n){return p.then(function(done){
+  if(done)return true;
+  return origFetch(ORT_BASE+n).then(function(r){if(!r.ok)return false;return r.arrayBuffer().then(function(b){
+   netAdd(ORT_BASE+n,true,b.byteLength);return put("lib/wasm",{buf:b,name:n}).then(function(){return true;});});}).catch(function(){return false;});
+ },Promise.resolve(false)));
+ ["det","rec","cls","dict"].forEach(function(k){
+  jobs.push(get(k).then(function(v){if(v)return;
+   var f=k==="dict"?"el_dict.txt":k+".onnx";
+   return window.fetch("./models/"+f,{cache:"force-cache"}).then(function(r){return r.ok?(k==="dict"?r.text():r.arrayBuffer()):null;})
+    .then(function(d){if(!d)return;return put(k,k==="dict"?{text:d,name:f}:{buf:d,name:f});}).catch(function(){});}));
+ });
+ Promise.all(jobs).then(function(){NET.block=wasBlock;return loadModels();}).then(function(){
+  renderOff();renderReady();toast("Το πακέτο offline αποθηκεύτηκε.","ok");
+ }).catch(function(e){NET.block=wasBlock;toast("Αποτυχία: "+e.message,"err");});
+};
+$("#btnProvClear").onclick=function(){Promise.all([del("lib/ort"),del("lib/wasm")]).then(function(){renderOff();renderReady();toast("Το offline πακέτο διαγράφηκε.","warn");});};
+$("#btnVerify").onclick=function(){
+ if(!SRC){toast("Φόρτωσε εικόνα για τη δοκιμή.","warn");return;}
+ if(!M.det||!M.rec||!DICT){toast("Λείπουν μοντέλα.","err");return;}
+ NET.block=true;renderOff();
+ var cfg=best?best.cfg:cfgFor({preset:"photo",scale:2000,bin:"keep"});
+ var pre=preprocess(cfg);
+ paddle(pre,best?best.det:960).then(function(r){
+  var sc=scoreText(r.text);
+  toast("Χωρίς δίκτυο: "+sc.score.toFixed(1)+"/100 — λειτουργεί.","ok");
+  $("#runStats").innerHTML='<span class="tag g">offline δοκιμή ΟΚ</span><span class="tag">'+sc.score.toFixed(1)+'</span><span class="tag c">0 εξωτερικές κλήσεις</span>';
+ }).catch(function(e){toast("Αποτυχία offline: "+e.message,"err");})
+ .then(function(){NET.block=false;renderOff();});
+};
+function renderOff(){
+ Promise.all([get("lib/ort"),get("lib/wasm"),get("det"),get("rec"),get("dict")]).then(function(v){
+  $("#offStats").innerHTML='<span class="tag '+(v[0]?"g":"r")+'">βιβλιοθήκη ONNX</span>'+
+   '<span class="tag '+(v[1]?"g":"r")+'">WASM</span><span class="tag '+(v[2]?"g":"r")+'">det</span>'+
+   '<span class="tag '+(v[3]?"g":"r")+'">rec</span><span class="tag '+(v[4]?"g":"r")+'">λεξικό</span>'+
+   '<span class="tag '+(NET.block?"c":"")+'">'+(NET.block?"δίκτυο ΜΠΛΟΚΑΡΙΣΜΕΝΟ":"δίκτυο επιτρέπεται")+'</span>';
+ });
+}
+$("#cOff").onclick=function(){NET.block=!NET.block;this.classList.toggle("on",NET.block);renderOff();
+ toast(NET.block?"Όλες οι εξωτερικές κλήσεις μπλοκάρονται.":"Το δίκτυο επιτρέπεται ξανά.","warn");};
+
+/* ---------- manifest ---------- */
+var FILES=[
+ {f:"index.html",r:"app",d:"Η εφαρμογή — απαραίτητο"},
+ {f:"app.js",r:"app",d:"Λογική υποθέσεων — απαραίτητο"},
+ {f:"style.css",r:"app",d:"Εμφάνιση εφαρμογής — απαραίτητο"},
+ {f:"sw.js",r:"app",d:"Service worker / cache — απαραίτητο"},
+ {f:"ocr-parser.js",r:"app",d:"Parser πεδίων — απαραίτητο"},
+ {f:"manifest.json",r:"app",d:"PWA manifest"},
+ {f:"icon-192.png",r:"app",d:"Εικονίδιο PWA"},
+ {f:"models/det.onnx",r:"model",d:"PaddleOCR εντοπισμός — απαραίτητο για OCR"},
+ {f:"models/rec.onnx",r:"model",d:"PaddleOCR αναγνώριση — απαραίτητο για OCR"},
+ {f:"models/el_dict.txt",r:"model",d:"Λεξικό χαρακτήρων — απαραίτητο για OCR"},
+ {f:"models/cls.onnx",r:"opt",d:"Διόρθωση 180° — προαιρετικό"},
+ {f:"tessdata/ell.traineddata.gz",r:"opt",d:"ΜΟΝΟ για σύγκριση με Tesseract — δεν χρειάζεται για Paddle"},
+ {f:"workshop.html",r:"tool",d:"Ενημέρωση αρχείων εφαρμογής (αντικαθιστά το patch.html)"},
+ {f:"setup.html",r:"tool",d:"Φόρτωση & επικύρωση μοντέλων"},
+ {f:"studio.html",r:"tool",d:"Χειροκίνητη προεπεξεργασία & λεξικά"},
+ {f:"ocr-lab.html",r:"tool",d:"Αναγνώριση & εξαγωγή πεδίων"},
+ {f:"tune.html",r:"tool",d:"Αυτόματη σάρωση & επιλογή νικητή (αυτό)"},
+ {f:"patch.html",r:"old",d:"ΠΑΡΩΧΗΜΕΝΟ — αντικαταστάθηκε από το workshop.html"}
+];
+var FS={};
+function renderMan(){
+ var lbl={app:"ΕΦΑΡΜΟΓΗ",model:"ΜΟΝΤΕΛΟ",opt:"ΠΡΟΑΙΡΕΤΙΚΟ",tool:"ΕΡΓΑΛΕΙΟ",old:"ΠΑΡΩΧΗΜΕΝΟ"};
+ $("#manifest").innerHTML=FILES.map(function(x){
+  var v=FS[x.f],c=v===true?"g":v===false?(x.r==="opt"||x.r==="old"?"a":"r"):v==="busy"?"busy":"";
+  return '<div class="manr"><i class="'+c+'"></i><span class="f">'+esc(x.f)+'</span>'+
+   '<span class="tag '+(x.r==="app"?"c":x.r==="model"?"v":x.r==="old"?"r":"")+'">'+lbl[x.r]+'</span>'+
+   '<span class="tag '+(v===true?"g":v===false?"a":"")+'">'+(v===true?"υπάρχει":v===false?"λείπει":"—")+'</span>'+
+   '<span class="d">'+esc(x.d)+'</span></div>';}).join("");
+}
+function probe(){
+ var base=$("#baseUrl").value.trim().replace(/\/?$/,"/");
+ FILES.forEach(function(x){FS[x.f]="busy";});renderMan();
+ FILES.forEach(function(x){
+  origFetch(base+x.f,{method:"HEAD",cache:"no-store"}).then(function(r){FS[x.f]=r.ok;renderMan();})
+   .catch(function(){FS[x.f]=false;renderMan();});
+ });
+}
+$("#btnProbe").onclick=probe;
+$("#btnSame").onclick=function(){$("#baseUrl").value="./";probe();};
+
+/* ---------- rail ---------- */
+["cMode","cEng","cScales","cBins","cDet"].forEach(function(id){$("#"+id).onchange=renderReady;});
+$("#cRef").onclick=function(){this.classList.toggle("on");};
+$("#cTheme").onchange=function(){document.documentElement.setAttribute("data-theme",this.value==="paper"?"paper":"dark");};
+$("#cDens").onchange=function(){document.documentElement.setAttribute("data-density",this.value);};
+$("#cFs").oninput=function(){document.documentElement.style.setProperty("--fs",this.value+"px");$("#vFs").textContent=this.value;};
+$("#cReset").onclick=function(){$("#cMode").value="full";$("#cEng").value="paddle";$("#cScales").value="2";$("#cBins").value="keep";$("#cDet").value="960";renderReady();toast("Ρυθμίσεις επανήλθαν.","ok");};
+$("#cRand").onclick=function(){
+ var m=["quick","full","max"],s=["1","2","3"],b=["keep","gn","gnw","all"];
+ $("#cMode").value=m[Math.floor(Math.random()*3)];$("#cScales").value=s[Math.floor(Math.random()*3)];$("#cBins").value=b[Math.floor(Math.random()*4)];
+ renderReady();toast("Τυχαίος χώρος αναζήτησης: "+combos().length+" συνδυασμοί.","warn");};
+$("#cExport").onclick=function(){
+ if(!RUNS.length){toast("Δεν υπάρχουν αποτελέσματα.","warn");return;}
+ dl("sweep-report.json",JSON.stringify({at:new Date().toISOString(),image:SRC?SRC.name:null,
+  groundTruth:GT,runs:RUNS.map(function(r){return{label:r.label,engine:r.engine,scale:r.scale,bin:r.bin,det:r.det,psm:r.psm,score:r.score,conf:r.conf,lines:r.lines,cfg:r.cfg,detail:r.detail};}),
+  winner:best?{label:best.label,score:best.score,cfg:best.cfg}:null},null,2));};
+
+/* ---------- boot ---------- */
+renderGT();renderMan();renderOff();renderReady();
+loadModels().then(function(){renderReady();renderOff();});
+window.addEventListener("resize",drawSpark);
+var secs=[].slice.call(document.querySelectorAll("section")),links=[].slice.call(document.querySelectorAll("#tabs a"));
+function spy(){var y=window.scrollY+240,cur=secs[0];secs.forEach(function(s){if(s.offsetTop<=y)cur=s;});
+ links.forEach(function(a){a.classList.toggle("on",a.getAttribute("href")==="#"+cur.id);});}
+window.addEventListener("scroll",spy,{passive:true});spy();
+})();
+</script>
+</body>
+  </html>
