@@ -106,6 +106,14 @@
     return null;
   }
 
+  function cityKnownOnly(tok) {
+    const t = String(tok || '').toUpperCase().replace(/[^Α-ΩA-Z]/g, '');
+    if (t.length < 4 || t.length > 14 || PLACE_BLACKLIST.has(t)) return null;
+    if (KNOWN_SET.has(t)) return t;
+    if (t.length >= 6) { for (const k of KNOWN_PLACES) { if (Math.abs(k.length - t.length) <= 1 && lev(k, t) <= 1) return k; } }
+    return null;
+  }
+
   /* ---------- ΠΙΝΑΚΙΔΑ ---------- */
 
   const PLATE_LETTERS = 'ΑΒΕΖΗΙΚΜΝΟΡΤΥΧ';
@@ -212,7 +220,7 @@
     
     if (roadIdx !== -1) {
       const seg = flat.slice(roadIdx, Math.min(flat.length, roadIdx + 80));
-      const toks = seg.split(/[^Α-ΩA-Z]+/).filter(Boolean);
+      const toks = seg.split(/[^Α-Ωα-ωA-Za-z]+/).filter(Boolean);
       
       // Extract normalized road abbreviation
       const rm = seg.match(roadRegex);
@@ -224,7 +232,8 @@
       
       // Extract valid cities following the road
       for (const t of toks) {
-        const c = cityOk(t);
+        // Κεφαλαία: ευρετική αναγνώριση (όπως πριν). Μικτά/πεζά (π.χ. «Λάρισας»): μόνο γνωστοί τόποι, ώστε να μην μπει τυχαία λέξη.
+        const c = (t === t.toUpperCase()) ? cityOk(t) : cityKnownOnly(t);
         if (c && !cities.includes(c)) cities.push(c);
         if (cities.length >= 2) break; // Max 2 cities for route description
       }
