@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06090E">
+<title>ΕΓΚΑΤΑΣΤΑΣΗ OCR · troxonomika</title>
+<style>
+:root{
+  --a9:#06090E;--a8:#0A0F16;--a7:#101923;--sf:#121B26;--sf2:#18232F;--ln:#213040;--ln2:#2D4053;
+  --ink:#E9F1F8;--mut:#8CA2B8;--dim:#5D7286;
+  --paddle:#A855F7;--paddle2:#C084FC;--tess:#FFB020;--plate:#2F6BFF;--cyan:#22D3EE;
+  --ok:#16DB65;--warn:#FFB020;--bad:#FF4D4F;--info:#22D3EE;
+  --pad:15px;--r:14px;--fs:14px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+[data-theme="paper"]{
+  --a9:#EFE9DC;--a8:#F6F1E6;--a7:#FCF8F0;--sf:#FFFDF8;--sf2:#F4EEE2;--ln:#DED4C2;--ln2:#C6BAA4;
+  --ink:#141A22;--mut:#5A6472;--dim:#7B8695;--paddle:#7C22CE;--paddle2:#9333EA;--tess:#B07000;
+  --plate:#1B4FD8;--cyan:#0E7490;--ok:#0E8F45;--warn:#B07000;--bad:#C62828;--info:#0E7490;
+}
+[data-density="tight"]{--pad:10px;--r:11px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--a9);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:96px;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:
+  radial-gradient(720px 460px at 6% -10%,rgba(168,85,247,.20),transparent 62%),
+  radial-gradient(600px 420px at 98% 0%,rgba(255,176,32,.13),transparent 60%),
+  radial-gradient(820px 560px at 40% 114%,rgba(34,211,238,.12),transparent 62%),
+  linear-gradient(180deg,var(--a9),var(--a8) 45%,var(--a9))}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.4;
+  background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:38px 38px;mask-image:radial-gradient(circle at 50% 14%,#000,transparent 76%);animation:drift 40s linear infinite}
+@keyframes drift{to{background-position:380px 0,0 380px}}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:var(--a8);border-left:1px solid var(--ln)}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--paddle),var(--cyan));border-radius:20px;border:2px solid var(--a8)}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--tess),var(--plate))}
+*{scrollbar-color:var(--paddle) var(--a8);scrollbar-width:thin}
+.wrap{max-width:1040px;margin:0 auto;padding:0 13px}
+
+header.top{position:sticky;top:0;z-index:70;backdrop-filter:blur(14px);background:color-mix(in srgb,var(--a9) 88%,transparent);border-bottom:1px solid var(--ln)}
+.topin{display:flex;align-items:center;gap:11px;padding:9px 13px;max-width:1040px;margin:0 auto}
+.mark{width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;background:linear-gradient(145deg,var(--paddle),#3B0F73);box-shadow:0 0 0 1px var(--ln2),0 8px 20px rgba(168,85,247,.36);position:relative;overflow:hidden}
+.mark::after{content:"";position:absolute;left:0;right:0;height:2px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:scan 2.8s ease-in-out infinite}
+@keyframes scan{0%,100%{top:6px;opacity:.2}50%{top:28px;opacity:1}}
+.brand b{display:block;font-size:14.5px;letter-spacing:.16em;text-transform:uppercase}
+.brand span{display:block;font-size:10.5px;color:var(--mut)}
+.priv{margin-left:auto;font-size:10.5px;color:var(--ok);border:1px solid color-mix(in srgb,var(--ok) 40%,var(--ln));background:color-mix(in srgb,var(--ok) 9%,transparent);padding:6px 10px;border-radius:999px;white-space:nowrap}
+.priv.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,var(--ln));background:color-mix(in srgb,var(--warn) 9%,transparent)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 11px 7px;max-width:1040px;margin:0 auto}
+nav.tabs a{flex:none;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);text-decoration:none;padding:7px 11px;border-radius:9px;border:1px solid transparent;white-space:nowrap}
+nav.tabs a.on{color:var(--ink);background:var(--sf);border-color:var(--ln2);box-shadow:inset 0 -2px 0 var(--paddle)}
+
+.rail{position:sticky;top:92px;z-index:60;background:color-mix(in srgb,var(--a8) 93%,transparent);backdrop-filter:blur(12px);border-block:1px solid var(--ln)}
+.railin{display:flex;gap:8px;overflow-x:auto;padding:9px 13px;max-width:1040px;margin:0 auto}
+.ctl{flex:none;width:136px;display:flex;flex-direction:column;gap:4px;background:var(--a7);border:1px solid var(--ln);border-radius:11px;padding:8px 9px}
+.ctl.w{width:230px}
+.ctl>small{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between}
+.ctl>small b{color:var(--tess);font-weight:700}
+input,select,textarea,button{font-family:inherit;font-size:var(--fs);color:var(--ink)}
+input,select,textarea{width:100%;background:var(--a7);border:1px solid var(--ln);border-radius:10px;padding:9px 10px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--paddle)}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 14px) 17px,calc(100% - 9px) 17px;background-size:5px 5px;background-repeat:no-repeat;padding-right:26px}
+.ctl select,.ctl input{padding:6px 8px;font-size:12.5px;border-radius:8px}
+.ctl select{background-position:calc(100% - 12px) 14px,calc(100% - 8px) 14px}
+input[type=range]{padding:0;height:22px;background:transparent;border:0;accent-color:var(--tess)}
+.sw{display:flex;align-items:center;gap:7px;background:var(--a7);border:1px solid var(--ln);border-radius:10px;padding:8px 10px;cursor:pointer;user-select:none;min-height:38px}
+.sw i{width:32px;height:18px;border-radius:999px;background:var(--ln2);position:relative;flex:none;transition:.18s}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--mut);transition:.18s}
+.sw.on i{background:linear-gradient(90deg,var(--paddle),var(--cyan))}
+.sw.on i::after{left:16px;background:#fff}
+.sw span{font-size:11.5px;color:var(--mut);line-height:1.25}
+.sw.on span{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--ln2);background:var(--sf2);border-radius:11px;padding:11px 14px;font-weight:650;cursor:pointer;transition:.14s;min-height:44px;text-decoration:none}
+.btn:hover{border-color:var(--paddle);transform:translateY(-1px)}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn.pri{background:linear-gradient(135deg,var(--paddle),#5B21B6);border-color:transparent;color:#fff;box-shadow:0 10px 24px rgba(168,85,247,.32)}
+.btn.go{background:linear-gradient(135deg,var(--ok),#0A7A3B);border-color:transparent;color:#03210F}
+.btn.am{background:linear-gradient(135deg,var(--tess),#B07000);border-color:transparent;color:#231600}
+.btn.gh{background:transparent}
+.btn.sm{padding:7px 10px;min-height:36px;font-size:12.5px;border-radius:9px}
+.btn.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--ln))}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>.btn{flex:1 1 150px}
+
+section{scroll-margin-top:190px;padding:24px 0 4px}
+.hd{display:flex;align-items:center;gap:9px;margin:0 0 11px}
+.hd h2{margin:0;font-size:16.5px;letter-spacing:.04em}
+.hd .num{font-size:10px;letter-spacing:.13em;color:var(--paddle);border:1px solid color-mix(in srgb,var(--paddle) 45%,var(--ln));padding:3px 7px;border-radius:6px}
+.hd .bar{flex:1;height:6px;border-radius:3px;opacity:.5;background:repeating-linear-gradient(45deg,var(--paddle) 0 7px,transparent 7px 14px)}
+.card{background:linear-gradient(180deg,var(--sf),var(--a7));border:1px solid var(--ln);border-radius:var(--r);padding:var(--pad);box-shadow:0 16px 44px rgba(0,0,0,.45);margin-bottom:11px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
+.lead{color:var(--mut);font-size:13px;margin:0 0 10px}
+.k{color:var(--ink);font-weight:650}
+code.i{font-family:var(--mono);font-size:12px;background:var(--a9);border:1px solid var(--ln);padding:2px 5px;border-radius:5px;color:var(--cyan);word-break:break-all}
+
+.answer{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.big{font-size:64px;line-height:.9;font-weight:800;letter-spacing:-.03em;background:linear-gradient(135deg,var(--paddle2),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;flex:none}
+.answer .txt{flex:1;min-width:230px}
+.answer h3{margin:0 0 6px;font-size:19px}
+.tracks{display:grid;gap:10px;grid-template-columns:1fr 1fr;margin-top:12px}
+@media(max-width:700px){.tracks{grid-template-columns:1fr}.big{font-size:52px}}
+.track{border:1px solid var(--ln2);border-radius:13px;padding:12px;background:var(--a7);position:relative;overflow:hidden}
+.track.p{border-color:color-mix(in srgb,var(--paddle) 45%,var(--ln))}
+.track.t{border-color:color-mix(in srgb,var(--tess) 40%,var(--ln))}
+.track::after{content:"";position:absolute;inset:0 auto 0 0;width:3px}
+.track.p::after{background:linear-gradient(180deg,var(--paddle),var(--cyan))}
+.track.t::after{background:linear-gradient(180deg,var(--tess),var(--bad))}
+.track h4{margin:0 0 4px;font-size:14px;display:flex;align-items:center;gap:7px}
+.track ul{margin:8px 0 0;padding-left:17px;font-size:12.5px;color:var(--mut)}
+.track li{margin:3px 0}
+.track li b{color:var(--ink);font-family:var(--mono);font-size:12px}
+
+.tag{font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:3px 7px;border-radius:6px;border:1px solid var(--ln2);color:var(--mut);white-space:nowrap}
+.tag.g{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 42%,var(--ln));background:color-mix(in srgb,var(--ok) 9%,transparent)}
+.tag.a{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,var(--ln));background:color-mix(in srgb,var(--warn) 9%,transparent)}
+.tag.r{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--ln));background:color-mix(in srgb,var(--bad) 9%,transparent)}
+.tag.v{color:var(--paddle2);border-color:color-mix(in srgb,var(--paddle) 45%,var(--ln))}
+.tag.b{color:var(--cyan);border-color:color-mix(in srgb,var(--cyan) 40%,var(--ln))}
+.stats{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+
+.asset{border:1px solid var(--ln);border-radius:13px;background:var(--a7);margin-bottom:10px;overflow:hidden;transition:.16s}
+.asset:hover{border-color:var(--ln2)}
+.asset.ready{border-color:color-mix(in srgb,var(--ok) 34%,var(--ln))}
+.asset.missing{border-color:color-mix(in srgb,var(--bad) 34%,var(--ln))}
+.ah{display:flex;align-items:center;gap:9px;padding:11px 12px;background:var(--sf2);border-bottom:1px solid var(--ln);flex-wrap:wrap}
+.ah .dot{width:9px;height:9px;border-radius:50%;background:var(--dim);flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.03)}
+.ah .dot.g{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.ah .dot.r{background:var(--bad);box-shadow:0 0 10px var(--bad)}
+.ah .dot.a{background:var(--warn);box-shadow:0 0 10px var(--warn)}
+.ah .dot.busy{background:var(--cyan);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.ah b{font-family:var(--mono);font-size:13px}
+.ah .sp{flex:1}
+.ab{padding:11px 12px}
+.ab .desc{font-size:12.5px;color:var(--mut);margin-bottom:8px}
+.kv{display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));font-size:11.5px;margin-bottom:9px}
+.kv div{background:var(--a9);border:1px solid var(--ln);border-radius:9px;padding:7px 9px}
+.kv small{display:block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:2px}
+.kv span{font-family:var(--mono);color:var(--ink);word-break:break-all}
+
+.tree{font-family:var(--mono);font-size:12.5px;background:var(--a9);border:1px solid var(--ln);border-radius:12px;padding:13px;overflow:auto;line-height:1.85}
+.tree .d{color:var(--cyan)}
+.tree .f{color:var(--ink)}
+.tree .o{color:var(--dim)}
+.tree .req{color:var(--bad);font-size:10px;letter-spacing:.08em}
+.tree .opt{color:var(--warn);font-size:10px;letter-spacing:.08em}
+.tree .ok{color:var(--ok);font-size:10px}
+
+.verdict{border:1px solid var(--ln);border-radius:12px;padding:12px;background:var(--a7);margin-bottom:9px}
+.verdict.ok{border-color:color-mix(in srgb,var(--ok) 40%,var(--ln))}
+.verdict.bad{border-color:color-mix(in srgb,var(--bad) 45%,var(--ln))}
+.verdict.warn{border-color:color-mix(in srgb,var(--warn) 45%,var(--ln))}
+.verdict h4{margin:0 0 6px;font-size:13.5px;display:flex;gap:8px;align-items:center}
+.verdict p{margin:0;font-size:12.5px;color:var(--mut)}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;padding:5px 0;border-bottom:1px dashed var(--ln)}
+.chk:last-child{border:0}
+.chk b{flex:none;width:17px;text-align:center}
+.chk.p b{color:var(--ok)}.chk.f b{color:var(--bad)}.chk.w b{color:var(--warn)}
+.chk span{color:var(--mut)}
+
+.health{display:grid;gap:7px;grid-template-columns:repeat(auto-fit,minmax(158px,1fr))}
+.hcell{display:flex;align-items:center;gap:8px;border:1px solid var(--ln);border-radius:10px;padding:9px 10px;background:var(--a7);font-family:var(--mono);font-size:12px}
+.hcell i{width:8px;height:8px;border-radius:50%;background:var(--dim);flex:none;font-style:normal}
+.hcell i.g{background:var(--ok)}.hcell i.r{background:var(--bad)}.hcell i.busy{background:var(--cyan);animation:pulse 1s infinite}
+
+.net{font-family:var(--mono);font-size:11px;max-height:150px;overflow:auto;background:var(--a9);border:1px solid var(--ln);border-radius:10px;padding:9px}
+.net div{padding:2px 0;color:var(--dim)}
+.net div.ok{color:var(--ok)}.net div.err{color:var(--bad)}
+.lbl{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);display:block;margin:9px 0 4px}
+.empty{color:var(--dim);font-size:13px;text-align:center;padding:16px}
+.note{font-size:12.5px;color:var(--mut);border-left:3px solid var(--paddle);padding:8px 11px;background:color-mix(in srgb,var(--paddle) 7%,transparent);border-radius:0 10px 10px 0;margin:10px 0}
+.note.am{border-left-color:var(--tess);background:color-mix(in srgb,var(--tess) 7%,transparent)}
+#toast{position:fixed;left:12px;right:12px;bottom:14px;z-index:99;display:grid;gap:8px;pointer-events:none}
+.tst{background:var(--sf2);border:1px solid var(--ln2);border-left:4px solid var(--paddle);border-radius:12px;padding:11px 13px;font-size:13px;box-shadow:0 16px 40px rgba(0,0,0,.55);animation:up .22s ease}
+.tst.ok{border-left-color:var(--ok)}.tst.err{border-left-color:var(--bad)}.tst.warn{border-left-color:var(--warn)}
+@keyframes up{from{opacity:0;transform:translateY(14px)}}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.3,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+footer{color:var(--dim);font-size:11px;text-align:center;padding:22px 13px 6px;line-height:1.7}
+@media(max-width:520px){.brand span{display:none}section{scroll-margin-top:214px}.rail{top:90px}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="topin">
+    <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 3v10M8 11l4 4 4-4M4 19h16"/></svg></div>
+    <div class="brand"><b>Εγκατάσταση OCR</b><span>troxonomika · τι χρειάζεται πραγματικά</span></div>
+    <div class="priv" id="priv">🔒 0 B</div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <a href="#ans" class="on">Απάντηση</a><a href="#assets">Αρχεία</a><a href="#tree">Φάκελοι</a>
+    <a href="#deep">Επικύρωση</a><a href="#health">Repo</a><a href="#how">Οδηγίες</a>
+  </nav>
+</header>
+
+<div class="rail"><div class="railin">
+  <label class="ctl w"><small>Πηγή αρχείων</small><input id="cBase" spellcheck="false"></label>
+  <div class="ctl"><small>Προέλευση</small><button class="btn sm gh" id="cSame">Ίδια (./)</button></div>
+  <label class="ctl"><small>Βάθος ελέγχου</small><select id="cDepth">
+    <option value="head">Ύπαρξη (γρήγορο)</option><option value="get" selected>Πλήρες (μέγεθος+cache)</option></select></label>
+  <div class="ctl"><small>Αυτόματος έλεγχος</small><div class="sw" id="cAuto"><i></i><span>κάθε 30″</span></div></div>
+  <div class="ctl"><small>Προαιρετικά</small><div class="sw on" id="cOpt"><i></i><span>εμφάνιση</span></div></div>
+  <div class="ctl"><small>ONNX Runtime</small><div class="sw" id="cOrt"><i></i><span>βαθιά επικύρωση</span></div></div>
+  <label class="ctl"><small>Γραμματοσειρά <b id="vFs">14</b>px</small><input type="range" id="cFs" min="12" max="18" step="1" value="14"></label>
+  <label class="ctl"><small>Πυκνότητα</small><select id="cDens"><option value="cozy">Άνετη</option><option value="tight">Συμπαγής</option></select></label>
+  <label class="ctl"><small>Θέμα</small><select id="cTheme"><option value="asphalt">Ασφάλτινο</option><option value="paper">Χαρτί</option></select></label>
+  <div class="ctl"><small>Ενέργειες</small><button class="btn sm gh" id="cReset">Επαναφορά</button></div>
+  <div class="ctl"><small>Εξαγωγή</small><button class="btn sm gh" id="cExport">Manifest</button></div>
+</div></div>
+
+<div class="wrap">
+
+<section id="ans" class="rise">
+  <div class="hd"><span class="num">01</span><h2>Η απάντηση</h2><span class="bar"></span></div>
+  <div class="card">
+    <div class="answer">
+      <div class="big">ΟΧΙ</div>
+      <div class="txt">
+        <h3>Το <code class="i">traineddata</code> δεν χρειάζεται για PaddleOCR</h3>
+        <p class="lead" style="margin:0">Το <code class="i">ell.traineddata.gz</code> είναι μοντέλο <span class="k">Tesseract</span> — άλλη μηχανή. Αφού το Paddle σου έδωσε καλύτερα αποτελέσματα, χρειάζεσαι μόνο <span class="k">ONNX μοντέλα + λεξικό</span>. Το traineddata το βάζεις <span class="k">μόνο αν θέλεις</span> τη συγκριτική καρτέλα Tesseract, και ακόμη κι τότε μπορείς να χρησιμοποιήσεις CDN αντί για φάκελο.</p>
+      </div>
+    </div>
+    <div class="tracks">
+      <div class="track p">
+        <h4><span class="tag v">ΚΙΝΗΤΗΡΑΣ</span> PaddleOCR — προτεινόμενο</h4>
+        <ul>
+          <li><b>models/det.onnx</b> — εντοπισμός γραμμών · απαραίτητο</li>
+          <li><b>models/rec.onnx</b> — αναγνώριση χαρακτήρων · απαραίτητο</li>
+          <li><b>models/el_dict.txt</b> — λεξικό του μοντέλου · απαραίτητο</li>
+          <li><b>models/cls.onnx</b> — διόρθωση 180° · προαιρετικό</li>
+          <li><b>traineddata</b> — δεν χρησιμοποιείται καθόλου</li>
+        </ul>
+      </div>
+      <div class="track t">
+        <h4><span class="tag a">ΣΥΓΚΡΙΣΗ</span> Tesseract — προαιρετικό</h4>
+        <ul>
+          <li><b>tessdata/ell.traineddata.gz</b> — μόνο για A/B</li>
+          <li>Εναλλακτικά: επιλογή <b>CDN best/std</b> μέσα στο εργαστήριο, χωρίς κανέναν φάκελο</li>
+          <li>Δεν επηρεάζει τη λειτουργία του Paddle</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note"><b>Δεν χρειάζεται καν φάκελος.</b> Επειδή δουλεύεις από κινητό, πάτα «Από συσκευή» σε κάθε αρχείο παρακάτω. Μπαίνουν στην ίδια τοπική cache (IndexedDB) που διαβάζει το <code class="i">ocr-lab.html</code> και παραμένουν εκεί για κάθε επόμενη φορά, χωρίς ανέβασμα στο GitHub και χωρίς ίχνος στο δίκτυο.</div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn pri" id="btnProbeAll">Έλεγχος όλων τώρα</button>
+      <a class="btn go" href="./ocr-lab.html">Άνοιγμα Εργαστηρίου OCR</a>
+      <button class="btn gh" id="btnClearCache">Εκκαθάριση τοπικής cache</button>
+    </div>
+    <div class="stats" id="summary"><span class="tag">δεν έχει γίνει έλεγχος</span></div>
+  </div>
+</section>
+
+<section id="assets">
+  <div class="hd"><span class="num">02</span><h2>Αρχεία μοντέλων</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Κάθε αρχείο δείχνει αν υπάρχει στο <span class="k">repo</span>, αν είναι ήδη στην <span class="k">τοπική cache</span>, και το μέγεθός του. Η cache υπερισχύει — το εργαστήριο τη χρησιμοποιεί πρώτα.</p>
+    <div id="assetList"></div>
+  </div>
+</section>
+
+<section id="tree">
+  <div class="hd"><span class="num">03</span><h2>Δομή φακέλων (αν επιλέξεις ανέβασμα)</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Μόνο αν προτιμάς να τα έχεις μόνιμα στο repo. Οι δείκτες δείχνουν ζωντανά τι βρέθηκε.</p>
+    <div class="tree" id="treeView"></div>
+    <div class="note am">Τα ONNX είναι συνήθως 2–20 MB. Ανέβασμά τα από υπολογιστή ή από κινητό με <b>Add file → Upload files</b>. Το <code class="i">tessdata/</code> μπορείς να το παραλείψεις εντελώς.</div>
+  </div>
+</section>
+
+<section id="deep">
+  <div class="hd"><span class="num">04</span><h2>Βαθιά επικύρωση</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Το πιο συχνό σφάλμα είναι <span class="k">λεξικό που δεν ταιριάζει με το μοντέλο</span>. Εδώ ελέγχεται πραγματικά: φορτώνεται το rec, τρέχει μια κενή είσοδος και συγκρίνονται οι κλάσεις εξόδου με το λεξικό+1 (CTC blank).</p>
+    <div class="row"><button class="btn pri" id="btnDeep">Εκτέλεση επικύρωσης</button><button class="btn gh" id="btnDictOnly">Έλεγχος λεξικού μόνο</button></div>
+    <div id="deepOut" style="margin-top:11px"><div class="empty">Δεν έχει γίνει επικύρωση.</div></div>
+  </div>
+</section>
+
+<section id="health">
+  <div class="hd"><span class="num">05</span><h2>Υγεία repo</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Ύπαρξη των βασικών αρχείων της εφαρμογής στην τρέχουσα πηγή.</p>
+    <div class="health" id="healthGrid"></div>
+    <label class="lbl">Καταγραφή δικτύου (μόνο μοντέλα/αρχεία — ποτέ εικόνα ή κείμενο υπόθεσης)</label>
+    <div class="net" id="netLog"><div>—</div></div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="hd"><span class="num">06</span><h2>Οδηγίες</h2><span class="bar"></span></div>
+  <div class="card">
+    <div class="chk p"><b>1</b><span>Πάτα <span class="k">Από συσκευή</span> στο DET, μετά στο REC, μετά στο Λεξικό. Το CLS είναι προαιρετικό.</span></div>
+    <div class="chk p"><b>2</b><span>Πάτα <span class="k">Εκτέλεση επικύρωσης</span> για να βεβαιωθείς ότι το λεξικό ταιριάζει με το rec και ότι καλύπτει ελληνικά.</span></div>
+    <div class="chk p"><b>3</b><span>Άνοιξε το <span class="k">Εργαστήρι OCR</span>, φόρτωσε φωτογραφία και πάτα Αναγνώριση με κινητήρα PaddleOCR.</span></div>
+    <div class="chk w"><b>!</b><span>Αν θέλεις και σύγκριση με Tesseract, τότε μόνο πρόσθεσε <code class="i">tessdata/ell.traineddata.gz</code> ή διάλεξε CDN μέσα στο εργαστήριο.</span></div>
+    <div class="chk w"><b>!</b><span>Το λεξικό πρέπει να είναι <span class="k">ακριβώς εκείνο που συνοδεύει το μοντέλο rec</span>. Ένα τυχαίο ελληνικό λεξικό θα δώσει λάθος χαρακτήρες ακόμη κι αν «φορτώνει».</span></div>
+    <div class="chk p"><b>✓</b><span>Τα μοντέλα μετατρέπονται από PaddleOCR με <code class="i">paddle2onnx</code> ή λαμβάνονται έτοιμα από το RapidOCR. Η επεξεργασία γίνεται πάντα στη συσκευή.</span></div>
+  </div>
+</section>
+
+<footer>ΕΓΚΑΤΑΣΤΑΣΗ OCR troxonomika · τα μοντέλα μένουν στη συσκευή ή στο δικό σου repo.<br>Καμία εικόνα υπόθεσης δεν αποστέλλεται οπουδήποτε.</footer>
+</div>
+
+<div id="toast"></div>
+<input type="file" id="hiddenFile" hidden>
+
+<script>
+(function(){
+"use strict";
+var $=function(s){return document.querySelector(s);};
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function toast(m,k){var t=document.createElement("div");t.className="tst "+(k||"");t.textContent=m;$("#toast").appendChild(t);setTimeout(function(){t.style.opacity=0;t.style.transition="opacity .3s";setTimeout(function(){t.remove();},320);},4200);}
+function fmtSize(b){if(b==null)return "—";return b>=1048576?(b/1048576).toFixed(2)+" MB":b>=1024?(b/1024).toFixed(0)+" KB":b+" B";}
+function dl(n,t,ty){var b=new Blob([t],{type:ty||"application/json;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=n;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);}
+
+var DEF_BASE="https://raw.githubusercontent.com/giadokimes/troxonomika/main/";
+var SET={base:DEF_BASE,depth:"get",auto:false,opt:true,ort:false,fs:14,dens:"cozy",theme:"asphalt"};
+try{var s0=JSON.parse(localStorage.getItem("troxo_setup_set")||"null");if(s0)for(var k0 in SET)if(s0[k0]!==undefined)SET[k0]=s0[k0];}catch(e){}
+function saveSet(){try{localStorage.setItem("troxo_setup_set",JSON.stringify(SET));}catch(e){}}
+
+/* ---- network accounting ---- */
+var NET={bytes:0,lines:[]},origFetch=window.fetch;
+function netAdd(u,ok,size){
+  NET.lines.unshift({u:u,ok:ok,s:size||0});if(ok&&size)NET.bytes+=size;
+  $("#netLog").innerHTML=NET.lines.slice(0,30).map(function(l){
+    return '<div class="'+(l.ok?"ok":"err")+'">'+(l.ok?"✓":"✕")+" "+esc(l.u.replace(SET.base,"…/"))+(l.s?" · "+fmtSize(l.s):"")+"</div>";}).join("")||"<div>—</div>";
+  var p=$("#priv");p.className=NET.bytes?"priv warn":"priv";
+  p.textContent=NET.bytes?("🔒 εικόνα 0 B · "+fmtSize(NET.bytes)):"🔒 0 B";
+}
+
+/* ---- IndexedDB (ίδια βάση με το ocr-lab.html) ---- */
+function idb(){return new Promise(function(res,rej){
+  var r=indexedDB.open("troxo_ocr_models",1);
+  r.onupgradeneeded=function(){var db=r.result;if(!db.objectStoreNames.contains("m"))db.createObjectStore("m");};
+  r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});}
+function idbPut(k,v){return idb().then(function(db){return new Promise(function(res,rej){
+  var t=db.transaction("m","readwrite");t.objectStore("m").put(v,k);t.oncomplete=function(){res();};t.onerror=function(){rej(t.error);};});});}
+function idbGet(k){return idb().then(function(db){return new Promise(function(res){
+  var t=db.transaction("m","readonly"),q=t.objectStore("m").get(k);
+  q.onsuccess=function(){res(q.result||null);};q.onerror=function(){res(null);};});}).catch(function(){return null;});}
+function idbDel(k){return idb().then(function(db){return new Promise(function(res){
+  var t=db.transaction("m","readwrite");if(k)t.objectStore("m").delete(k);else t.objectStore("m").clear();
+  t.oncomplete=function(){res();};t.onerror=function(){res();};});}).catch(function(){});}
+
+/* ---- assets ---- */
+var ASSETS=[
+ {k:"det", track:"p", dir:"models", file:"det.onnx", req:true, kind:"bin", cacheable:true,
+  desc:"Εντοπισμός περιοχών κειμένου (DBNet). Χωρίς αυτό δεν βρίσκονται γραμμές.", min:150*1024},
+ {k:"rec", track:"p", dir:"models", file:"rec.onnx", req:true, kind:"bin", cacheable:true,
+  desc:"Αναγνώριση χαρακτήρων (CRNN/SVTR). Καθορίζει την ακρίβεια στα ελληνικά.", min:400*1024},
+ {k:"dict",track:"p", dir:"models", file:"el_dict.txt", req:true, kind:"text", cacheable:true,
+  desc:"Λεξικό χαρακτήρων — ένας ανά γραμμή. Πρέπει να είναι το dict του συγκεκριμένου rec.", min:20},
+ {k:"cls", track:"p", dir:"models", file:"cls.onnx", req:false, kind:"bin", cacheable:true,
+  desc:"Ταξινόμηση περιστροφής 0/180°. Χρήσιμο σε ανάποδα σκαναρίσματα.", min:80*1024},
+ {k:"tess",track:"t", dir:"tessdata", file:"ell.traineddata.gz", req:false, kind:"bin", cacheable:false,
+  desc:"Ελληνικό μοντέλο Tesseract. Απαραίτητο ΜΟΝΟ για τη συγκριτική καρτέλα Tesseract.", min:500*1024}
+];
+var ST={};
+ASSETS.forEach(function(a){ST[a.k]={repo:null,size:null,busy:false,cache:null,cacheName:null,err:null};});
+
+function urlFor(a){return SET.base.replace(/\/?$/,"/")+"/"+a.dir+"/"+a.file;}
+function renderAssets(){
+  var list=ASSETS.filter(function(a){return SET.opt||a.req;});
+  $("#assetList").innerHTML=list.map(function(a){
+    var s=ST[a.k];
+    var ready=s.cache||s.repo===true;
+    var cls=s.busy?"":(ready?"ready":(a.req?"missing":""));
+    var dot=s.busy?"busy":(ready?"g":(s.repo===false?(a.req?"r":"a"):""));
+    var status=s.busy?"έλεγχος…":s.cache?"στη συσκευή":s.repo===true?"στο repo":s.repo===false?"λείπει":"άγνωστο";
+    var stTag=s.cache?"g":s.repo===true?"b":s.repo===false?(a.req?"r":"a"):"";
+    var h='<div class="asset '+cls+'" data-k="'+a.k+'"><div class="ah"><i class="dot '+dot+'"></i><b>'+esc(a.file)+'</b>'+
+      '<span class="tag '+(a.track==="p"?"v":"a")+'">'+(a.track==="p"?"PADDLE":"TESSERACT")+'</span>'+
+      '<span class="tag '+(a.req?"r":"")+'">'+(a.req?"απαραίτητο":"προαιρετικό")+'</span><span class="sp"></span>'+
+      '<span class="tag '+stTag+'">'+status+'</span></div><div class="ab"><div class="desc">'+esc(a.desc)+'</div>';
+    h+='<div class="kv"><div><small>Διαδρομή</small><span>'+esc(a.dir+"/"+a.file)+'</span></div>'+
+       '<div><small>Μέγεθος repo</small><span>'+(s.size!=null?fmtSize(s.size):"—")+'</span></div>'+
+       '<div><small>Τοπική cache</small><span>'+(s.cache?fmtSize(s.cache)+(s.cacheName?" · "+esc(String(s.cacheName).slice(0,22)):""):"—")+'</span></div></div>';
+    h+='<div class="row">';
+    if(a.cacheable)h+='<button class="btn sm pri" data-a="dev">Από συσκευή</button>';
+    h+='<button class="btn sm" data-a="probe">Έλεγχος στο repo</button>';
+    if(a.cacheable&&s.repo===true)h+='<button class="btn sm gh" data-a="pull">Λήψη σε cache</button>';
+    if(a.cacheable&&s.cache)h+='<button class="btn sm bad" data-a="del">Αφαίρεση</button>';
+    h+='</div>';
+    if(s.err)h+='<div class="note am" style="margin:9px 0 0">'+esc(s.err)+'</div>';
+    return h+'</div>';
+  }).join("");
+  renderSummary();renderTree();
+}
+function renderSummary(){
+  var need=ASSETS.filter(function(a){return a.req;});
+  var have=need.filter(function(a){return ST[a.k].cache||ST[a.k].repo===true;}).length;
+  var tess=ST.tess.cache||ST.tess.repo===true;
+  var cls=ST.cls.cache||ST.cls.repo===true;
+  $("#summary").innerHTML=
+    '<span class="tag '+(have===need.length?"g":"r")+'">Paddle: '+have+"/"+need.length+' απαραίτητα</span>'+
+    '<span class="tag '+(cls?"g":"")+'">cls: '+(cls?"ναι":"όχι (εντάξει)")+'</span>'+
+    '<span class="tag '+(tess?"b":"")+'">traineddata: '+(tess?"υπάρχει":"δεν χρειάζεται")+'</span>'+
+    '<span class="tag '+(have===need.length?"g":"a")+'">'+(have===need.length?"έτοιμο για αναγνώριση":"λείπουν αρχεία")+'</span>';
+}
+function renderTree(){
+  function mark(k){var s=ST[k];return s.cache?'<span class="ok">✓ συσκευή</span>':s.repo===true?'<span class="ok">✓ repo</span>':s.repo===false?'<span class="req">✕ λείπει</span>':'<span class="o">· άγνωστο</span>';}
+  var h='<span class="d">troxonomika/</span>\n';
+  h+='├─ <span class="d">models/</span>            <span class="o">← PaddleOCR</span>\n';
+  h+='│  ├─ <span class="f">det.onnx</span>        '+mark("det")+' <span class="req">ΑΠΑΡΑΙΤΗΤΟ</span>\n';
+  h+='│  ├─ <span class="f">rec.onnx</span>        '+mark("rec")+' <span class="req">ΑΠΑΡΑΙΤΗΤΟ</span>\n';
+  h+='│  ├─ <span class="f">el_dict.txt</span>     '+mark("dict")+' <span class="req">ΑΠΑΡΑΙΤΗΤΟ</span>\n';
+  h+='│  └─ <span class="f">cls.onnx</span>        '+mark("cls")+' <span class="opt">προαιρετικό</span>\n';
+  h+='├─ <span class="d">tessdata/</span>          <span class="o">← μόνο για σύγκριση</span>\n';
+  h+='│  └─ <span class="o">ell.traineddata.gz</span> '+mark("tess")+' <span class="opt">ΔΕΝ χρειάζεται για Paddle</span>\n';
+  h+='├─ <span class="f">ocr-lab.html</span>\n';
+  h+='├─ <span class="f">setup.html</span>          <span class="o">← αυτή η σελίδα</span>\n';
+  h+='├─ <span class="f">ocr-parser.js</span>\n';
+  h+='└─ <span class="f">app.js · index.html · style.css · sw.js</span>';
+  $("#treeView").innerHTML=h;
+}
+
+/* ---- probing ---- */
+function probe(a){
+  var s=ST[a.k];s.busy=true;s.err=null;renderAssets();
+  var url=urlFor(a);
+  var opt=SET.depth==="head"?{method:"HEAD",cache:"no-store"}:{cache:"no-store"};
+  return origFetch(url,opt).then(function(r){
+    var len=r.headers.get("content-length");
+    netAdd(url,r.ok,len?+len:0);
+    if(!r.ok){s.repo=false;s.size=null;throw new Error("HTTP "+r.status);}
+    s.repo=true;
+    if(SET.depth==="head"){s.size=len?+len:null;return null;}
+    return a.kind==="text"?r.text():r.arrayBuffer();
+  }).then(function(data){
+    if(data==null)return;
+    if(a.kind==="text"){s.size=new Blob([data]).size;if(a.cacheable)return idbPut(a.k,{text:data,name:a.file}).then(function(){s.cache=s.size;s.cacheName=a.file;});}
+    else{s.size=data.byteLength;
+      if(s.size<a.min)s.err="Ύποπτα μικρό αρχείο ("+fmtSize(s.size)+") — πιθανό placeholder ή σφάλμα λήψης.";
+      if(a.cacheable)return idbPut(a.k,{buf:data,name:a.file}).then(function(){s.cache=s.size;s.cacheName=a.file;});}
+  }).catch(function(e){
+    if(s.repo!==false){s.repo=false;}
+    s.err=(e&&e.message)||"αποτυχία";
+    netAdd(url,false,0);
+  }).then(function(){s.busy=false;renderAssets();});
+}
+function probeAll(){
+  var list=ASSETS.filter(function(a){return SET.opt||a.req;});
+  return list.reduce(function(p,a){return p.then(function(){return probe(a);});},Promise.resolve())
+    .then(function(){toast("Ο έλεγχος ολοκληρώθηκε.","ok");healthCheck();});
+}
+$("#btnProbeAll").onclick=probeAll;
+
+$("#assetList").addEventListener("click",function(e){
+  var b=e.target.closest("[data-a]");if(!b)return;
+  var k=e.target.closest(".asset").dataset.k;
+  var a=ASSETS.filter(function(x){return x.k===k;})[0],s=ST[k],act=b.dataset.a;
+  if(act==="probe")probe(a);
+  if(act==="pull")probe(a).then(function(){toast(s.cache?"Αποθηκεύτηκε στη συσκευή.":"Δεν αποθηκεύτηκε.",s.cache?"ok":"err");});
+  if(act==="del")idbDel(k).then(function(){s.cache=null;s.cacheName=null;renderAssets();toast("Αφαιρέθηκε από τη συσκευή.","warn");});
+  if(act==="dev"){
+    var inp=$("#hiddenFile");
+    inp.accept=a.kind==="text"?".txt,text/plain":".onnx,application/octet-stream";
+    inp.onchange=function(){
+      var f=inp.files[0];if(!f)return;
+      if(a.kind==="text"){
+        f.text().then(function(t){return idbPut(k,{text:t,name:f.name}).then(function(){
+          s.cache=new Blob([t]).size;s.cacheName=f.name;s.err=null;renderAssets();toast(a.file+" ← "+f.name,"ok");});});
+      }else{
+        f.arrayBuffer().then(function(buf){
+          var warn=buf.byteLength<a.min?"Προσοχή: πολύ μικρό αρχείο.":"";
+          return idbPut(k,{buf:buf,name:f.name}).then(function(){
+            s.cache=buf.byteLength;s.cacheName=f.name;s.err=warn||null;renderAssets();toast(a.file+" ← "+f.name+" ("+fmtSize(buf.byteLength)+")","ok");});});
+      }
+      inp.value="";
+    };
+    inp.click();
+  }
+});
+$("#btnClearCache").onclick=function(){
+  idbDel(null).then(function(){ASSETS.forEach(function(a){ST[a.k].cache=null;ST[a.k].cacheName=null;});renderAssets();toast("Η τοπική cache καθαρίστηκε.","warn");});
+};
+
+/* ---- deep validation ---- */
+function ensureOrt(){
+  if(window.ort)return Promise.resolve();
+  return new Promise(function(res,rej){
+    var sc=document.createElement("script");
+    sc.src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js";
+    sc.onload=function(){try{window.ort.env.wasm.wasmPaths="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/";window.ort.env.wasm.numThreads=1;window.ort.env.wasm.simd=true;}catch(e){}res();};
+    sc.onerror=function(){rej(new Error("δεν φορτώθηκε το ONNX Runtime"));};
+    document.head.appendChild(sc);
+  });
+}
+function getBytes(k){
+  return idbGet(k).then(function(v){
+    if(v&&v.buf)return v.buf;
+    var a=ASSETS.filter(function(x){return x.k===k;})[0];
+    return origFetch(urlFor(a),{cache:"force-cache"}).then(function(r){
+      if(!r.ok)throw new Error("δεν βρέθηκε "+a.file);
+      netAdd(urlFor(a),true,+(r.headers.get("content-length")||0));return r.arrayBuffer();});
+  });
+}
+function getDictText(){
+  return idbGet("dict").then(function(v){
+    if(v&&v.text)return v.text;
+    var a=ASSETS.filter(function(x){return x.k==="dict";})[0];
+    return origFetch(urlFor(a),{cache:"force-cache"}).then(function(r){
+      if(!r.ok)throw new Error("δεν βρέθηκε el_dict.txt");return r.text();});
+  });
+}
+function parseDict(t){
+  var lines=t.split(/\r?\n/);
+  while(lines.length&&lines[lines.length-1]==="")lines.pop();
+  var chars=lines.slice();
+  if(chars[chars.length-1]!==" ")chars.push(" ");
+  var greek=chars.filter(function(c){return /^[Α-Ωα-ωάέήίόύώϊϋΐΰΆΈΉΊΌΎΏ]$/.test(c);}).length;
+  var digit=chars.filter(function(c){return /^[0-9]$/.test(c);}).length;
+  return {chars:chars,greek:greek,digit:digit};
+}
+function verdict(cls,title,body){return '<div class="verdict '+cls+'"><h4>'+title+'</h4><p>'+body+'</p></div>';}
+function chk(ok,label,detail,warn){return '<div class="chk '+(ok?"p":(warn?"w":"f"))+'"><b>'+(ok?"✓":(warn?"•":"✕"))+'</b><span>'+esc(label)+(detail?" — "+esc(detail):"")+'</span></div>';}
+
+$("#btnDictOnly").onclick=function(){
+  $("#deepOut").innerHTML='<div class="empty">Έλεγχος λεξικού…</div>';
+  getDictText().then(function(t){
+    var d=parseDict(t),h="";
+    h+=verdict(d.greek>=25?"ok":"warn","Λεξικό: "+d.chars.length+" χαρακτήρες",
+      "Ελληνικά: "+d.greek+" · Ψηφία: "+d.digit+" · Αναμενόμενες κλάσεις μοντέλου: "+(d.chars.length+1));
+    h+=chk(d.greek>=25,"Κάλυψη ελληνικών",d.greek>=25?"επαρκής":"λίγοι ελληνικοί χαρακτήρες — το μοντέλο πιθανόν δεν διαβάζει ελληνικά",d.greek<25);
+    h+=chk(d.digit>=10,"Κάλυψη ψηφίων",d.digit+"/10",d.digit<10);
+    h+=chk(true,"Δείγμα","«"+d.chars.slice(0,26).join("")+"»");
+    $("#deepOut").innerHTML=h;
+  }).catch(function(e){$("#deepOut").innerHTML=verdict("bad","Δεν βρέθηκε λεξικό",esc(e.message));});
+};
+
+$("#btnDeep").onclick=function(){
+  var out=$("#deepOut");
+  out.innerHTML='<div class="empty">Φόρτωση μοντέλων και επικύρωση…</div>';
+  var report=[],dictInfo=null,recDims=null;
+  getDictText().then(function(t){
+    dictInfo=parseDict(t);
+    report.push(chk(true,"Λεξικό φορτώθηκε",dictInfo.chars.length+" χαρακτήρες"));
+    report.push(chk(dictInfo.greek>=25,"Ελληνική κάλυψη",dictInfo.greek+" ελληνικοί χαρακτήρες",dictInfo.greek<25));
+    return ensureOrt();
+  }).then(function(){
+    report.push(chk(true,"ONNX Runtime διαθέσιμο","WASM"));
+    return getBytes("rec");
+  }).then(function(buf){
+    report.push(chk(buf.byteLength>400*1024,"Μέγεθος rec",fmtSize(buf.byteLength),buf.byteLength<=400*1024));
+    return window.ort.InferenceSession.create(buf,{executionProviders:["wasm"],graphOptimizationLevel:"all"});
+  }).then(function(sess){
+    report.push(chk(true,"rec φορτώθηκε","είσοδοι: "+sess.inputNames.join(", ")+" · έξοδοι: "+sess.outputNames.join(", ")));
+    function attempt(hh){
+      var W=320,f=new Float32Array(3*hh*W),feeds={};
+      feeds[sess.inputNames[0]]=new window.ort.Tensor("float32",f,[1,3,hh,W]);
+      return sess.run(feeds).then(function(r){return r[sess.outputNames[0]].dims;});
+    }
+    return attempt(48).catch(function(){return attempt(32);});
+  }).then(function(dims){
+    recDims=dims;
+    report.push(chk(dims.length===3,"Σχήμα εξόδου rec","["+dims.join(", ")+"]",dims.length!==3));
+    var classes=dims[dims.length-1],expect=dictInfo.chars.length+1;
+    var match=classes===expect;
+    report.push(chk(match,"Αντιστοιχία λεξικού ↔ μοντέλου",
+      "κλάσεις μοντέλου "+classes+" vs λεξικό+1 = "+expect+(match?"":" → ΦΟΡΤΩΣΕ ΤΟ ΣΩΣΤΟ dict"));
+    out.innerHTML=verdict(match?"ok":"bad",
+      match?"Έτοιμο για αναγνώριση":"Αναντιστοιχία λεξικού",
+      match?"Το rec και το λεξικό συμφωνούν. Μπορείς να ανοίξεις το Εργαστήρι OCR."
+           :"Το μοντέλο αναγνώρισης και το λεξικό δεν ταιριάζουν. Θα παραχθούν λάθος χαρακτήρες. Χρειάζεται το dict που συνοδεύει το συγκεκριμένο rec.")
+      +report.join("");
+    return getBytes("det").then(function(buf){
+      return window.ort.InferenceSession.create(buf,{executionProviders:["wasm"]}).then(function(ds){
+        var W=320,H=320,f=new Float32Array(3*H*W),feeds={};
+        feeds[ds.inputNames[0]]=new window.ort.Tensor("float32",f,[1,3,H,W]);
+        return ds.run(feeds).then(function(r){
+          var d=r[ds.outputNames[0]].dims;
+          report.push(chk(true,"det εκτελέστηκε","χάρτης ["+d.join(", ")+"]"));
+          out.innerHTML=verdict(match?"ok":"bad",match?"Έτοιμο για αναγνώριση":"Αναντιστοιχία λεξικού",
+            match?"Και ο εντοπισμός λειτουργεί. Άνοιξε το Εργαστήρι OCR."
+                 :"Ο εντοπισμός λειτουργεί, αλλά το λεξικό δεν ταιριάζει με το rec.")+report.join("");
+        });
+      });
+    }).catch(function(e){
+      report.push(chk(false,"det",e.message));
+      out.innerHTML=verdict("warn","Ο εντοπισμός δεν επικυρώθηκε","Το rec ελέγχθηκε, αλλά το det απέτυχε: "+esc(e.message))+report.join("");
+    });
+  }).catch(function(e){
+    report.push(chk(false,"Σφάλμα",e.message));
+    out.innerHTML=verdict("bad","Η επικύρωση δεν ολοκληρώθηκε","Φόρτωσε πρώτα τα απαραίτητα αρχεία από τη συσκευή ή το repo.")+report.join("");
+  });
+};
+
+/* ---- repo health ---- */
+var HEALTH=["index.html","app.js","style.css","sw.js","ocr-parser.js","ocr-lab.html","workshop.html","manifest.json"];
+var HS={};
+function renderHealth(){
+  $("#healthGrid").innerHTML=HEALTH.map(function(f){
+    var v=HS[f];var c=v===true?"g":v===false?"r":v==="busy"?"busy":"";
+    return '<div class="hcell"><i class="'+c+'"></i>'+esc(f)+'</div>';
+  }).join("");
+}
+function healthCheck(){
+  HEALTH.forEach(function(f){HS[f]="busy";});renderHealth();
+  HEALTH.forEach(function(f){
+    origFetch(SET.base.replace(/\/?$/,"/")+"/"+f,{method:"HEAD",cache:"no-store"})
+      .then(function(r){HS[f]=r.ok;renderHealth();})
+      .catch(function(){HS[f]=false;renderHealth();});
+  });
+}
+
+/* ---- controls ---- */
+function applySet(){
+  document.documentElement.setAttribute("data-theme",SET.theme==="paper"?"paper":"asphalt");
+  document.documentElement.setAttribute("data-density",SET.dens);
+  document.documentElement.style.setProperty("--fs",SET.fs+"px");
+  $("#vFs").textContent=SET.fs;
+  $("#cBase").value=SET.base;$("#cDepth").value=SET.depth;$("#cFs").value=SET.fs;
+  $("#cDens").value=SET.dens;$("#cTheme").value=SET.theme;
+  $("#cAuto").classList.toggle("on",SET.auto);
+  $("#cOpt").classList.toggle("on",SET.opt);
+  $("#cOrt").classList.toggle("on",SET.ort);
+}
+$("#cBase").addEventListener("change",function(){SET.base=this.value.trim()||DEF_BASE;saveSet();renderAssets();toast("Πηγή ενημερώθηκε.","ok");});
+$("#cSame").onclick=function(){SET.base="./";saveSet();applySet();renderAssets();toast("Χρήση ίδιας προέλευσης (./).","ok");};
+$("#cDepth").onchange=function(){SET.depth=this.value;saveSet();};
+$("#cFs").oninput=function(){SET.fs=+this.value;applySet();saveSet();};
+$("#cDens").onchange=function(){SET.dens=this.value;applySet();saveSet();};
+$("#cTheme").onchange=function(){SET.theme=this.value;applySet();saveSet();};
+$("#cAuto").onclick=function(){SET.auto=!SET.auto;applySet();saveSet();resetAuto();toast(SET.auto?"Αυτόματος έλεγχος ενεργός":"Αυτόματος έλεγχος ανενεργός","warn");};
+$("#cOpt").onclick=function(){SET.opt=!SET.opt;applySet();saveSet();renderAssets();};
+$("#cOrt").onclick=function(){SET.ort=!SET.ort;applySet();saveSet();if(SET.ort)ensureOrt().then(function(){toast("ONNX Runtime έτοιμο.","ok");}).catch(function(e){toast(e.message,"err");});};
+$("#cReset").onclick=function(){SET={base:DEF_BASE,depth:"get",auto:false,opt:true,ort:false,fs:14,dens:"cozy",theme:"asphalt"};saveSet();applySet();renderAssets();resetAuto();toast("Επαναφορά ρυθμίσεων.","ok");};
+$("#cExport").onclick=function(){
+  var o={generated:new Date().toISOString(),source:SET.base,assets:{}};
+  ASSETS.forEach(function(a){var s=ST[a.k];o.assets[a.dir+"/"+a.file]={required:a.req,engine:a.track==="p"?"paddle":"tesseract",inRepo:s.repo===true,inDeviceCache:!!s.cache,bytes:s.size||s.cache||null};});
+  o.verdict={paddleReady:ASSETS.filter(function(a){return a.req;}).every(function(a){return ST[a.k].cache||ST[a.k].repo===true;}),traineddataNeededForPaddle:false};
+  dl("ocr-setup-manifest.json",JSON.stringify(o,null,2));toast("Το manifest κατέβηκε.","ok");
+};
+var autoT=0;
+function resetAuto(){clearInterval(autoT);if(SET.auto)autoT=setInterval(probeAll,30000);}
+
+/* ---- boot ---- */
+applySet();renderHealth();
+Promise.all(ASSETS.filter(function(a){return a.cacheable;}).map(function(a){
+  return idbGet(a.k).then(function(v){
+    if(!v)return;
+    var s=ST[a.k];
+    if(a.kind==="text"){s.cache=new Blob([v.text||""]).size;s.cacheName=v.name;}
+    else{s.cache=v.buf?v.buf.byteLength:null;s.cacheName=v.name;}
+  });
+})).then(function(){renderAssets();resetAuto();healthCheck();
+  var need=ASSETS.filter(function(a){return a.req;});
+  var have=need.filter(function(a){return ST[a.k].cache;}).length;
+  if(have===need.length)toast("Τα απαραίτητα μοντέλα είναι ήδη στη συσκευή.","ok");
+});
+renderAssets();
+var secs=[].slice.call(document.querySelectorAll("section")),links=[].slice.call(document.querySelectorAll("#tabs a"));
+function spy(){var y=window.scrollY+240,cur=secs[0];secs.forEach(function(s){if(s.offsetTop<=y)cur=s;});
+  links.forEach(function(a){a.classList.toggle("on",a.getAttribute("href")==="#"+cur.id);});}
+window.addEventListener("scroll",spy,{passive:true});spy();
+})();
+</script>
+</body>
+</html>
