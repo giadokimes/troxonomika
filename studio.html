@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05080D">
+<title>ΣΤΟΥΝΤΙΟ · troxonomika</title>
+<style>
+:root{
+  --a9:#05080D;--a8:#090E15;--a7:#0F1721;--sf:#121B26;--sf2:#18232F;--ln:#20303F;--ln2:#2C4053;
+  --ink:#EAF2F9;--mut:#8CA3B9;--dim:#5C7185;
+  --amber:#FFB020;--amber2:#FFD27A;--cyan:#22D3EE;--violet:#A855F7;--plate:#2F6BFF;
+  --ok:#16DB65;--bad:#FF4D4F;--info:#38BDF8;--lime:#A3E635;
+  --pad:15px;--r:14px;--fs:14px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+[data-theme="paper"]{--a9:#EDE7DA;--a8:#F5F0E5;--a7:#FCF8F0;--sf:#FFFDF8;--sf2:#F4EEE2;--ln:#DDD3C1;--ln2:#C5B9A3;
+ --ink:#131920;--mut:#586374;--dim:#7A8593;--amber:#A96A00;--amber2:#C98A1A;--cyan:#0E7490;--violet:#7C22CE;--plate:#1B4FD8;--ok:#0E8F45;--bad:#C62828;--info:#0369A1;--lime:#4D7C0F}
+[data-density="tight"]{--pad:10px;--r:11px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--a9);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:96px;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:
+ radial-gradient(760px 480px at 4% -10%,rgba(255,176,32,.16),transparent 62%),
+ radial-gradient(620px 420px at 98% 0%,rgba(34,211,238,.14),transparent 60%),
+ radial-gradient(880px 600px at 42% 116%,rgba(168,85,247,.13),transparent 62%),
+ linear-gradient(180deg,var(--a9),var(--a8) 44%,var(--a9))}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.38;
+ background-image:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);
+ background-size:40px 40px;mask-image:radial-gradient(circle at 50% 12%,#000,transparent 76%);animation:drift 44s linear infinite}
+@keyframes drift{to{background-position:400px 0,0 400px}}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:var(--a8);border-left:1px solid var(--ln)}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--amber),var(--cyan));border-radius:20px;border:2px solid var(--a8)}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--violet),var(--lime))}
+*{scrollbar-color:var(--amber) var(--a8);scrollbar-width:thin}
+.wrap{max-width:1060px;margin:0 auto;padding:0 13px}
+header.top{position:sticky;top:0;z-index:70;backdrop-filter:blur(14px);background:color-mix(in srgb,var(--a9) 88%,transparent);border-bottom:1px solid var(--ln)}
+.topin{display:flex;align-items:center;gap:11px;padding:9px 13px;max-width:1060px;margin:0 auto}
+.mark{width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;background:linear-gradient(145deg,var(--amber),#7A4A00);box-shadow:0 0 0 1px var(--ln2),0 8px 20px rgba(255,176,32,.32);position:relative;overflow:hidden}
+.mark::after{content:"";position:absolute;left:0;right:0;height:2px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:scan 2.8s ease-in-out infinite}
+@keyframes scan{0%,100%{top:6px;opacity:.2}50%{top:28px;opacity:1}}
+.brand b{display:block;font-size:14.5px;letter-spacing:.18em;text-transform:uppercase}
+.brand span{display:block;font-size:10.5px;color:var(--mut)}
+.hpill{margin-left:auto;font-size:10.5px;color:var(--ok);border:1px solid color-mix(in srgb,var(--ok) 40%,var(--ln));background:color-mix(in srgb,var(--ok) 9%,transparent);padding:6px 10px;border-radius:999px;white-space:nowrap}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 11px 7px;max-width:1060px;margin:0 auto}
+nav.tabs a{flex:none;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);text-decoration:none;padding:7px 11px;border-radius:9px;border:1px solid transparent;white-space:nowrap}
+nav.tabs a.on{color:var(--ink);background:var(--sf);border-color:var(--ln2);box-shadow:inset 0 -2px 0 var(--amber)}
+.rail{position:sticky;top:92px;z-index:60;background:color-mix(in srgb,var(--a8) 94%,transparent);backdrop-filter:blur(12px);border-block:1px solid var(--ln)}
+.railin{display:flex;gap:8px;overflow-x:auto;padding:9px 13px;max-width:1060px;margin:0 auto}
+.ctl{flex:none;width:134px;display:flex;flex-direction:column;gap:4px;background:var(--a7);border:1px solid var(--ln);border-radius:11px;padding:8px 9px}
+.ctl.w{width:186px}
+.ctl>small{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between}
+.ctl>small b{color:var(--amber);font-weight:700}
+input,select,textarea,button{font-family:inherit;font-size:var(--fs);color:var(--ink)}
+input,select,textarea{width:100%;background:var(--a7);border:1px solid var(--ln);border-radius:10px;padding:9px 10px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--amber)}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 14px) 17px,calc(100% - 9px) 17px;background-size:5px 5px;background-repeat:no-repeat;padding-right:26px}
+.ctl select,.ctl input{padding:6px 8px;font-size:12.5px;border-radius:8px}
+.ctl select{background-position:calc(100% - 12px) 14px,calc(100% - 8px) 14px}
+textarea{font-family:var(--mono);font-size:12.5px;line-height:1.5;resize:vertical;min-height:76px}
+input[type=range]{padding:0;height:22px;background:transparent;border:0;accent-color:var(--amber)}
+.sw{display:flex;align-items:center;gap:7px;background:var(--a7);border:1px solid var(--ln);border-radius:10px;padding:8px 9px;cursor:pointer;user-select:none;min-height:38px}
+.sw i{width:31px;height:17px;border-radius:999px;background:var(--ln2);position:relative;flex:none;transition:.18s}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--mut);transition:.18s}
+.sw.on i{background:linear-gradient(90deg,var(--amber),var(--cyan))}.sw.on i::after{left:16px;background:#fff}
+.sw span{font-size:11px;color:var(--mut);line-height:1.2}.sw.on span{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--ln2);background:var(--sf2);border-radius:11px;padding:11px 14px;font-weight:650;cursor:pointer;transition:.14s;min-height:44px;text-decoration:none}
+.btn:hover{border-color:var(--amber);transform:translateY(-1px)}.btn:active{transform:translateY(1px) scale(.99)}
+.btn.pri{background:linear-gradient(135deg,var(--amber),#B07000);border-color:transparent;color:#241700;box-shadow:0 10px 24px rgba(255,176,32,.28)}
+.btn.go{background:linear-gradient(135deg,var(--ok),#0A7A3B);border-color:transparent;color:#03210F}
+.btn.cy{background:linear-gradient(135deg,var(--cyan),#0E7490);border-color:transparent;color:#04212A}
+.btn.vi{background:linear-gradient(135deg,var(--violet),#5B21B6);border-color:transparent;color:#fff}
+.btn.gh{background:transparent}.btn.sm{padding:7px 10px;min-height:36px;font-size:12.5px;border-radius:9px}
+.btn.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--ln))}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>.btn{flex:1 1 148px}
+section{scroll-margin-top:190px;padding:24px 0 4px}
+.hd{display:flex;align-items:center;gap:9px;margin:0 0 11px}.hd h2{margin:0;font-size:16.5px;letter-spacing:.04em}
+.hd .num{font-size:10px;letter-spacing:.13em;color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 40%,var(--ln));padding:3px 7px;border-radius:6px}
+.hd .bar{flex:1;height:6px;border-radius:3px;opacity:.5;background:repeating-linear-gradient(45deg,var(--amber) 0 7px,transparent 7px 14px)}
+.card{background:linear-gradient(180deg,var(--sf),var(--a7));border:1px solid var(--ln);border-radius:var(--r);padding:var(--pad);box-shadow:0 16px 44px rgba(0,0,0,.45);margin-bottom:11px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
+.lead{color:var(--mut);font-size:13px;margin:0 0 10px}.k{color:var(--ink);font-weight:650}
+code.i{font-family:var(--mono);font-size:12px;background:var(--a9);border:1px solid var(--ln);padding:2px 5px;border-radius:5px;color:var(--cyan);word-break:break-all}
+.note{font-size:12.5px;color:var(--mut);border-left:3px solid var(--amber);padding:8px 11px;background:color-mix(in srgb,var(--amber) 7%,transparent);border-radius:0 10px 10px 0;margin:10px 0}
+.note.cy{border-left-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 7%,transparent)}
+.note.vi{border-left-color:var(--violet);background:color-mix(in srgb,var(--violet) 7%,transparent)}
+.tag{font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:3px 7px;border-radius:6px;border:1px solid var(--ln2);color:var(--mut);white-space:nowrap}
+.tag.g{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 42%,var(--ln));background:color-mix(in srgb,var(--ok) 9%,transparent)}
+.tag.a{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--ln));background:color-mix(in srgb,var(--amber) 9%,transparent)}
+.tag.r{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--ln));background:color-mix(in srgb,var(--bad) 9%,transparent)}
+.tag.c{color:var(--cyan);border-color:color-mix(in srgb,var(--cyan) 40%,var(--ln))}
+.tag.v{color:var(--violet);border-color:color-mix(in srgb,var(--violet) 45%,var(--ln))}
+.stats{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.lbl{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);display:block;margin:9px 0 4px}
+.two{display:grid;gap:9px;grid-template-columns:1fr 1fr}.three{display:grid;gap:9px;grid-template-columns:repeat(3,1fr)}
+@media(max-width:680px){.two,.three{grid-template-columns:1fr}}
+.steps{display:grid;gap:9px}
+.step{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--ln);border-radius:12px;padding:11px;background:var(--a7)}
+.step.done{border-color:color-mix(in srgb,var(--ok) 34%,var(--ln))}
+.step .n{width:28px;height:28px;flex:none;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:13px;background:var(--sf2);border:1px solid var(--ln2);color:var(--mut)}
+.step.done .n{background:linear-gradient(135deg,var(--ok),#0A7A3B);color:#03210F;border-color:transparent}
+.step .g{flex:1;min-width:0}.step b{display:block;font-size:13.5px}.step p{margin:3px 0 7px;font-size:12.5px;color:var(--mut)}
+.ring{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ring svg{flex:none}
+.lex{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px}
+.lex button{flex:none;border:1px solid var(--ln);background:var(--a7);border-radius:10px;padding:9px 12px;cursor:pointer;color:var(--mut);font-size:12.5px;font-weight:650}
+.lex button.on{background:linear-gradient(135deg,var(--cyan),#0E7490);color:#04212A;border-color:transparent}
+.items{max-height:260px;overflow:auto;border:1px solid var(--ln);border-radius:11px;background:var(--a9)}
+.item{display:flex;gap:8px;align-items:center;padding:8px 11px;border-bottom:1px solid var(--ln);font-family:var(--mono);font-size:12.5px}
+.item:last-child{border:0}.item span{flex:1;min-width:0;word-break:break-word}
+.item button{flex:none;background:transparent;border:0;color:var(--bad);cursor:pointer;font-size:16px;padding:0 4px}
+.match{display:flex;gap:9px;align-items:center;padding:8px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--a7);margin-bottom:6px}
+.match .g{flex:1;min-width:0;font-family:var(--mono);font-size:12.5px;word-break:break-word}
+.meter{height:6px;border-radius:3px;background:var(--a9);border:1px solid var(--ln);overflow:hidden;width:70px;flex:none}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--lime))}
+.stage{position:relative;border:1px solid var(--ln2);border-radius:12px;overflow:hidden;background:#000;touch-action:none}
+.stage canvas{display:block;width:100%;height:auto}
+.hnd{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:2px solid var(--amber);background:rgba(255,176,32,.22);box-shadow:0 0 12px rgba(255,176,32,.6);touch-action:none}
+.wipe{position:absolute;inset:0;pointer-events:none}.wipe b{position:absolute;top:0;bottom:0;width:2px;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.pbar{height:7px;border-radius:4px;background:var(--a9);border:1px solid var(--ln);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--cyan));transition:width .15s}
+.pipe{display:grid;gap:8px}
+.pstep{border:1px solid var(--ln);border-radius:12px;background:var(--a7);overflow:hidden}
+.pstep.off{opacity:.5}
+.pstep .ph{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--sf2);border-bottom:1px solid var(--ln);flex-wrap:wrap}
+.pstep .ph b{font-size:12.5px;flex:1;min-width:90px}
+.pstep .pb{padding:10px 11px;display:grid;gap:8px}
+.pgrid{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(132px,1fr))}
+.pgrid label{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:3px}
+.ord{display:flex;gap:3px}
+.ord button{width:28px;height:28px;border-radius:7px;border:1px solid var(--ln2);background:var(--a9);color:var(--mut);cursor:pointer;font-size:12px;line-height:1}
+.metrics{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(126px,1fr))}
+.metric{border:1px solid var(--ln);border-radius:11px;padding:9px 10px;background:var(--a7)}
+.metric small{display:block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.metric b{font-size:18px;font-family:var(--mono)}
+.metric .d{font-size:11px;font-family:var(--mono)}
+.metric .d.up{color:var(--ok)}.metric .d.dn{color:var(--bad)}
+.empty{color:var(--dim);font-size:13px;text-align:center;padding:16px}
+.fmt{font-family:var(--mono);font-size:12px;background:var(--a9);border:1px solid var(--ln);border-radius:10px;padding:10px;white-space:pre-wrap;color:var(--mut);max-height:150px;overflow:auto}
+#toast{position:fixed;left:12px;right:12px;bottom:14px;z-index:99;display:grid;gap:8px;pointer-events:none}
+.tst{background:var(--sf2);border:1px solid var(--ln2);border-left:4px solid var(--amber);border-radius:12px;padding:11px 13px;font-size:13px;box-shadow:0 16px 40px rgba(0,0,0,.55);animation:up .22s ease}
+.tst.ok{border-left-color:var(--ok)}.tst.err{border-left-color:var(--bad)}.tst.warn{border-left-color:var(--cyan)}
+@keyframes up{from{opacity:0;transform:translateY(14px)}}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.3,1) both}@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+footer{color:var(--dim);font-size:11px;text-align:center;padding:22px 13px 6px;line-height:1.7}
+@media(max-width:520px){.brand span{display:none}section{scroll-margin-top:214px}.rail{top:90px}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="topin">
+    <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#241700" stroke-width="2.2" stroke-linecap="round"><path d="M4 18l5-9 4 6 3-4 4 7z"/><circle cx="8" cy="6" r="2"/></svg></div>
+    <div class="brand"><b>Στούντιο</b><span>προεπεξεργασία · λεξικά · βήματα</span></div>
+    <div class="hpill" id="hpill">τοπικά</div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <a href="#steps" class="on">Βήματα</a><a href="#lex">Λεξικά</a><a href="#svc">Υπηρεσίες</a>
+    <a href="#img">Εικόνα</a><a href="#pipe">Pipeline</a><a href="#qa">Μετρήσεις</a>
+  </nav>
+</header>
+
+<div class="rail"><div class="railin">
+  <label class="ctl w"><small>Προεπιλογή</small><select id="qPreset">
+    <option value="photo">Φωτογραφία κινητού</option><option value="shadow">Σκιά / ανομοιόμορφος φωτισμός</option>
+    <option value="blur">Θολή — deblur</option><option value="faint">Αχνό / ξεθωριασμένο</option>
+    <option value="stamp">Κόκκινες σφραγίδες</option><option value="binary">Tesseract · δυαδικό</option>
+    <option value="clean">Καθαρό scan</option><option value="custom">Προσαρμοσμένο</option></select></label>
+  <label class="ctl"><small>Ποιότητα</small><select id="qQual"><option value="1200">Προεπισκόπηση</option><option value="1900" selected>Υψηλή</option><option value="2600">Μέγιστη</option></select></label>
+  <label class="ctl"><small>Φωτισμός <b id="vFlat">60</b>%</small><input type="range" id="qFlat" min="0" max="100" step="5" value="60"></label>
+  <label class="ctl"><small>CLAHE <b id="vClip">2.0</b></small><input type="range" id="qClip" min="0" max="6" step="0.5" value="2"></label>
+  <label class="ctl"><small>Deblur <b id="vRl">0</b></small><input type="range" id="qRl" min="0" max="14" step="1" value="0"></label>
+  <label class="ctl"><small>Οξύτητα <b id="vSharp">45</b>%</small><input type="range" id="qSharp" min="0" max="200" step="5" value="45"></label>
+  <label class="ctl"><small>Bilateral <b id="vBil">0</b></small><input type="range" id="qBil" min="0" max="60" step="5" value="0"></label>
+  <label class="ctl"><small>Δυαδικό</small><select id="qBin"><option value="none" selected>Γκρι</option><option value="nick">NICK</option><option value="sauvola">Sauvola</option><option value="wolf">Wolf</option><option value="bradley">Bradley</option><option value="otsu">Otsu</option></select></label>
+  <div class="ctl"><small>Αυτόματο crop</small><div class="sw" id="qCrop"><i></i><span>ανίχνευση</span></div></div>
+  <div class="ctl"><small>Κλίση</small><div class="sw on" id="qSkew"><i></i><span>αυτόματη</span></div></div>
+  <div class="ctl"><small>Σύγκριση</small><div class="sw on" id="qWipe"><i></i><span>πριν/μετά</span></div></div>
+  <div class="ctl"><small>Τυχαίο</small><button class="btn sm gh" id="qRand">Δοκιμή</button></div>
+  <div class="ctl"><small>Επαναφορά</small><button class="btn sm gh" id="qReset">Reset</button></div>
+  <div class="ctl"><small>Εξαγωγή</small><button class="btn sm gh" id="qExport">PNG</button></div>
+</div></div>
+
+<div class="wrap">
+
+<section id="steps" class="rise">
+  <div class="hd"><span class="num">01</span><h2>Τα βήματα, με ζωντανή κατάσταση</h2><span class="bar"></span></div>
+  <div class="card">
+    <div class="ring">
+      <svg width="62" height="62" viewBox="0 0 62 62"><circle cx="31" cy="31" r="26" fill="none" stroke="var(--ln)" stroke-width="7"/>
+      <circle id="ringArc" cx="31" cy="31" r="26" fill="none" stroke="url(#gr)" stroke-width="7" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="163.4" transform="rotate(-90 31 31)"/>
+      <defs><linearGradient id="gr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB020"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs></svg>
+      <div><b id="ringTxt" style="font-size:17px">0 / 6</b><div class="lead" style="margin:2px 0 0">Η κατάσταση ενημερώνεται από τα πραγματικά δεδομένα της συσκευής.</div></div>
+    </div>
+    <div class="steps" id="stepList"></div>
+  </div>
+</section>
+
+<section id="lex">
+  <div class="hd"><span class="num">02</span><h2>Τι είναι τα «λεξικά»</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead"><span class="k">Λεξικό = λίστα αληθινών τιμών του γραφείου σου.</span> Δεν είναι γλωσσικό μοντέλο ούτε μαντεψιά. Όταν το OCR διαβάσει <code class="i">ΤΤ Β0ΛΟΥ</code>, το λεξικό υπηρεσιών περιέχει <code class="i">ΤΤ ΒΟΛΟΥ</code> και η διόρθωση γίνεται <span class="k">ταύτιση με πραγματική εγγραφή</span>, με αιτιολόγηση και εναλλακτικές. Χωρίς λεξικό, καμία «έξυπνη» διόρθωση δεν έχει βάση.</p>
+    <div class="two">
+      <div class="note cy"><b>Υπηρεσίες</b> — ΤΤ ΒΟΛΟΥ, ΑΤ ΚΑΛΑΜΑΡΙΑΣ, ΥΔΝΣΗ ΘΕΣΣΑΛΟΝΙΚΗΣ<br><b>Ονόματα</b> — πραγματικά ονοματεπώνυμα πελατών<br><b>Πινακίδες</b> — ήδη καταχωρημένες</div>
+      <div class="note vi"><b>Διευθύνσεις</b> — οδός + αριθμός<br><b>Άρθρα</b> — 24§9αγ, 34§2 …<br>Μοιράζονται αυτόματα με το <code class="i">ocr-lab.html</code>.</div>
+    </div>
+    <div class="lex" id="lexTabs"></div>
+    <div class="stats" id="lexStats"></div>
+    <label class="lbl">Προσθήκη εγγραφής (Enter)</label>
+    <input id="lexAdd" placeholder="π.χ. ΤΤ ΛΗΤΗΣ">
+    <label class="lbl">Αναζήτηση</label><input id="lexSearch" placeholder="φιλτράρισμα…">
+    <div class="items" id="lexItems" style="margin-top:9px"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn sm cy" id="lexExport">Εξαγωγή λεξικού</button>
+      <button class="btn sm gh" id="lexImportBtn">Εισαγωγή αρχείου</button>
+      <button class="btn sm bad" id="lexClear">Άδειασμα κατηγορίας</button>
+    </div>
+    <input type="file" id="lexFile" accept=".txt,.json,.csv,text/plain,application/json" hidden>
+    <label class="lbl">Δοκιμή ταύτισης — γράψε όπως το «διάβασε» το OCR</label>
+    <input id="fuzzyQ" value="ΤΤ Β0ΛΟΥ" spellcheck="false">
+    <div id="fuzzyOut" style="margin-top:9px"></div>
+  </div>
+</section>
+
+<section id="svc">
+  <div class="hd"><span class="num">03</span><h2>Φόρτωση λίστας υπηρεσιών</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Δέχεται <span class="k">τέσσερις μορφές</span>. Όλα κανονικοποιούνται αυτόματα: κεφαλαία, αφαίρεση τόνων, συμπίεση κενών, <code class="i">ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ → ΤΤ</code>, <code class="i">ΑΣΤΥΝΟΜΙΚΟ ΤΜΗΜΑ → ΑΤ</code>.</p>
+    <div class="two">
+      <div><label class="lbl">A · TXT — μία ανά γραμμή (πιο απλό)</label><div class="fmt">ΤΤ ΒΟΛΟΥ
+ΑΤ ΚΑΛΑΜΑΡΙΑΣ
+ΤΤ ΛΗΤΗΣ
+ΥΔΝΣΗ ΘΕΣΣΑΛΟΝΙΚΗΣ
+ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ ΛΑΡΙΣΑΣ</div></div>
+      <div><label class="lbl">B · JSON — πίνακας ή αντικείμενα</label><div class="fmt">["ΤΤ ΒΟΛΟΥ","ΑΤ ΚΑΛΑΜΑΡΙΑΣ"]
+
+[{"name":"ΤΤ ΛΗΤΗΣ"},
+ {"service":"ΤΤ ΘΕΡΜΗΣ"}]</div></div>
+    </div>
+    <div class="two" style="margin-top:9px">
+      <div><label class="lbl">C · CSV — με επικεφαλίδα</label><div class="fmt">service,region
+ΤΤ ΒΟΛΟΥ,ΜΑΓΝΗΣΙΑΣ
+ΑΤ ΚΑΛΑΜΑΡΙΑΣ,ΘΕΣΣΑΛΟΝΙΚΗΣ</div></div>
+      <div><label class="lbl">D · Backup εφαρμογής — αυτόματο</label><div class="fmt">{"cases":[{"service":"ΤΤ ΒΟΛΟΥ", …}]}
+→ διαβάζει service + dates.oosDest
+→ μαζί μαθαίνει ονόματα, πινακίδες,
+  διευθύνσεις, άρθρα</div></div>
+    </div>
+    <label class="lbl">Επικόλληση λίστας</label>
+    <textarea id="svcText" rows="6" placeholder="ΤΤ ΒΟΛΟΥ&#10;ΑΤ ΚΑΛΑΜΑΡΙΑΣ&#10;ΤΤ ΛΗΤΗΣ"></textarea>
+    <div class="row" style="margin-top:9px">
+      <button class="btn pri" id="svcPreview">Προεπισκόπηση</button>
+      <button class="btn gh" id="svcFileBtn">Αρχείο TXT/JSON/CSV</button>
+      <button class="btn cy" id="svcBackupBtn">Από Backup εφαρμογής</button>
+      <button class="btn gh" id="svcSample">Δείγμα</button>
+    </div>
+    <input type="file" id="svcFile" accept=".txt,.json,.csv,text/plain,application/json" hidden>
+    <input type="file" id="svcBackup" accept=".json,application/json" hidden>
+    <div id="svcReport" style="margin-top:11px"></div>
+    <div class="items" id="svcList" style="margin-top:9px;max-height:230px"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn go" id="svcCommit" disabled>Αποθήκευση στο λεξικό</button>
+      <button class="btn gh" id="svcDownload">Λήψη καθατής λίστας</button>
+    </div>
+  </div>
+</section>
+
+<section id="img">
+  <div class="hd"><span class="num">04</span><h2>Εικόνα & αποτέλεσμα</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Η προεπεξεργασία είναι <span class="k">στοίβα πραγματικών αλγορίθμων</span> που εκτελούνται με τη σειρά που ορίζεις παρακάτω. Δοκίμασε προεπιλογές από την μπάρα και σύρε τη γραμμή σύγκρισης.</p>
+    <div class="row">
+      <button class="btn pri" id="btnPick">Επιλογή εικόνας</button>
+      <button class="btn" id="btnCam">Κάμερα</button>
+      <button class="btn gh" id="btnAutoCrop">Αυτόματο crop τώρα</button>
+      <button class="btn gh" id="btnResetCrop">Επαναφορά γωνιών</button>
+    </div>
+    <input type="file" id="fileImg" accept="image/*" hidden><input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
+    <div class="stage" id="stage" style="margin-top:11px">
+      <canvas id="cvOut"></canvas><canvas id="cvBefore" style="position:absolute;inset:0"></canvas>
+      <div class="wipe" id="wipe"><b style="left:50%"></b></div>
+      <div class="hnd" data-c="0" hidden></div><div class="hnd" data-c="1" hidden></div><div class="hnd" data-c="2" hidden></div><div class="hnd" data-c="3" hidden></div>
+    </div>
+    <label class="lbl">Σύγκριση πριν / μετά</label><input type="range" id="wipePos" min="0" max="100" value="50">
+    <div class="pbar" style="margin-top:10px"><i id="prog"></i></div>
+    <div class="stats" id="procStats"><span class="tag">χωρίς εικόνα</span></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn go" id="btnPng">Λήψη PNG</button>
+      <button class="btn cy" id="btnRecipe">Λήψη συνταγής</button>
+      <button class="btn vi" id="btnToLab">Άνοιγμα Εργαστηρίου OCR</button>
+    </div>
+  </div>
+</section>
+
+<section id="pipe">
+  <div class="hd"><span class="num">05</span><h2>Pipeline — σειρά & παράμετροι</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Ενεργοποίησε, απενεργοποίησε και <span class="k">άλλαξε τη σειρά</span> των βημάτων. Κάθε βήμα δείχνει τον χρόνο του. Η σειρά μετράει: αποθορύβηση πριν την οξύτητα, deblur πριν το δυαδικό, despeckle μετά.</p>
+    <div class="pipe" id="pipeList"></div>
+  </div>
+</section>
+
+<section id="qa">
+  <div class="hd"><span class="num">06</span><h2>Μετρήσεις ποιότητας</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Μετρήσιμα μεγέθη στο <span class="k">πριν</span> και στο <span class="k">μετά</span>. Η οξύτητα είναι διασπορά Laplacian· το μελάνι είναι ποσοστό σκούρων εικονοστοιχείων. Στόχος: οξύτητα και αντίθεση ↑, θόρυβος ↓, μελάνι σε λογικά επίπεδα.</p>
+    <div class="metrics" id="metrics"><div class="empty">Φόρτωσε εικόνα.</div></div>
+    <div class="note" id="advice" style="margin-top:11px">—</div>
+  </div>
+</section>
+
+<footer>ΣΤΟΥΝΤΙΟ troxonomika · όλη η επεξεργασία γίνεται στη συσκευή, καμία εικόνα δεν αποστέλλεται.</footer>
+</div>
+<div id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+var $=function(s){return document.querySelector(s);};
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function toast(m,k){var t=document.createElement("div");t.className="tst "+(k||"");t.textContent=m;$("#toast").appendChild(t);setTimeout(function(){t.style.opacity=0;t.style.transition="opacity .3s";setTimeout(function(){t.remove();},320);},4000);}
+function dl(n,t,ty){var b=new Blob([t],{type:ty||"text/plain;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=n;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);}
+var LAT={A:"Α",B:"Β",E:"Ε",Z:"Ζ",H:"Η",I:"Ι",K:"Κ",M:"Μ",N:"Ν",O:"Ο",P:"Ρ",T:"Τ",Y:"Υ",X:"Χ"};
+function toGr(s){return String(s==null?"":s).toUpperCase().replace(/[A-Z]/g,function(c){return LAT[c]||c;});}
+function fold(s){return toGr(String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,"")).replace(/\s+/g," ").trim();}
+function normSvc(s){return fold(s).replace(/^ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ/,"ΤΤ").replace(/^ΑΣΤΥΝΟΜΙΚΟ ΤΜΗΜΑ/,"ΑΤ").replace(/^ΥΠΟΔ\/ΝΣΗ|^ΥΠΟΔΙΕΥΘΥΝΣΗ/,"ΥΔΝΣΗ").replace(/\s*-\s*/g," ").trim();}
+function lev(a,b){var m=a.length,n=b.length;if(!m)return n;if(!n)return m;var p=[],c=[],i,j;for(j=0;j<=n;j++)p[j]=j;for(i=1;i<=m;i++){c=[i];for(j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c;}return p[n];}
+var CONF={"Α":["Λ","Δ"],"Λ":["Α","Δ"],"Δ":["Α","Λ"],"Ο":["Θ","Ω","0"],"Θ":["Ο"],"Ω":["Ο"],"Ε":["Σ"],"Σ":["Ε"],"Ι":["Τ","Γ","1"],"Τ":["Ι","Γ"],"Γ":["Τ","Ι"],"Η":["Ν"],"Ν":["Η"],"Ρ":["Β"],"Β":["Ρ","8"],"Κ":["Χ"],"Χ":["Κ"],"Π":["Τ"],"0":["Ο"],"1":["Ι"],"8":["Β"]};
+function cost(a,b){return a===b?0:(CONF[a]&&CONF[a].indexOf(b)>=0?.3:1);}
+function fuzzy(q,pool,n){q=fold(q);var o=[];pool.forEach(function(c){var t=fold(c);if(!t)return;var m=Math.max(q.length,t.length);if(!m)return;
+ var d=0,k=Math.min(q.length,t.length);for(var i=0;i<k;i++)d+=cost(q[i],t[i]);d+=Math.abs(q.length-t.length);
+ var s=1-Math.min(d,lev(q,t))/m;if(s>.5)o.push({v:c,s:s});});o.sort(function(a,b){return b.s-a.s;});return o.slice(0,n||5);}
+
+/* ================= LEXICONS ================= */
+var LEXKEY="troxo_ocr_lex";
+var CATS=[{k:"services",t:"Υπηρεσίες"},{k:"names",t:"Ονόματα"},{k:"plates",t:"Πινακίδες"},{k:"addresses",t:"Διευθύνσεις"},{k:"articles",t:"Άρθρα"}];
+var LEX={services:[],names:[],plates:[],addresses:[],articles:[]};
+var SEED=["ΥΔΝΣΗ ΘΕΣΣΑΛΟΝΙΚΗΣ","ΥΔΝΣΗ ΑΤΤΙΚΗΣ","ΤΤ ΑΤΤΙΚΗΣ","ΤΤ ΠΑΘΕ","ΤΤ ΕΓΝΑΤΙΑΣ","ΑΤ ΚΑΛΑΜΑΡΙΑΣ","ΤΤ ΚΑΛΑΜΑΡΙΑΣ","ΤΤ ΛΗΤΗΣ","ΤΤ ΘΕΡΜΗΣ","ΑΤ ΤΟΥΜΠΑΣ","ΤΤ ΧΑΛΚΙΔΙΚΗΣ","ΤΤ ΜΟΥΔΑΝΙΩΝ","ΤΤ ΑΣΠΡΟΒΑΛΤΑΣ","ΤΤ ΚΑΣΣΑΝΔΡΕΙΑΣ","ΑΤ ΧΑΛΚΗΔΟΝΑΣ","ΤΤ ΛΑΓΚΑΔΑ","ΤΤ ΣΤΑΥΡΟΥ","ΤΤ ΒΟΛΟΥ","ΤΤ ΛΑΡΙΣΑΣ","ΤΤ ΤΡΙΚΑΛΩΝ","ΤΤ ΚΑΡΔΙΤΣΑΣ","ΤΤ ΓΡΕΒΕΝΩΝ","ΤΤ ΚΟΖΑΝΗΣ","ΤΤ ΚΑΣΤΟΡΙΑΣ","ΤΤ ΦΛΩΡΙΝΑΣ","ΤΤ ΚΑΤΕΡΙΝΗΣ","ΤΤ ΒΕΡΟΙΑΣ","ΤΤ ΝΑΟΥΣΑΣ","ΤΤ ΕΔΕΣΣΑΣ","ΤΤ ΓΙΑΝΝΙΤΣΩΝ","ΤΤ ΠΟΛΥΚΑΣΤΡΟΥ","ΤΤ ΣΕΡΡΩΝ","ΤΤ ΚΙΛΚΙΣ","ΤΤ ΔΡΑΜΑΣ","ΤΤ ΚΑΒΑΛΑΣ","ΤΤ ΞΑΝΘΗΣ","ΤΤ ΚΟΜΟΤΗΝΗΣ","ΤΤ ΕΒΡΟΥ","ΤΤ ΑΛΕΞΑΝΔΡΟΥΠΟΛΗΣ","ΤΤ ΟΡΕΣΤΙΑΔΑΣ","ΤΤ ΙΩΑΝΝΙΝΩΝ","ΤΤ ΑΡΤΑΣ","ΤΤ ΠΡΕΒΕΖΑΣ","ΤΤ ΘΕΣΠΡΩΤΙΑΣ","ΤΤ ΚΕΡΚΥΡΑΣ","ΤΤ ΛΑΜΙΑΣ","ΤΤ ΑΜΦΙΣΣΑΣ","ΤΤ ΛΕΒΑΔΕΙΑΣ","ΤΤ ΘΗΒΑΣ","ΤΤ ΧΑΛΚΙΔΑΣ","ΤΤ ΤΗΝΟΥ","ΤΤ ΣΥΡΟΥ","ΤΤ ΝΑΞΟΥ","ΤΤ ΘΗΡΑΣ","ΤΤ ΡΟΔΟΥ","ΤΤ ΧΑΝΙΩΝ","ΤΤ ΡΕΘΥΜΝΟΥ","ΤΤ ΗΡΑΚΛΕΙΟΥ","ΤΤ ΑΓΙΟΥ ΝΙΚΟΛΑΟΥ","ΤΤ ΣΗΤΕΙΑΣ","ΤΤ ΠΑΤΡΩΝ","ΤΤ ΑΙΓΙΟΥ","ΤΤ ΚΟΡΙΝΘΟΥ","ΤΤ ΑΡΓΟΥΣ","ΤΤ ΝΑΥΠΛΙΟΥ","ΤΤ ΤΡΙΠΟΛΗΣ","ΤΤ ΣΠΑΡΤΗΣ","ΤΤ ΚΑΛΑΜΑΤΑΣ","ΤΤ ΜΕΣΣΗΝΗΣ","ΤΤ ΠΥΛΟΥ","ΤΤ ΑΜΑΛΙΑΔΑΣ","ΤΤ ΠΥΡΓΟΥ","ΤΤ ΜΕΣΟΛΟΓΓΙΟΥ","ΤΤ ΑΓΡΙΝΙΟΥ","ΤΤ ΝΑΥΠΑΚΤΟΥ"];
+try{var st=JSON.parse(localStorage.getItem(LEXKEY)||"null");if(st)for(var kk in LEX)if(Array.isArray(st[kk]))LEX[kk]=st[kk];}catch(e){}
+SEED.forEach(function(s){if(LEX.services.indexOf(s)<0)LEX.services.push(s);});
+LEX.services.sort();
+function saveLex(){try{localStorage.setItem(LEXKEY,JSON.stringify(LEX));}catch(e){}renderLex();renderSteps();}
+var curCat="services";
+function renderLexTabs(){$("#lexTabs").innerHTML=CATS.map(function(c){return '<button data-c="'+c.k+'" class="'+(c.k===curCat?"on":"")+'">'+c.t+' · '+LEX[c.k].length+'</button>';}).join("");}
+function renderLex(){
+  renderLexTabs();
+  $("#lexStats").innerHTML=CATS.map(function(c){return '<span class="tag '+(LEX[c.k].length?"g":"")+'">'+c.t+": "+LEX[c.k].length+"</span>";}).join("");
+  var q=fold($("#lexSearch").value||"");
+  var arr=LEX[curCat].filter(function(v){return !q||fold(v).indexOf(q)>=0;});
+  $("#lexItems").innerHTML=arr.length?arr.slice(0,400).map(function(v){
+    return '<div class="item"><span>'+esc(v)+'</span><button data-del="'+esc(v)+'" aria-label="Διαγραφή">✕</button></div>';}).join(""):'<div class="empty">Καμία εγγραφή.</div>';
+  runFuzzy();
+}
+$("#lexTabs").addEventListener("click",function(e){var b=e.target.closest("[data-c]");if(!b)return;curCat=b.dataset.c;renderLex();});
+$("#lexSearch").addEventListener("input",renderLex);
+$("#lexAdd").addEventListener("keydown",function(e){
+  if(e.key!=="Enter")return;var v=curCat==="services"?normSvc(this.value):fold(this.value);
+  if(!v)return;if(LEX[curCat].indexOf(v)<0){LEX[curCat].push(v);LEX[curCat].sort();saveLex();toast("Προστέθηκε: "+v,"ok");}this.value="";});
+$("#lexItems").addEventListener("click",function(e){var b=e.target.closest("[data-del]");if(!b)return;
+  var v=b.dataset.del;LEX[curCat]=LEX[curCat].filter(function(x){return x!==v;});saveLex();toast("Διαγράφηκε.","warn");});
+$("#lexClear").onclick=function(){LEX[curCat]=[];saveLex();toast("Η κατηγορία άδειασε.","warn");};
+$("#lexExport").onclick=function(){dl(curCat+".txt",LEX[curCat].join("\n"));};
+$("#lexImportBtn").onclick=function(){$("#lexFile").click();};
+$("#lexFile").onchange=function(){var f=this.files[0];if(!f)return;var rd=new FileReader();
+  rd.onload=function(){var r=parseAny(String(rd.result),curCat==="services"?normSvc:fold);
+    var add=0;r.values.forEach(function(v){if(LEX[curCat].indexOf(v)<0){LEX[curCat].push(v);add++;}});
+    LEX[curCat].sort();saveLex();toast(add+" νέες εγγραφές.","ok");};rd.readAsText(f);this.value="";};
+function runFuzzy(){
+  var q=$("#fuzzyQ").value.trim();if(!q){$("#fuzzyOut").innerHTML="";return;}
+  var pool=curCat==="services"?LEX.services:LEX[curCat];
+  var m=fuzzy(q,pool,5);
+  $("#fuzzyOut").innerHTML=m.length?m.map(function(x){
+    return '<div class="match"><div class="g">'+esc(x.v)+'</div><div class="meter"><i style="width:'+Math.round(x.s*100)+'%"></i></div><span class="tag '+(x.s>.9?"g":x.s>.75?"a":"r")+'">'+Math.round(x.s*100)+'%</span></div>';}).join("")
+    :'<div class="empty">Καμία ταύτιση — η διόρθωση θα σημειωθεί ως «άγνωστο», όχι ως εικασία.</div>';
+}
+$("#fuzzyQ").addEventListener("input",runFuzzy);
+
+/* ================= SERVICE LOADER ================= */
+function parseAny(text,norm){
+  norm=norm||normSvc;var out=[],mode="TXT";var t=String(text||"").trim();
+  if(!t)return{values:[],mode:"κενό",raw:0};
+  var raw=0;
+  if(t[0]==="["||t[0]==="{"){
+    try{
+      var o=JSON.parse(t);mode="JSON";
+      var arr=Array.isArray(o)?o:(o.cases||o.data||o.services||o.items||null);
+      if(Array.isArray(arr)){raw=arr.length;arr.forEach(function(it){
+        if(typeof it==="string")out.push(it);
+        else if(it&&typeof it==="object"){
+          var v=it.service||it.name||it.title||it.value||it.υπηρεσία;
+          if(v)out.push(v);
+          if(it.dates&&it.dates.oosDest)out.push(it.dates.oosDest);
+        }});}
+      else if(o&&typeof o==="object"){Object.keys(o).forEach(function(k){if(typeof o[k]==="string")out.push(o[k]);});raw=out.length;}
+    }catch(e){mode="JSON (σφάλμα)";}
+  }else if(/^[^\n]*,[^\n]*\n/.test(t)&&/service|υπηρε|name|region/i.test(t.split("\n")[0])){
+    mode="CSV";var lines=t.split(/\r?\n/),head=lines[0].split(",").map(function(h){return h.trim().toLowerCase();});
+    var idx=head.findIndex(function(h){return /service|υπηρε|name|title/.test(h);});if(idx<0)idx=0;
+    raw=lines.length-1;
+    for(var i=1;i<lines.length;i++){var c=lines[i].split(",");if(c[idx])out.push(c[idx]);}
+  }else{mode="TXT";var ls=t.split(/\r?\n/);raw=ls.length;out=ls;}
+  var seen={},vals=[];
+  out.forEach(function(v){var n=norm(v);if(!n||n.length<2)return;if(/^[-–—•\s]+$/.test(n))return;if(!seen[n]){seen[n]=1;vals.push(n);}});
+  vals.sort();
+  return{values:vals,mode:mode,raw:raw};
+}
+var svcPending=[];
+function svcPreview(text){
+  var r=parseAny(text,normSvc);svcPending=r.values;
+  var neu=r.values.filter(function(v){return LEX.services.indexOf(v)<0;});
+  var dup=r.values.length-neu.length;
+  $("#svcReport").innerHTML=
+    '<div class="stats"><span class="tag c">μορφή: '+esc(r.mode)+'</span><span class="tag">γραμμές/εγγραφές: '+r.raw+'</span>'+
+    '<span class="tag g">έγκυρες: '+r.values.length+'</span><span class="tag a">ήδη υπάρχουσες: '+dup+'</span>'+
+    '<span class="tag '+(neu.length?"g":"")+'">νέες: '+neu.length+'</span></div>'+
+    (r.values.length?'':'<div class="note">Δεν βρέθηκαν έγκυρες τιμές. Έλεγξε τη μορφή παραπάνω.</div>');
+  $("#svcList").innerHTML=r.values.length?r.values.slice(0,400).map(function(v){
+    var isNew=LEX.services.indexOf(v)<0;
+    return '<div class="item"><span>'+esc(v)+'</span><span class="tag '+(isNew?"g":"")+'">'+(isNew?"νέα":"υπάρχει")+'</span></div>';}).join(""):'<div class="empty">—</div>';
+  $("#svcCommit").disabled=!neu.length;
+}
+$("#svcPreview").onclick=function(){svcPreview($("#svcText").value);};
+$("#svcSample").onclick=function(){$("#svcText").value="ΤΤ ΒΟΛΟΥ\nΑΤ ΚΑΛΑΜΑΡΙΑΣ\nΤΤ ΛΗΤΗΣ\nΤΜΗΜΑ ΤΡΟΧΑΙΑΣ ΛΑΡΙΣΑΣ\nΥποδ/νση Θεσσαλονίκης\nττ θερμης";svcPreview($("#svcText").value);};
+$("#svcFileBtn").onclick=function(){$("#svcFile").click();};
+$("#svcFile").onchange=function(){var f=this.files[0];if(!f)return;var rd=new FileReader();
+  rd.onload=function(){$("#svcText").value=String(rd.result).slice(0,200000);svcPreview(String(rd.result));toast("Φορτώθηκε "+f.name,"ok");};rd.readAsText(f);this.value="";};
+$("#svcBackupBtn").onclick=function(){$("#svcBackup").click();};
+$("#svcBackup").onchange=function(){var f=this.files[0];if(!f)return;var rd=new FileReader();
+  rd.onload=function(){
+    try{
+      var o=JSON.parse(String(rd.result)),arr=Array.isArray(o)?o:(o.cases||o.data||[]);
+      if(!Array.isArray(arr))throw new Error("δεν βρέθηκε λίστα υποθέσεων");
+      var map={services:[],names:[],plates:[],addresses:[],articles:[]};
+      arr.forEach(function(c){
+        if(c.service)map.services.push(c.service);
+        if(c.dates&&c.dates.oosDest)map.services.push(c.dates.oosDest);
+        if(c.name)map.names.push(c.name);
+        if(c.plate)map.plates.push(String(c.plate).replace(/-/g,""));
+        if(c.address)map.addresses.push(c.address);
+        if(c.vArticle)map.articles.push(c.vArticle);
+      });
+      var added={};
+      CATS.forEach(function(cat){
+        var norm=cat.k==="services"?normSvc:fold,seen={},n=0;
+        map[cat.k].forEach(function(v){var x=norm(v);if(!x)return;if(seen[x])return;seen[x]=1;
+          if(LEX[cat.k].indexOf(x)<0){LEX[cat.k].push(x);n++;}});
+        LEX[cat.k].sort();added[cat.t]=n;
+      });
+      saveLex();
+      $("#svcText").value=LEX.services.join("\n");svcPreview($("#svcText").value);
+      toast("Backup: "+Object.keys(added).map(function(k){return k+" +"+added[k];}).join(" · "),"ok");
+    }catch(e){toast("Σφάλμα backup: "+e.message,"err");}
+  };rd.readAsText(f);this.value="";};
+$("#svcCommit").onclick=function(){
+  var n=0;svcPending.forEach(function(v){if(LEX.services.indexOf(v)<0){LEX.services.push(v);n++;}});
+  LEX.services.sort();saveLex();svcPreview($("#svcText").value);toast(n+" υπηρεσίες αποθηκεύτηκαν.","ok");};
+$("#svcDownload").onclick=function(){dl("services.txt",(svcPending.length?svcPending:LEX.services).join("\n"));};
+
+/* ================= IMAGE ENGINE ================= */
+var SRC=null,CORNERS=null,BASE=null,PROC=null,BEFORE=null,autoCorners=null;
+var cvOut=$("#cvOut"),cvBefore=$("#cvBefore"),stage=$("#stage");
+var Q={qual:1900,flat:60,clip:2,rl:0,sharp:45,bil:0,bin:"none",crop:false,skew:true,wipe:true};
+function mkSteps(){return[
+ {id:"channel",t:"Κανάλι χρώματος",on:true,p:{mode:"luma"},fixed:true,desc:"Το κόκκινο κανάλι σβήνει κόκκινες σφραγίδες· το max τις διατηρεί."},
+ {id:"levels",t:"Αυτόματα επίπεδα",on:true,p:{lo:0.5,hi:0.5},desc:"Αποκοπή ποσοστημορίων και τέντωμα ιστογράμματος."},
+ {id:"flat",t:"Εξομάλυνση φωτισμού",on:true,p:{amt:60,mode:"divide"},desc:"Εκτίμηση υποβάθρου και διαίρεση — αφαιρεί σκιές και ανομοιόμορφο φωτισμό."},
+ {id:"clahe",t:"CLAHE",on:true,p:{clip:2,tiles:8},desc:"Τοπική εξισορρόπηση ιστογράμματος με όριο ενίσχυσης."},
+ {id:"tone",t:"Τόνος",on:true,p:{gamma:1,contrast:8,bright:0,sigmoid:false},desc:"Γάμμα, αντίθεση, φωτεινότητα, προαιρετική σιγμοειδής."},
+ {id:"denoise",t:"Αποθορύβηση",on:true,p:{median:0,bilateral:0,range:28},desc:"Median για κόκκους, bilateral για θόρυβο με διατήρηση ακμών."},
+ {id:"deblur",t:"Deblur (Richardson–Lucy)",on:true,p:{iters:0,radius:1.4},desc:"Πραγματική αποσυνέλιξη για θολούρα κίνησης/εστίασης."},
+ {id:"sharp",t:"Οξύτητα (unsharp)",on:true,p:{amt:45,radius:1,thresh:0},desc:"Ενίσχυση ακμών με κατώφλι για να μη σηκώνει θόρυβο."},
+ {id:"morph",t:"Μορφολογία",on:false,p:{op:"none",r:1},desc:"Opening σβήνει μικρά στίγματα· closing κλείνει σπασμένα γράμματα."},
+ {id:"bin",t:"Δυαδικοποίηση",on:true,p:{method:"none",win:31,k:-0.2},desc:"Γκρι για Paddle· NICK/Wolf/Sauvola για δύσκολα έγγραφα."},
+ {id:"speck",t:"Καθαρισμός κηλίδων",on:false,p:{dark:12,light:8},desc:"Αφαίρεση μικρών συνδεδεμένων περιοχών μετά το δυαδικό."},
+ {id:"weight",t:"Πάχος γραμμής",on:false,p:{d:0},desc:"Λέπτυνση ή πάχυνση κατά 1–2 px για αδύναμα γράμματα."},
+ {id:"pad",t:"Λευκό περιθώριο",on:true,p:{px:12},desc:"Περιθώριο βοηθά τον εντοπισμό γραμμών στα άκρα."}
+];}
+var STEPS=mkSteps();
+var PRESETS={
+ photo:{q:{flat:60,clip:2,rl:0,sharp:45,bil:0,bin:"none"},s:{levels:{lo:.5,hi:.5},tone:{gamma:1,contrast:8,bright:0,sigmoid:false},denoise:{median:0,bilateral:0,range:28},sharp:{amt:45,radius:1,thresh:0},bin:{method:"none",win:31,k:-.2},morph:{op:"none",r:1},speck:{dark:12,light:8},weight:{d:0},pad:{px:12}},on:{morph:false,speck:false,weight:false}},
+ shadow:{q:{flat:100,clip:3,rl:0,sharp:55,bil:15,bin:"none"},s:{flat:{amt:100,mode:"divide"},tone:{gamma:1.05,contrast:12,bright:0,sigmoid:false},denoise:{median:0,bilateral:15,range:30},sharp:{amt:55,radius:1,thresh:3}},on:{morph:false,speck:false,weight:false}},
+ blur:{q:{flat:50,clip:2.5,rl:8,sharp:70,bil:0,bin:"none"},s:{deblur:{iters:8,radius:1.6},denoise:{median:0,bilateral:0,range:28},sharp:{amt:70,radius:1,thresh:4},tone:{gamma:.95,contrast:18,bright:0,sigmoid:false}},on:{deblur:true,morph:false,speck:false,weight:false}},
+ faint:{q:{flat:80,clip:4,rl:3,sharp:90,bil:20,bin:"nick"},s:{levels:{lo:2,hi:1},tone:{gamma:1.2,contrast:26,bright:-6,sigmoid:true},bin:{method:"nick",win:41,k:-.2},weight:{d:1},speck:{dark:14,light:6}},on:{deblur:true,morph:false,speck:true,weight:true}},
+ stamp:{q:{flat:60,clip:2,rl:0,sharp:50,bil:0,bin:"none"},s:{channel:{mode:"red"},tone:{gamma:1,contrast:14,bright:0,sigmoid:false}},on:{morph:false,speck:false,weight:false}},
+ binary:{q:{flat:70,clip:2.5,rl:0,sharp:60,bil:0,bin:"sauvola"},s:{channel:{mode:"luma"},denoise:{median:3,bilateral:0,range:28},bin:{method:"sauvola",win:31,k:.2},speck:{dark:10,light:6},tone:{gamma:1,contrast:10,bright:0,sigmoid:false}},on:{morph:false,speck:true,weight:false}},
+ clean:{q:{flat:0,clip:0,rl:0,sharp:20,bil:0,bin:"none"},s:{levels:{lo:.2,hi:.2},tone:{gamma:1,contrast:0,bright:0,sigmoid:false},pad:{px:16}},on:{flat:false,clahe:false,denoise:false,deblur:false,morph:false,speck:false,weight:false}},
+ custom:null};
+function applyPreset(name){
+  var p=PRESETS[name];if(!p)return;
+  STEPS=mkSteps();
+  for(var k in p.q)Q[k]=p.q[k];
+  Object.keys(p.s||{}).forEach(function(id){var st=stepById(id);if(st)for(var q in p.s[id])st.p[q]=p.s[id][q];});
+  Object.keys(p.on||{}).forEach(function(id){var st=stepById(id);if(st)st.on=p.on[id];});
+  if(name!=="clean"){var f=stepById("flat"),c=stepById("clahe"),d=stepById("denoise");if(f)f.on=true;if(c)c.on=true;if(d)d.on=true;}
+  syncRail();renderPipe();schedule();
+}
+function stepById(id){for(var i=0;i<STEPS.length;i++)if(STEPS[i].id===id)return STEPS[i];return null;}
+
+/* ---- helpers ---- */
+function boxBlur(g,w,h,r){if(r<1)return g.slice();var t=new Float32Array(w*h),o=new Float32Array(w*h),x,y,i,n=2*r+1;
+ for(y=0;y<h;y++){var s=0,row=y*w;for(i=-r;i<=r;i++)s+=g[row+clamp(i,0,w-1)];
+  for(x=0;x<w;x++){t[row+x]=s/n;s+=g[row+clamp(x+r+1,0,w-1)]-g[row+clamp(x-r,0,w-1)];}}
+ for(x=0;x<w;x++){var s2=0;for(i=-r;i<=r;i++)s2+=t[clamp(i,0,h-1)*w+x];
+  for(y=0;y<h;y++){o[y*w+x]=s2/n;s2+=t[clamp(y+r+1,0,h-1)*w+x]-t[clamp(y-r,0,h-1)*w+x];}}return o;}
+function gauss(g,w,h,r){var b=boxBlur(g,w,h,Math.max(1,Math.round(r)));b=boxBlur(b,w,h,Math.max(1,Math.round(r)));return boxBlur(b,w,h,Math.max(1,Math.round(r)));}
+function minmax(g,w,h,r,isMax){var t=new Float32Array(w*h),o=new Float32Array(w*h),x,y,i;
+ for(y=0;y<h;y++){var row=y*w;for(x=0;x<w;x++){var v=isMax?-1e9:1e9;for(i=-r;i<=r;i++){var s=g[row+clamp(x+i,0,w-1)];if(isMax?s>v:s<v)v=s;}t[row+x]=v;}}
+ for(x=0;x<w;x++)for(y=0;y<h;y++){var v2=isMax?-1e9:1e9;for(i=-r;i<=r;i++){var s2=t[clamp(y+i,0,h-1)*w+x];if(isMax?s2>v2:s2<v2)v2=s2;}o[y*w+x]=v2;}
+ return o;}
+function otsu(g){var hist=new Int32Array(256),i;for(i=0;i<g.length;i++)hist[clamp(g[i]|0,0,255)]++;
+ var tot=g.length,sum=0;for(i=0;i<256;i++)sum+=i*hist[i];var sb=0,wb=0,best=0,thr=128;
+ for(i=0;i<256;i++){wb+=hist[i];if(!wb)continue;var wf=tot-wb;if(!wf)break;sb+=i*hist[i];var d=sb/wb-(sum-sb)/wf,v=wb*wf*d*d;if(v>best){best=v;thr=i;}}return thr;}
+function integrals(g,w,h){var W=w+1,I=new Float64Array(W*(h+1)),I2=new Float64Array(W*(h+1));
+ for(var y=1;y<=h;y++){var rs=0,rs2=0;for(var x=1;x<=w;x++){var v=g[(y-1)*w+x-1];rs+=v;rs2+=v*v;I[y*W+x]=I[(y-1)*W+x]+rs;I2[y*W+x]=I2[(y-1)*W+x]+rs2;}}
+ return{I:I,I2:I2,W:W};}
+function homography(src,dst){var A=[],b=[],i;for(i=0;i<4;i++){var x=src[i][0],y=src[i][1],X=dst[i][0],Y=dst[i][1];
+ A.push([x,y,1,0,0,0,-X*x,-X*y]);b.push(X);A.push([0,0,0,x,y,1,-Y*x,-Y*y]);b.push(Y);}
+ for(i=0;i<8;i++){var p=i;for(var r=i+1;r<8;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;
+  var t=A[i];A[i]=A[p];A[p]=t;var tb=b[i];b[i]=b[p];b[p]=tb;if(Math.abs(A[i][i])<1e-9)return null;
+  for(r=i+1;r<8;r++){var f=A[r][i]/A[i][i];for(var c=i;c<8;c++)A[r][c]-=f*A[i][c];b[r]-=f*b[i];}}
+ var h=new Array(8);for(i=7;i>=0;i--){var s=b[i];for(var j=i+1;j<8;j++)s-=A[i][j]*h[j];h[i]=s/A[i][i];}return h;}
+function warp(cv,corners){
+ var w=cv.width,h=cv.height,s=corners.map(function(p){return[p[0]*w,p[1]*h];});
+ var W=Math.max(64,Math.round(Math.max(Math.hypot(s[1][0]-s[0][0],s[1][1]-s[0][1]),Math.hypot(s[2][0]-s[3][0],s[2][1]-s[3][1]))));
+ var H=Math.max(64,Math.round(Math.max(Math.hypot(s[3][0]-s[0][0],s[3][1]-s[0][1]),Math.hypot(s[2][0]-s[1][0],s[2][1]-s[1][1]))));
+ var Hm=homography([[0,0],[W,0],[W,H],[0,H]],s);if(!Hm)return cv;
+ var sd=cv.getContext("2d").getImageData(0,0,w,h).data,out=document.createElement("canvas");out.width=W;out.height=H;
+ var oc=out.getContext("2d"),od=oc.createImageData(W,H),o=od.data;
+ for(var y=0;y<H;y++)for(var x=0;x<W;x++){var d=Hm[6]*x+Hm[7]*y+1,sx=Math.round((Hm[0]*x+Hm[1]*y+Hm[2])/d),sy=Math.round((Hm[3]*x+Hm[4]*y+Hm[5])/d),p=(y*W+x)*4;
+  if(sx>=0&&sy>=0&&sx<w&&sy<h){var q=(sy*w+sx)*4;o[p]=sd[q];o[p+1]=sd[q+1];o[p+2]=sd[q+2];}else{o[p]=o[p+1]=o[p+2]=255;}o[p+3]=255;}
+ oc.putImageData(od,0,0);return out;}
+function detectDoc(cv){
+ var s=Math.min(1,340/Math.max(cv.width,cv.height)),W=Math.max(32,Math.round(cv.width*s)),H=Math.max(32,Math.round(cv.height*s));
+ var c=document.createElement("canvas");c.width=W;c.height=H;var x=c.getContext("2d");x.drawImage(cv,0,0,W,H);
+ var d=x.getImageData(0,0,W,H).data,g=new Float32Array(W*H);
+ for(var i=0,p=0;i<g.length;i++,p+=4)g[i]=.299*d[p]+.587*d[p+1]+.114*d[p+2];
+ g=boxBlur(g,W,H,3);var t=otsu(g),lab=new Int32Array(W*H),best=null,bestN=0,cur=0,stack=new Int32Array(W*H);
+ for(i=0;i<W*H;i++){
+  if(g[i]<t||lab[i])continue;cur++;var sp=0;stack[sp++]=i;lab[i]=cur;var pts=[];
+  while(sp){var q2=stack[--sp],y=(q2/W)|0,xx=q2-y*W;pts.push(q2);
+   for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;var nx=xx+dx,ny=y+dy;
+    if(nx<0||ny<0||nx>=W||ny>=H)continue;var nq=ny*W+nx;if(g[nq]>=t&&!lab[nq]){lab[nq]=cur;stack[sp++]=nq;}}}
+  if(pts.length>bestN){bestN=pts.length;best=pts;}}
+ if(!best||bestN<W*H*.12)return null;
+ var tl=null,br=null,tr=null,bl=null,sMax=-1e9,sMin=1e9,dMax=-1e9,dMin=1e9;
+ best.forEach(function(q3){var y=(q3/W)|0,xx=q3-y*W,su=xx+y,di=xx-y;
+  if(su<sMin){sMin=su;tl=[xx,y];}if(su>sMax){sMax=su;br=[xx,y];}
+  if(di>dMax){dMax=di;tr=[xx,y];}if(di<dMin){dMin=di;bl=[xx,y];}});
+ if(!tl||!tr||!br||!bl)return null;
+ return [tl,tr,br,bl].map(function(p2){return [clamp(p2[0]/W,.005,.995),clamp(p2[1]/H,.005,.995)];});
+}
+function skewAngle(g,w,h){
+ var s=Math.min(1,540/w),W=Math.max(32,Math.round(w*s)),H=Math.max(32,Math.round(h*s)),sm=new Float32Array(W*H);
+ for(var y=0;y<H;y++)for(var x=0;x<W;x++)sm[y*W+x]=g[Math.min(h-1,Math.round(y/s))*w+Math.min(w-1,Math.round(x/s))];
+ var t=otsu(sm),bin=new Uint8Array(W*H);for(var i=0;i<bin.length;i++)bin[i]=sm[i]<t?1:0;
+ function sc(deg){var r=deg*Math.PI/180,co=Math.cos(r),si=Math.sin(r),pr=new Float64Array(H),cx=W/2,cy=H/2;
+  for(var y=0;y<H;y+=2)for(var x=0;x<W;x+=2){if(!bin[y*W+x])continue;var yy=Math.round((x-cx)*si+(y-cy)*co+cy);if(yy>=0&&yy<H)pr[yy]++;}
+  var v=0;for(var i=1;i<H;i++){var d=pr[i]-pr[i-1];v+=d*d;}return v;}
+ var best=0,bs=-1;for(var a=-8;a<=8;a+=.5){var v=sc(a);if(v>bs){bs=v;best=a;}}
+ for(var a2=best-.5;a2<=best+.5;a2+=.1){var v2=sc(a2);if(v2>bs){bs=v2;best=a2;}}
+ return Math.round(best*10)/10;}
+function rotate(g,w,h,deg){if(!deg)return g;var r=deg*Math.PI/180,co=Math.cos(r),si=Math.sin(r),cx=w/2,cy=h/2,o=new Float32Array(w*h);
+ for(var y=0;y<h;y++)for(var x=0;x<w;x++){var dx=x-cx,dy=y-cy,sx=Math.round(dx*co+dy*si+cx),sy=Math.round(-dx*si+dy*co+cy);
+  o[y*w+x]=(sx>=0&&sy>=0&&sx<w&&sy<h)?g[sy*w+sx]:255;}return o;}
+function components(mask,w,h){
+ var lab=new Int32Array(w*h),cur=0,out=[],stack=new Int32Array(w*h);
+ for(var i=0;i<w*h;i++){if(!mask[i]||lab[i])continue;cur++;var sp=0;stack[sp++]=i;lab[i]=cur;var pts=[];
+  while(sp){var q=stack[--sp],y=(q/w)|0,x=q-y*w;pts.push(q);
+   for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;var nx=x+dx,ny=y+dy;
+    if(nx<0||ny<0||nx>=w||ny>=h)continue;var nq=ny*w+nx;if(mask[nq]&&!lab[nq]){lab[nq]=cur;stack[sp++]=nq;}}}
+  out.push(pts);}
+ return out;}
+
+/* ---- algorithms ---- */
+function toGray(cv,scale,mode){
+ var w=cv.width,h=cv.height,s=Math.min(1,scale/Math.max(w,h)),W=Math.max(24,Math.round(w*s)),H=Math.max(24,Math.round(h*s));
+ var c=document.createElement("canvas");c.width=W;c.height=H;var x=c.getContext("2d");x.imageSmoothingQuality="high";x.drawImage(cv,0,0,W,H);
+ var d=x.getImageData(0,0,W,H).data,g=new Float32Array(W*H);
+ for(var i=0,p=0;i<g.length;i++,p+=4){var r=d[p],gg=d[p+1],b=d[p+2],v;
+  if(mode==="red")v=r;else if(mode==="green")v=gg;else if(mode==="blue")v=b;
+  else if(mode==="max")v=Math.max(r,gg,b);else if(mode==="min")v=Math.min(r,gg,b);
+  else if(mode==="ink")v=Math.min(r,Math.min(gg,b));
+  else v=.299*r+.587*gg+.114*b;
+  g[i]=v;}
+ return{g:g,w:W,h:H,c:c};}
+function levels(g,lo,hi){
+ var hist=new Int32Array(256),i;for(i=0;i<g.length;i++)hist[clamp(g[i]|0,0,255)]++;
+ var n=g.length,l=0,hh=255,acc=0,cutLo=n*lo/100,cutHi=n*hi/100;
+ for(i=0;i<256;i++){acc+=hist[i];if(acc>=cutLo){l=i;break;}}
+ acc=0;for(i=255;i>=0;i--){acc+=hist[i];if(acc>=cutHi){hh=i;break;}}
+ if(hh<=l+4)return g;
+ var o=new Float32Array(g.length),k=255/(hh-l);
+ for(i=0;i<g.length;i++)o[i]=clamp((g[i]-l)*k,0,255);return o;}
+function flatten(g,w,h,amt,mode){
+ if(amt<=0)return g;
+ var r=Math.max(10,Math.round(Math.min(w,h)/9)),bg=boxBlur(g,w,h,r),m=0,i;
+ for(i=0;i<g.length;i++)m+=g[i];m/=g.length;
+ var o=new Float32Array(g.length),a=amt/100;
+ for(i=0;i<g.length;i++){var v=mode==="subtract"?clamp(g[i]-bg[i]+m,0,255):clamp(g[i]*(m/Math.max(bg[i],8)),0,255);o[i]=g[i]*(1-a)+v*a;}
+ return o;}
+function clahe(g,w,h,T,clip){
+ if(clip<=0)return g;var tw=Math.ceil(w/T),th=Math.ceil(h/T),maps=[],tx,ty;
+ for(ty=0;ty<T;ty++)for(tx=0;tx<T;tx++){
+  var x0=tx*tw,y0=ty*th,x1=Math.min(w,x0+tw),y1=Math.min(h,y0+th),hist=new Int32Array(256),n=0,x,y;
+  for(y=y0;y<y1;y++)for(x=x0;x<x1;x++){hist[clamp(g[y*w+x]|0,0,255)]++;n++;}
+  if(!n){maps.push(null);continue;}
+  var lim=Math.max(1,Math.round(clip*n/256)),ex=0,i;
+  for(i=0;i<256;i++)if(hist[i]>lim){ex+=hist[i]-lim;hist[i]=lim;}
+  var add=Math.floor(ex/256),rem=ex-add*256;
+  for(i=0;i<256;i++){hist[i]+=add;if(i<rem)hist[i]++;}
+  var lut=new Float32Array(256),ac=0;for(i=0;i<256;i++){ac+=hist[i];lut[i]=255*ac/n;}maps.push(lut);}
+ var o=new Float32Array(g.length);
+ for(y=0;y<h;y++)for(x=0;x<w;x++){
+  var gx=(x-tw/2)/tw,gy=(y-th/2)/th,i0=Math.floor(gx),j0=Math.floor(gy),fx=gx-i0,fy=gy-j0,v=clamp(g[y*w+x]|0,0,255);
+  function L(a,b){a=clamp(a,0,T-1);b=clamp(b,0,T-1);var m=maps[b*T+a];return m?m[v]:v;}
+  var A=L(i0,j0)*(1-fx)+L(i0+1,j0)*fx,B=L(i0,j0+1)*(1-fx)+L(i0+1,j0+1)*fx;o[y*w+x]=A*(1-fy)+B*fy;}
+ return o;}
+function tone(g,gam,con,bri,sig){
+ var o=new Float32Array(g.length),c=1+con/100;
+ for(var i=0;i<g.length;i++){var v=g[i]/255;
+  if(gam!==1)v=Math.pow(clamp(v,0,1),gam);
+  if(sig)v=1/(1+Math.exp(-10*(v-.5)));
+  v=(v-.5)*c+.5+bri/255;o[i]=clamp(v*255,0,255);}
+ return o;}
+function medianF(g,w,h,n){
+ if(n<3)return g;var r=n>>1,o=new Float32Array(g.length),buf=[];
+ for(var y=0;y<h;y++)for(var x=0;x<w;x++){buf.length=0;
+  for(var dy=-r;dy<=r;dy++)for(var dx=-r;dx<=r;dx++)buf.push(g[clamp(y+dy,0,h-1)*w+clamp(x+dx,0,w-1)]);
+  buf.sort(function(a,b){return a-b;});o[y*w+x]=buf[buf.length>>1];}
+ return o;}
+function bilateral(g,w,h,strength,range){
+ if(strength<=0)return g;var r=2,ss=1.4,sr=Math.max(6,range),o=new Float32Array(g.length),a=strength/60;
+ var sw=[];for(var dy=-r;dy<=r;dy++)for(var dx=-r;dx<=r;dx++)sw.push(Math.exp(-(dx*dx+dy*dy)/(2*ss*ss)));
+ for(var y=0;y<h;y++)for(var x=0;x<w;x++){
+  var c=g[y*w+x],sum=0,wt=0,k=0;
+  for(var jy=-r;jy<=r;jy++)for(var jx=-r;jx<=r;jx++){
+   var v=g[clamp(y+jy,0,h-1)*w+clamp(x+jx,0,w-1)],d=v-c;
+   var ww=sw[k++]*Math.exp(-(d*d)/(2*sr*sr));sum+=v*ww;wt+=ww;}
+  o[y*w+x]=g[y*w+x]*(1-a)+(sum/wt)*a;}
+ return o;}
+function richardsonLucy(g,w,h,iters,radius){
+ if(iters<=0)return g;var est=g.slice(),i,it;
+ for(it=0;it<iters;it++){
+  var be=gauss(est,w,h,radius),ratio=new Float32Array(g.length);
+  for(i=0;i<g.length;i++)ratio[i]=g[i]/Math.max(be[i],1.2);
+  var corr=gauss(ratio,w,h,radius);
+  for(i=0;i<g.length;i++)est[i]=clamp(est[i]*corr[i],0,255);}
+ return est;}
+function unsharp(g,w,h,amt,radius,thresh){
+ if(amt<=0)return g;var b=boxBlur(g,w,h,Math.max(1,radius)),o=new Float32Array(g.length),a=amt/100;
+ for(var i=0;i<g.length;i++){var d=g[i]-b[i];o[i]=Math.abs(d)<thresh?g[i]:clamp(g[i]+a*d,0,255);}return o;}
+function binarize(g,w,h,method,win,k){
+ var o=new Float32Array(g.length),i;
+ if(method==="none")return g;
+ if(method==="otsu"){var t=otsu(g);for(i=0;i<g.length;i++)o[i]=g[i]>t?255:0;return o;}
+ var it=integrals(g,w,h),I=it.I,I2=it.I2,W=it.W,r=win>>1;
+ var mn=255,sum=0;for(i=0;i<g.length;i++){if(g[i]<mn)mn=g[i];sum+=g[i];}
+ var gm=sum/g.length,gv=0;for(i=0;i<g.length;i++){var d=g[i]-gm;gv+=d*d;}
+ var gs=Math.sqrt(gv/g.length),R=method==="wolf"?Math.max(gs,1):128;
+ for(var y=0;y<h;y++)for(var x=0;x<w;x++){
+  var x0=Math.max(0,x-r),y0=Math.max(0,y-r),x1=Math.min(w-1,x+r),y1=Math.min(h-1,y+r),n=(x1-x0+1)*(y1-y0+1);
+  var s=I[(y1+1)*W+x1+1]-I[y0*W+x1+1]-I[(y1+1)*W+x0]+I[y0*W+x0];
+  var s2=I2[(y1+1)*W+x1+1]-I2[y0*W+x1+1]-I2[(y1+1)*W+x0]+I2[y0*W+x0];
+  var m=s/n,sd=Math.sqrt(Math.max(0,s2/n-m*m)),T;
+  if(method==="sauvola")T=m*(1+k*(sd/R-1));
+  else if(method==="wolf")T=m-k*(1-sd/R)*(m-mn);
+  else if(method==="bradley")T=m*(1-(Math.abs(k)||.15));
+  else T=m+k*sd;
+  o[y*w+x]=g[y*w+x]>T?255:0;}
+ return o;}
+function despeckle(g,w,h,minDark,minLight){
+ var isBin=true;for(var i=0;i<Math.min(g.length,4000);i++){if(g[i]>4&&g[i]<251){isBin=false;break;}}
+ if(!isBin)return g;
+ var dark=new Uint8Array(g.length),light=new Uint8Array(g.length);
+ for(i=0;i<g.length;i++){if(g[i]<128)dark[i]=1;else light[i]=1;}
+ var o=g.slice();
+ if(minDark>0)components(dark,w,h).forEach(function(pts){if(pts.length<minDark)pts.forEach(function(p){o[p]=255;});});
+ if(minLight>0)components(light,w,h).forEach(function(pts){if(pts.length<minLight)pts.forEach(function(p){o[p]=0;});});
+ return o;}
+function padWhite(g,w,h,px){
+ if(px<=0)return{g:g,w:w,h:h};
+ var W=w+2*px,H=h+2*px,o=new Float32Array(W*H);o.fill(255);
+ for(var y=0;y<h;y++)for(var x=0;x<w;x++)o[(y+px)*W+(x+px)]=g[y*w+x];
+ return{g:o,w:W,h:H};}
+function metrics(g,w,h){
+ var n=g.length,mean=0,i;for(i=0;i<n;i++)mean+=g[i];mean/=n;
+ var vr=0,lap=0,lapM=0,ink=0,vals=[];
+ for(var y=1;y<h-1;y++)for(var x=1;x<w-1;x++){
+  var p=y*w+x,L=4*g[p]-g[p-1]-g[p+1]-g[p-w]-g[p+w];lap+=L;vals.push(L);}
+ lapM=vals.length?lap/vals.length:0;
+ for(i=0;i<vals.length;i++){var d=vals[i]-lapM;lap+=0;vr+=d*d;}
+ vr=vals.length?vr/vals.length:0;
+ var cv=0;for(i=0;i<n;i++){var dd=g[i]-mean;cv+=dd*dd;}cv=Math.sqrt(cv/n);
+ for(i=0;i<n;i++)if(g[i]<128)ink++;
+ var noise=0,cnt=0;
+ for(y=2;y<h-2;y+=2)for(x=2;x<w-2;x+=2){
+  var p2=y*w+x,gr=Math.abs(g[p2+1]-g[p2-1])+Math.abs(g[p2+w]-g[p2-w]);
+  if(gr<18){noise+=Math.abs(g[p2]-(g[p2-1]+g[p2+1]+g[p2-w]+g[p2+w])/4);cnt++;}}
+ return{sharp:Math.min(100,Math.sqrt(vr)/1.2),contrast:cv,ink:100*ink/n,noise:cnt?noise/cnt:0};}
+
+/* ---- pipeline runner ---- */
+var runId=0,busy=false;
+function schedule(){clearTimeout(schedule._t);schedule._t=setTimeout(run,110);}
+function run(){
+ if(!SRC){$("#procStats").innerHTML='<span class="tag">χωρίς εικόνα</span>';return;}
+ var my=++runId;busy=true;$("#prog").style.width="4%";
+ var t0=performance.now(),times={};
+ BASE=(Q.crop&&autoCorners)?warp(SRC.canvas,autoCorners):(CORNERS?warp(SRC.canvas,CORNERS):SRC.canvas);
+ var ch=stepById("channel");
+ var r=toGray(BASE,Q.qual,ch&&ch.on?ch.p.mode:"luma"),g=r.g,w=r.w,h=r.h;
+ BEFORE={g:g.slice(),w:w,h:h};
+ var idx=0;
+ function tick(){
+  if(my!==runId)return;
+  if(idx>=STEPS.length){finish();return;}
+  var st=STEPS[idx++];
+  if(!st.on||st.id==="channel"){tick();return;}
+  var ts=performance.now();
+  try{
+   if(st.id==="levels")g=levels(g,st.p.lo,st.p.hi);
+   else if(st.id==="flat")g=flatten(g,w,h,st.p.amt,st.p.mode);
+   else if(st.id==="clahe")g=clahe(g,w,h,st.p.tiles,st.p.clip);
+   else if(st.id==="tone")g=tone(g,st.p.gamma,st.p.contrast,st.p.bright,st.p.sigmoid);
+   else if(st.id==="denoise"){if(st.p.median>=3)g=medianF(g,w,h,st.p.median);g=bilateral(g,w,h,st.p.bilateral,st.p.range);}
+   else if(st.id==="deblur")g=richardsonLucy(g,w,h,st.p.iters,st.p.radius);
+   else if(st.id==="sharp")g=unsharp(g,w,h,st.p.amt,st.p.radius,st.p.thresh);
+   else if(st.id==="morph"){if(st.p.op==="open"){g=minmax(g,w,h,st.p.r,false);g=minmax(g,w,h,st.p.r,true);}
+    else if(st.p.op==="close"){g=minmax(g,w,h,st.p.r,true);g=minmax(g,w,h,st.p.r,false);}}
+   else if(st.id==="bin")g=binarize(g,w,h,st.p.method,st.p.win,st.p.k);
+   else if(st.id==="speck")g=despeckle(g,w,h,st.p.dark,st.p.light);
+   else if(st.id==="weight"){if(st.p.d>0){for(var q=0;q<st.p.d;q++)g=minmax(g,w,h,1,false);}
+    else if(st.p.d<0){for(var q2=0;q2<-st.p.d;q2++)g=minmax(g,w,h,1,true);}}
+   else if(st.id==="pad"){var pp=padWhite(g,w,h,st.p.px);g=pp.g;w=pp.w;h=pp.h;}
+  }catch(e){toast("Σφάλμα στο βήμα "+st.t+": "+e.message,"err");}
+  times[st.id]=Math.round(performance.now()-ts);
+  $("#prog").style.width=Math.round(4+92*idx/STEPS.length)+"%";
+  var el=document.querySelector('[data-time="'+st.id+'"]');if(el)el.textContent=times[st.id]+"ms";
+  setTimeout(tick,0);
+ }
+ function finish(){
+  if(Q.skew){var ang=skewAngle(g,w,h);if(Math.abs(ang)>.15){g=rotate(g,w,h,ang);PROC_ANGLE=ang;}else PROC_ANGLE=0;}else PROC_ANGLE=0;
+  PROC={g:g,w:w,h:h,ms:Math.round(performance.now()-t0),times:times};
+  paint(g,w,h,cvOut);paint(BEFORE.g,BEFORE.w,BEFORE.h,cvBefore);
+  applyWipe();placeHandles();
+  var mAfter=metrics(g,w,h),mBefore=metrics(BEFORE.g,BEFORE.w,BEFORE.h);
+  renderMetrics(mBefore,mAfter);
+  $("#procStats").innerHTML='<span class="tag c">'+w+"×"+h+'</span><span class="tag">'+PROC.ms+' ms</span>'+
+   '<span class="tag '+(Math.abs(PROC_ANGLE)>.2?"a":"g")+'">κλίση '+PROC_ANGLE.toFixed(1)+'°</span>'+
+   '<span class="tag '+(stepById("bin").p.method==="none"?"g":"a")+'">'+stepById("bin").p.method+'</span>'+
+   (Q.crop&&autoCorners?'<span class="tag v">auto-crop</span>':'');
+  $("#prog").style.width="100%";busy=false;renderSteps();
+ }
+ tick();
+}
+var PROC_ANGLE=0;
+function paint(g,w,h,cv){cv.width=w;cv.height=h;var c=cv.getContext("2d"),id=c.createImageData(w,h),d=id.data;
+ for(var i=0,p=0;i<g.length;i++,p+=4){var v=g[i]|0;d[p]=d[p+1]=d[p+2]=v;d[p+3]=255;}c.putImageData(id,0,0);}
+function applyWipe(){var v=+$("#wipePos").value;
+ cvBefore.style.clipPath=Q.wipe?"inset(0 "+(100-v)+"% 0 0)":"inset(0 100% 0 0)";
+ $("#wipe").style.display=Q.wipe?"block":"none";$("#wipe").firstElementChild.style.left=v+"%";}
+$("#wipePos").oninput=applyWipe;
+function renderMetrics(b,a){
+ function cell(name,vb,va,inv,unit){
+  var d=va-vb,good=inv?d<0:d>0;
+  return '<div class="metric"><small>'+name+'</small><b>'+va.toFixed(1)+(unit||"")+'</b>'+
+   '<div class="d '+(Math.abs(d)<.05?"":good?"up":"dn")+'">'+(d>=0?"+":"")+d.toFixed(1)+' από '+vb.toFixed(1)+'</div></div>';}
+ $("#metrics").innerHTML=cell("Οξύτητα",b.sharp,a.sharp,false)+cell("Αντίθεση",b.contrast,a.contrast,false)+
+  cell("Μελάνι",b.ink,a.ink,false,"%")+cell("Θόρυβος",b.noise,a.noise,true);
+ var adv=[];
+ if(a.sharp<12)adv.push("Η οξύτητα είναι χαμηλή — αύξησε <b>Deblur</b> σε 6–10 και την οξύτητα στο 70–90.");
+ if(a.noise>6)adv.push("Υψηλός θόρυβος — βάλε <b>Bilateral 20–30</b> πριν την οξύτητα.");
+ if(a.contrast<32)adv.push("Χαμηλή αντίθεση — αύξησε CLAHE στο 3–4 και την αντίθεση στο 15–25.");
+ if(a.ink<3)adv.push("Πολύ λίγο μελάνι — το κείμενο χάνεται· δοκίμασε <b>NICK</b> με k −0.2 ή αύξησε το πάχος γραμμής.");
+ if(a.ink>45)adv.push("Πάρα πολύ μελάνι — πιθανή υπερβολική δυαδικοποίηση· χαμήλωσε το k ή γύρνα σε Γκρι.");
+ if(!adv.length)adv.push("Οι μετρήσεις είναι σε καλό εύρος. Αν χρησιμοποιείς PaddleOCR, κράτα <b>Γκρι</b> (όχι δυαδικό) και αποθήκευσε το PNG.");
+ $("#advice").innerHTML=adv.join(" ");
+}
+
+/* ---- pipeline UI ---- */
+function renderPipe(){
+ $("#pipeList").innerHTML=STEPS.map(function(s,i){
+  var h='<div class="pstep '+(s.on?"":"off")+'" data-i="'+i+'"><div class="ph">'+
+   '<span class="tag '+(s.on?"g":"")+'">'+(i+1)+'</span><b>'+esc(s.t)+'</b>'+
+   '<span class="tag" data-time="'+s.id+'">—</span>'+
+   '<div class="ord">'+(s.fixed?'':'<button data-o="up" aria-label="Πάνω">▲</button><button data-o="dn" aria-label="Κάτω">▼</button>')+'</div>'+
+   '<div class="sw '+(s.on?"on":"")+'" data-t="1" style="min-height:30px;padding:5px 7px"><i></i></div></div>';
+  if(s.on){
+   h+='<div class="pb"><div style="font-size:12px;color:var(--mut)">'+esc(s.desc)+'</div><div class="pgrid">';
+   var p=s.p;
+   function sel(key,label,opts){var o='<div><label>'+label+'</label><select data-p="'+key+'">';
+    opts.forEach(function(op){o+='<option value="'+op[0]+'"'+(String(p[key])===String(op[0])?" selected":"")+'>'+op[1]+'</option>';});return o+'</select></div>';}
+   function num(key,label,min,max,step){return '<div><label>'+label+'</label><input type="number" data-p="'+key+'" value="'+p[key]+'" min="'+min+'" max="'+max+'" step="'+step+'"></div>';}
+   function rng(key,label,min,max,step){return '<div><label>'+label+' <b>'+p[key]+'</b></label><input type="range" data-p="'+key+'" value="'+p[key]+'" min="'+min+'" max="'+max+'" step="'+step+'"></div>';}
+   if(s.id==="channel")h+=sel("mode","Κανάλι",[["luma","Φωτεινότητα"],["red","Κόκκινο"],["green","Πράσινο"],["blue","Μπλε"],["max","Max"],["min","Min"],["ink","Μελάνι"]]);
+   if(s.id==="levels")h+=rng("lo","Αποκοπή κάτω %",0,5,.5)+rng("hi","Αποκοπή πάνω %",0,5,.5);
+   if(s.id==="flat")h+=rng("amt","Ένταση %",0,100,5)+sel("mode","Τρόπος",[["divide","Διαίρεση"],["subtract","Αφαίρεση"]]);
+   if(s.id==="clahe")h+=rng("clip","Clip",0,6,.5)+sel("tiles","Πλακίδια",[[4,"4×4"],[8,"8×8"],[16,"16×16"]]);
+   if(s.id==="tone")h+=rng("gamma","Γάμμα",.6,1.8,.05)+rng("contrast","Αντίθεση",-40,60,2)+rng("bright","Φωτεινότητα",-40,40,2)+sel("sigmoid","Σιγμοειδής",[[false,"Όχι"],[true,"Ναι"]]);
+   if(s.id==="denoise")h+=sel("median","Median",[[0,"Κανένα"],[3,"3×3"],[5,"5×5"]])+rng("bilateral","Bilateral",0,60,5)+rng("range","Εύρος",8,60,2);
+   if(s.id==="deblur")h+=rng("iters","Επαναλήψεις",0,14,1)+rng("radius","Ακτίνα PSF",.6,3,.2);
+   if(s.id==="sharp")h+=rng("amt","Ένταση %",0,200,5)+sel("radius","Ακτίνα",[[1,"1 px"],[2,"2 px"],[3,"3 px"]])+rng("thresh","Κατώφλι",0,20,1);
+   if(s.id==="morph")h+=sel("op","Λειτουργία",[["none","Καμία"],["open","Opening"],["close","Closing"]])+sel("r","Ακτίνα",[[1,"1"],[2,"2"],[3,"3"]]);
+   if(s.id==="bin")h+=sel("method","Μέθοδος",[["none","Γκρι"],["nick","NICK"],["sauvola","Sauvola"],["wolf","Wolf"],["bradley","Bradley"],["otsu","Otsu"]])+rng("win","Παράθυρο",11,71,4)+rng("k","k",-0.5,0.6,.05);
+   if(s.id==="speck")h+=rng("dark","Σκούρες κηλίδες",0,60,2)+rng("light","Τρύπες",0,40,2);
+   if(s.id==="weight")h+=sel("d","Μεταβολή",[[-2,"−2 px"],[-1,"−1 px"],[0,"0"],[1,"+1 px"],[2,"+2 px"]]);
+   if(s.id==="pad")h+=rng("px","Περιθώριο px",0,48,4);
+   h+='</div></div>';
+  }
+  return h+'</div>';
+ }).join("");
+}
+$("#pipeList").addEventListener("click",function(e){
+ var box=e.target.closest(".pstep");if(!box)return;var i=+box.dataset.i,s=STEPS[i];
+ var o=e.target.closest("[data-o]"),t=e.target.closest("[data-t]");
+ if(t){s.on=!s.on;renderPipe();schedule();return;}
+ if(o){var j=o.dataset.o==="up"?i-1:i+1;if(j<1||j>=STEPS.length)return;
+  var tmp=STEPS[i];STEPS[i]=STEPS[j];STEPS[j]=tmp;renderPipe();schedule();}
+});
+$("#pipeList").addEventListener("input",function(e){
+ var key=e.target.dataset.p;if(!key)return;
+ var i=+e.target.closest(".pstep").dataset.i,s=STEPS[i],v=e.target.value;
+ if(v==="true")v=true;else if(v==="false")v=false;else if(v!==""&&!isNaN(v))v=+v;
+ s.p[key]=v;
+ var lab=e.target.parentNode.querySelector("label b");if(lab)lab.textContent=v;
+ $("#qPreset").value="custom";schedule();
+});
+$("#pipeList").addEventListener("change",function(e){if(e.target.tagName==="SELECT"){renderPipe();}});
+
+/* ---- rail ---- */
+function syncRail(){
+ $("#qQual").value=Q.qual;$("#qFlat").value=Q.flat;$("#vFlat").textContent=Q.flat;
+ $("#qClip").value=Q.clip;$("#vClip").textContent=(+Q.clip).toFixed(1);
+ $("#qRl").value=Q.rl;$("#vRl").textContent=Q.rl;
+ $("#qSharp").value=Q.sharp;$("#vSharp").textContent=Q.sharp;
+ $("#qBil").value=Q.bil;$("#vBil").textContent=Q.bil;$("#qBin").value=Q.bin;
+ $("#qCrop").classList.toggle("on",Q.crop);$("#qSkew").classList.toggle("on",Q.skew);$("#qWipe").classList.toggle("on",Q.wipe);
+ var f=stepById("flat");if(f)f.p.amt=Q.flat;
+ var c=stepById("clahe");if(c)c.p.clip=Q.clip;
+ var d=stepById("deblur");if(d)d.p.iters=Q.rl;
+ var sh=stepById("sharp");if(sh)sh.p.amt=Q.sharp;
+ var dn=stepById("denoise");if(dn)dn.p.bilateral=Q.bil;
+ var b=stepById("bin");if(b)b.p.method=Q.bin;
+}
+$("#qPreset").onchange=function(){applyPreset(this.value);toast("Προεπιλογή: "+this.options[this.selectedIndex].text,"ok");};
+$("#qQual").onchange=function(){Q.qual=+this.value;schedule();};
+[["qFlat","flat","vFlat","flat","amt"],["qClip","clip","vClip","clahe","clip"],["qRl","rl","vRl","deblur","iters"],
+ ["qSharp","sharp","vSharp","sharp","amt"],["qBil","bil","vBil","denoise","bilateral"]].forEach(function(b){
+ $("#"+b[0]).addEventListener("input",function(){Q[b[1]]=+this.value;$("#"+b[2]).textContent=this.value;
+  var st=stepById(b[3]);if(st)st.p[b[4]]=+this.value;$("#qPreset").value="custom";renderPipe();schedule();});});
+$("#qBin").onchange=function(){Q.bin=this.value;var st=stepById("bin");if(st)st.p.method=this.value;$("#qPreset").value="custom";renderPipe();schedule();};
+$("#qCrop").onclick=function(){Q.crop=!Q.crop;this.classList.toggle("on",Q.crop);
+ if(Q.crop&&SRC&&!autoCorners){autoCorners=detectDoc(SRC.canvas);toast(autoCorners?"Βρέθηκε περίγραμμα εγγράφου.":"Δεν βρέθηκε καθαρό περίγραμμα — χρησιμοποιούνται οι γωνίες.",autoCorners?"ok":"warn");}
+ placeHandles();schedule();};
+$("#qSkew").onclick=function(){Q.skew=!Q.skew;this.classList.toggle("on",Q.skew);schedule();};
+$("#qWipe").onclick=function(){Q.wipe=!Q.wipe;this.classList.toggle("on",Q.wipe);applyWipe();};
+$("#qReset").onclick=function(){Q={qual:1900,flat:60,clip:2,rl:0,sharp:45,bil:0,bin:"none",crop:false,skew:true,wipe:true};
+ $("#qPreset").value="photo";applyPreset("photo");toast("Επαναφορά.","ok");};
+$("#qRand").onclick=function(){
+ Q.flat=Math.round(Math.random()*20)*5;Q.clip=Math.round(Math.random()*8)/2;
+ Q.rl=Math.floor(Math.random()*9);Q.sharp=Math.round(Math.random()*24)*5;Q.bil=Math.round(Math.random()*8)*5;
+ $("#qPreset").value="custom";syncRail();renderPipe();schedule();toast("Τυχαίος συνδυασμός — σύγκρινε μετρήσεις.","warn");};
+$("#qExport").onclick=exportPng;
+$("#btnPng").onclick=exportPng;
+function exportPng(){if(!PROC){toast("Δεν υπάρχει εικόνα.","warn");return;}
+ cvOut.toBlob(function(b){var u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="processed.png";
+  document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);toast("Το PNG κατέβηκε.","ok");},"image/png");}
+$("#btnRecipe").onclick=function(){
+ dl("preprocess-recipe.json",JSON.stringify({quality:Q.qual,autoCrop:Q.crop,autoDeskew:Q.skew,
+  steps:STEPS.map(function(s){return{id:s.id,on:s.on,params:s.p};})},null,2),"application/json");};
+$("#btnToLab").onclick=function(){location.href="./ocr-lab.html";};
+$("#btnAutoCrop").onclick=function(){if(!SRC){toast("Φόρτωσε εικόνα.","warn");return;}
+ autoCorners=detectDoc(SRC.canvas);Q.crop=!!autoCorners;$("#qCrop").classList.toggle("on",Q.crop);
+ placeHandles();schedule();toast(autoCorners?"Εφαρμόστηκε αυτόματο crop.":"Δεν εντοπίστηκε περίγραμμα.",autoCorners?"ok":"warn");};
+$("#btnResetCrop").onclick=function(){CORNERS=[[.02,.02],[.98,.02],[.98,.98],[.02,.98]];autoCorners=null;Q.crop=false;
+ $("#qCrop").classList.remove("on");placeHandles();schedule();};
+
+/* ---- image load & handles ---- */
+function loadFile(f){if(!f)return;createImageBitmap(f).then(function(b){
+ var s=Math.min(1,2400/Math.max(b.width,b.height)),w=Math.round(b.width*s),h=Math.round(b.height*s);
+ var c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(b,0,0,w,h);
+ SRC={canvas:c,w:w,h:h,name:f.name||"image"};CORNERS=null;autoCorners=Q.crop?detectDoc(c):null;
+ placeHandles();schedule();renderSteps();toast("Φορτώθηκε "+SRC.name+" ("+w+"×"+h+")","ok");
+}).catch(function(e){toast("Σφάλμα εικόνας: "+e.message,"err");});}
+$("#btnPick").onclick=function(){$("#fileImg").click();};
+$("#btnCam").onclick=function(){$("#fileCam").click();};
+$("#fileImg").onchange=function(){loadFile(this.files[0]);this.value="";};
+$("#fileCam").onchange=function(){loadFile(this.files[0]);this.value="";};
+window.addEventListener("paste",function(e){var it=e.clipboardData&&e.clipboardData.items;if(!it)return;
+ for(var i=0;i<it.length;i++)if(it[i].type.indexOf("image")===0){loadFile(it[i].getAsFile());break;}});
+function placeHandles(){
+ var hs=stage.querySelectorAll(".hnd"),cs=Q.crop&&autoCorners?autoCorners:CORNERS;
+ for(var i=0;i<4;i++){hs[i].hidden=!cs;if(cs){hs[i].style.left=cs[i][0]*100+"%";hs[i].style.top=cs[i][1]*100+"%";}}}
+stage.querySelectorAll(".hnd").forEach(function(h){
+ var idx=+h.dataset.c,drag=false;
+ function mv(e){if(!drag||!SRC)return;var r=stage.getBoundingClientRect();
+  var x=clamp(((e.touches?e.touches[0].clientX:e.clientX)-r.left)/r.width,0,1);
+  var y=clamp(((e.touches?e.touches[0].clientY:e.clientY)-r.top)/r.height,0,1);
+  if(Q.crop&&autoCorners){CORNERS=autoCorners.map(function(p){return p.slice();});autoCorners=null;Q.crop=false;$("#qCrop").classList.remove("on");}
+  if(!CORNERS)CORNERS=[[.02,.02],[.98,.02],[.98,.98],[.02,.98]];
+  CORNERS[idx]=[x,y];placeHandles();}
+ function up(){if(drag){drag=false;schedule();}document.removeEventListener("mousemove",mv);document.removeEventListener("touchmove",mv);}
+ h.addEventListener("mousedown",function(e){drag=true;e.preventDefault();document.addEventListener("mousemove",mv);document.addEventListener("mouseup",up,{once:true});});
+ h.addEventListener("touchstart",function(e){drag=true;e.preventDefault();},{passive:false});
+ h.addEventListener("touchmove",function(e){mv(e);e.preventDefault();},{passive:false});
+ h.addEventListener("touchend",up);});
+
+/* ================= STEPS WIZARD ================= */
+function idbGet(k){return new Promise(function(res){
+ var r=indexedDB.open("troxo_ocr_models",1);
+ r.onupgradeneeded=function(){var db=r.result;if(!db.objectStoreNames.contains("m"))db.createObjectStore("m");};
+ r.onsuccess=function(){try{var t=r.result.transaction("m","readonly"),q=t.objectStore("m").get(k);
+  q.onsuccess=function(){res(q.result||null);};q.onerror=function(){res(null);};}catch(e){res(null);}};
+ r.onerror=function(){res(null);};}).catch(function(){return null;});}
+var MODEL_OK={det:false,rec:false,dict:false};
+function renderSteps(){
+ var lexN=LEX.services.length+LEX.names.length;
+ var defs=[
+  {t:"Μοντέλα PaddleOCR",d:"det.onnx + rec.onnx + λεξικό. Δεν χρειάζεται traineddata — αυτό είναι μόνο για Tesseract.",
+   ok:MODEL_OK.det&&MODEL_OK.rec&&MODEL_OK.dict,btn:"Έλεγχος & φόρτωση",href:"./setup.html"},
+  {t:"Λεξικά γραφείου",d:"Φόρτωσε υπηρεσίες και ονόματα ώστε οι διορθώσεις να βασίζονται σε πραγματικές εγγραφές.",
+   ok:LEX.services.length>80&&LEX.names.length>0,btn:"Φόρτωση υπηρεσιών",go:"#svc"},
+  {t:"Φωτογραφία εγγράφου",d:"Τράβηξε όσο πιο κάθετα γίνεται, με ομοιόμορφο φως και το έγγραφο να γεμίζει το κάδρο.",
+   ok:!!SRC,btn:"Επιλογή εικόνας",act:function(){$("#fileImg").click();}},
+  {t:"Προεπεξεργασία",d:"Δοκίμασε προεπιλογή, δες μετρήσεις, ρύθμισε deblur/αποθορύβηση. Για Paddle κράτα Γκρι.",
+   ok:!!PROC,btn:"Άνοιγμα pipeline",go:"#pipe"},
+  {t:"Αναγνώριση",d:"Άνοιξε το Εργαστήρι OCR με κινητήρα PaddleOCR και τρέξε αναγνώριση.",
+   ok:false,btn:"Εργαστήρι OCR",href:"./ocr-lab.html"},
+  {t:"Επιβεβαίωση πεδίων",d:"Έλεγξε πινακίδα, όνομα, υπηρεσία, ημέρες — και αντέγραψε το κείμενο στην εφαρμογή.",
+   ok:false,btn:"Οδηγίες διορθώσεων",go:"#lex"}
+ ];
+ var done=defs.filter(function(d){return d.ok;}).length;
+ $("#stepList").innerHTML=defs.map(function(d,i){
+  return '<div class="step '+(d.ok?"done":"")+'"><div class="n">'+(d.ok?"✓":i+1)+'</div><div class="g"><b>'+esc(d.t)+'</b><p>'+esc(d.d)+'</p>'+
+   (d.href?'<a class="btn sm '+(d.ok?"gh":"pri")+'" href="'+d.href+'">'+esc(d.btn)+'</a>':'<button class="btn sm '+(d.ok?"gh":"pri")+'" data-s="'+i+'">'+esc(d.btn)+'</button>')+'</div></div>';}).join("");
+ $("#ringTxt").textContent=done+" / "+defs.length;
+ $("#ringArc").setAttribute("stroke-dashoffset",String(163.4*(1-done/defs.length)));
+ $("#hpill").textContent=MODEL_OK.det&&MODEL_OK.rec?"έτοιμο":"τοπικά";
+ $("#stepList").onclick=function(e){var b=e.target.closest("[data-s]");if(!b)return;var d=defs[+b.dataset.s];
+  if(d.act)d.act();else if(d.go)location.hash=d.go;};
+}
+Promise.all(["det","rec","dict"].map(function(k){return idbGet(k).then(function(v){MODEL_OK[k]=!!v;});})).then(renderSteps);
+
+/* ================= BOOT ================= */
+renderLex();renderPipe();syncRail();renderSteps();applyWipe();
+$("#svcText").value="";
+var secs=[].slice.call(document.querySelectorAll("section")),links=[].slice.call(document.querySelectorAll("#tabs a"));
+function spy(){var y=window.scrollY+240,cur=secs[0];secs.forEach(function(s){if(s.offsetTop<=y)cur=s;});
+ links.forEach(function(a){a.classList.toggle("on",a.getAttribute("href")==="#"+cur.id);});}
+window.addEventListener("scroll",spy,{passive:true});spy();
+})();
+</script>
+</body>
+</html>
