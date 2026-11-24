@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04070C">
+<title>ΜΟΝΤΕΛΑ OCR · απόκτηση & επικύρωση</title>
+<style>
+:root{
+  --a9:#04070C;--a8:#080D14;--a7:#0E1620;--sf:#111A25;--sf2:#17222E;--ln:#1F2E3D;--ln2:#2B3F52;
+  --ink:#EAF2F9;--mut:#8BA2B8;--dim:#5B7084;
+  --amber:#FFB020;--cyan:#22D3EE;--violet:#A855F7;--plate:#2F6BFF;--lime:#A3E635;--magenta:#FF3D9A;
+  --ok:#16DB65;--bad:#FF4D4F;--warn:#FFB020;--info:#38BDF8;
+  --pad:15px;--r:14px;--fs:14px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+[data-theme="paper"]{--a9:#ECE6D9;--a8:#F4EFE4;--a7:#FCF8F0;--sf:#FFFDF8;--sf2:#F3EDE1;--ln:#DCD2C0;--ln2:#C4B8A2;
+--ink:#121820;--mut:#566173;--dim:#798492;--amber:#A56800;--cyan:#0E7490;--violet:#7C22CE;--plate:#1B4FD8;--lime:#4D7C0F;--magenta:#BE185D;--ok:#0E8F45;--bad:#C62828;--warn:#A56800;--info:#0369A1}
+[data-density="tight"]{--pad:10px;--r:11px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--a9);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:100px;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:
+ radial-gradient(760px 470px at 3% -12%,rgba(168,85,247,.17),transparent 62%),
+ radial-gradient(640px 430px at 100% -2%,rgba(34,211,238,.14),transparent 60%),
+ radial-gradient(880px 600px at 44% 118%,rgba(255,176,32,.12),transparent 62%),
+ linear-gradient(180deg,var(--a9),var(--a8) 44%,var(--a9))}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.36;
+ background-image:linear-gradient(rgba(255,255,255,.026) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.026) 1px,transparent 1px);
+ background-size:42px 42px;mask-image:radial-gradient(circle at 50% 10%,#000,transparent 74%);animation:drift 48s linear infinite}
+@keyframes drift{to{background-position:420px 0,0 420px}}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:var(--a8);border-left:1px solid var(--ln)}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--violet),var(--cyan));border-radius:20px;border:2px solid var(--a8)}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--amber),var(--lime))}
+*{scrollbar-color:var(--violet) var(--a8);scrollbar-width:thin}
+.wrap{max-width:1080px;margin:0 auto;padding:0 13px}
+header.top{position:sticky;top:0;z-index:70;backdrop-filter:blur(14px);background:color-mix(in srgb,var(--a9) 88%,transparent);border-bottom:1px solid var(--ln)}
+.topin{display:flex;align-items:center;gap:11px;padding:9px 13px;max-width:1080px;margin:0 auto}
+.mark{width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;background:linear-gradient(145deg,var(--violet),#3B0F73);box-shadow:0 0 0 1px var(--ln2),0 8px 20px rgba(168,85,247,.34);position:relative;overflow:hidden}
+.mark::after{content:"";position:absolute;left:0;right:0;height:2px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:scan 2.6s ease-in-out infinite}
+@keyframes scan{0%,100%{top:6px;opacity:.2}50%{top:28px;opacity:1}}
+.brand b{display:block;font-size:14px;letter-spacing:.16em;text-transform:uppercase}
+.brand span{display:block;font-size:10.5px;color:var(--mut)}
+.pill{margin-left:auto;font-size:10.5px;padding:6px 10px;border-radius:999px;white-space:nowrap;border:1px solid color-mix(in srgb,var(--ok) 40%,var(--ln));color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,transparent)}
+.pill.warn{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--ln));background:color-mix(in srgb,var(--amber) 9%,transparent)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 11px 7px;max-width:1080px;margin:0 auto}
+nav.tabs a{flex:none;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);text-decoration:none;padding:7px 11px;border-radius:9px;border:1px solid transparent;white-space:nowrap}
+nav.tabs a.on{color:var(--ink);background:var(--sf);border-color:var(--ln2);box-shadow:inset 0 -2px 0 var(--violet)}
+.rail{position:sticky;top:92px;z-index:60;background:color-mix(in srgb,var(--a8) 94%,transparent);backdrop-filter:blur(12px);border-block:1px solid var(--ln)}
+.railin{display:flex;gap:8px;overflow-x:auto;padding:9px 13px;max-width:1080px;margin:0 auto}
+.ctl{flex:none;width:142px;display:flex;flex-direction:column;gap:4px;background:var(--a7);border:1px solid var(--ln);border-radius:11px;padding:8px 9px}
+.ctl.w{width:210px}
+.ctl>small{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between}
+.ctl>small b{color:var(--amber);font-weight:700}
+input,select,textarea,button{font-family:inherit;font-size:var(--fs);color:var(--ink)}
+input,select,textarea{width:100%;background:var(--a7);border:1px solid var(--ln);border-radius:10px;padding:9px 10px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--violet)}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 14px) 17px,calc(100% - 9px) 17px;background-size:5px 5px;background-repeat:no-repeat;padding-right:26px}
+.ctl select,.ctl input{padding:6px 8px;font-size:12.5px;border-radius:8px}
+.ctl select{background-position:calc(100% - 12px) 14px,calc(100% - 8px) 14px}
+.srfile{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;opacity:0}
+.sw{display:flex;align-items:center;gap:7px;background:var(--a7);border:1px solid var(--ln);border-radius:10px;padding:8px 9px;cursor:pointer;user-select:none;min-height:38px}
+.sw i{width:31px;height:17px;border-radius:999px;background:var(--ln2);position:relative;flex:none;transition:.18s}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--mut);transition:.18s}
+.sw.on i{background:linear-gradient(90deg,var(--violet),var(--cyan))}.sw.on i::after{left:16px;background:#fff}
+.sw span{font-size:11px;color:var(--mut);line-height:1.2}.sw.on span{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--ln2);background:var(--sf2);border-radius:11px;padding:11px 14px;font-weight:650;cursor:pointer;transition:.14s;min-height:44px;text-decoration:none;text-align:center}
+.btn:hover{border-color:var(--violet);transform:translateY(-1px)}.btn:active{transform:translateY(1px) scale(.99)}
+.btn.pri{background:linear-gradient(135deg,var(--violet),#5B21B6);border-color:transparent;color:#fff;box-shadow:0 10px 24px rgba(168,85,247,.3)}
+.btn.go{background:linear-gradient(135deg,var(--ok),#0A7A3B);border-color:transparent;color:#03210F}
+.btn.cy{background:linear-gradient(135deg,var(--cyan),#0E7490);border-color:transparent;color:#04212A}
+.btn.am{background:linear-gradient(135deg,var(--amber),#B07000);border-color:transparent;color:#241700}
+.btn.gh{background:transparent}.btn.sm{padding:7px 10px;min-height:36px;font-size:12.5px;border-radius:9px}
+.btn.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--ln))}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>.btn{flex:1 1 148px}
+section{scroll-margin-top:190px;padding:24px 0 4px}
+.hd{display:flex;align-items:center;gap:9px;margin:0 0 11px}.hd h2{margin:0;font-size:16.5px;letter-spacing:.04em}
+.hd .num{font-size:10px;letter-spacing:.13em;color:var(--violet);border:1px solid color-mix(in srgb,var(--violet) 45%,var(--ln));padding:3px 7px;border-radius:6px}
+.hd .bar{flex:1;height:6px;border-radius:3px;opacity:.5;background:repeating-linear-gradient(45deg,var(--violet) 0 7px,transparent 7px 14px)}
+.card{background:linear-gradient(180deg,var(--sf),var(--a7));border:1px solid var(--ln);border-radius:var(--r);padding:var(--pad);box-shadow:0 16px 44px rgba(0,0,0,.45);margin-bottom:11px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
+.lead{color:var(--mut);font-size:13px;margin:0 0 10px}.k{color:var(--ink);font-weight:650}
+code.i{font-family:var(--mono);font-size:12px;background:var(--a9);border:1px solid var(--ln);padding:2px 5px;border-radius:5px;color:var(--cyan);word-break:break-all}
+.note{font-size:12.5px;color:var(--mut);border-left:3px solid var(--violet);padding:8px 11px;background:color-mix(in srgb,var(--violet) 7%,transparent);border-radius:0 10px 10px 0;margin:10px 0}
+.note.cy{border-left-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 7%,transparent)}
+.note.am{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 7%,transparent)}
+.note.bad{border-left-color:var(--bad);background:color-mix(in srgb,var(--bad) 7%,transparent)}
+.tag{font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:3px 7px;border-radius:6px;border:1px solid var(--ln2);color:var(--mut);white-space:nowrap}
+.tag.g{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 42%,var(--ln));background:color-mix(in srgb,var(--ok) 9%,transparent)}
+.tag.a{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--ln));background:color-mix(in srgb,var(--amber) 9%,transparent)}
+.tag.r{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--ln));background:color-mix(in srgb,var(--bad) 9%,transparent)}
+.tag.c{color:var(--cyan);border-color:color-mix(in srgb,var(--cyan) 40%,var(--ln))}
+.tag.v{color:var(--violet);border-color:color-mix(in srgb,var(--violet) 45%,var(--ln))}
+.stats{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.lbl{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);display:block;margin:9px 0 4px}
+.two{display:grid;gap:9px;grid-template-columns:1fr 1fr}
+@media(max-width:680px){.two{grid-template-columns:1fr}}
+.verdict{border:1px solid var(--ln2);border-radius:13px;padding:13px;background:var(--a7);position:relative;overflow:hidden;margin-bottom:10px}
+.verdict::after{content:"";position:absolute;inset:0 auto 0 0;width:3px}
+.verdict.ok::after{background:linear-gradient(180deg,var(--ok),var(--lime))}
+.verdict.bad::after{background:linear-gradient(180deg,var(--bad),var(--magenta))}
+.verdict.warn::after{background:linear-gradient(180deg,var(--amber),var(--cyan))}
+.verdict h3{margin:0 0 5px;font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.verdict p{margin:0;font-size:12.5px;color:var(--mut)}
+.seg{display:flex;gap:5px;overflow-x:auto;background:var(--a7);border:1px solid var(--ln);border-radius:12px;padding:5px;margin-bottom:11px}
+.seg button{flex:none;border:0;background:transparent;border-radius:9px;padding:9px 13px;font-weight:650;cursor:pointer;color:var(--mut);font-size:12.5px;white-space:nowrap}
+.seg button.on{background:linear-gradient(135deg,var(--violet),#5B21B6);color:#fff}
+.slot{border:1px solid var(--ln);border-radius:13px;background:var(--a7);margin-bottom:10px;overflow:hidden}
+.slot.ok{border-color:color-mix(in srgb,var(--ok) 34%,var(--ln))}
+.slot.bad{border-color:color-mix(in srgb,var(--bad) 34%,var(--ln))}
+.sh{display:flex;align-items:center;gap:9px;padding:10px 12px;background:var(--sf2);border-bottom:1px solid var(--ln);flex-wrap:wrap}
+.sh i{width:9px;height:9px;border-radius:50%;background:var(--dim);flex:none;font-style:normal}
+.sh i.g{background:var(--ok);box-shadow:0 0 8px var(--ok)}.sh i.r{background:var(--bad)}.sh i.a{background:var(--amber)}
+.sh b{font-family:var(--mono);font-size:13px;flex:1;min-width:90px}
+.sb{padding:11px 12px}
+.kv{display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));font-size:11.5px;margin-bottom:9px}
+.kv div{background:var(--a9);border:1px solid var(--ln);border-radius:9px;padding:7px 9px;min-width:0}
+.kv small{display:block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:2px}
+.kv span{font-family:var(--mono);color:var(--ink);word-break:break-all}
+.files{max-height:340px;overflow:auto;border:1px solid var(--ln);border-radius:11px;background:var(--a9)}
+.fr{display:flex;gap:8px;align-items:center;padding:9px 11px;border-bottom:1px solid var(--ln);flex-wrap:wrap}
+.fr:last-child{border:0}
+.fr .n{font-family:var(--mono);font-size:12px;flex:1;min-width:150px;word-break:break-all}
+.fr select{max-width:120px;padding:5px 7px;font-size:12px}
+.pbar{height:8px;border-radius:4px;background:var(--a9);border:1px solid var(--ln);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width .15s}
+.log{font-family:var(--mono);font-size:11px;max-height:190px;overflow:auto;background:var(--a9);border:1px solid var(--ln);border-radius:10px;padding:9px}
+.log div{padding:2px 0;color:var(--dim)}.log div.ok{color:var(--ok)}.log div.err{color:var(--bad)}.log div.warn{color:var(--amber)}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;padding:6px 0;border-bottom:1px dashed var(--ln)}
+.chk:last-child{border:0}.chk b{flex:none;width:17px;text-align:center}
+.chk.p b{color:var(--ok)}.chk.f b{color:var(--bad)}.chk.w b{color:var(--amber)}
+.chk span{color:var(--mut)}
+.empty{color:var(--dim);font-size:13px;text-align:center;padding:16px}
+#toast{position:fixed;left:12px;right:12px;bottom:14px;z-index:99;display:grid;gap:8px;pointer-events:none}
+.tst{background:var(--sf2);border:1px solid var(--ln2);border-left:4px solid var(--violet);border-radius:12px;padding:11px 13px;font-size:13px;box-shadow:0 16px 40px rgba(0,0,0,.55);animation:up .22s ease;pointer-events:auto}
+.tst.ok{border-left-color:var(--ok)}.tst.err{border-left-color:var(--bad)}.tst.warn{border-left-color:var(--amber)}
+@keyframes up{from{opacity:0;transform:translateY(14px)}}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.3,1) both}@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+footer{color:var(--dim);font-size:11px;text-align:center;padding:22px 13px 6px;line-height:1.7}
+@media(max-width:520px){.brand span{display:none}section{scroll-margin-top:214px}.rail{top:90px}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="topin">
+    <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 3v10M8 11l4 4 4-4M4 19h16"/></svg></div>
+    <div class="brand"><b>Μοντέλα OCR</b><span>απόκτηση · εγκατάσταση · επικύρωση</span></div>
+    <div class="pill" id="pill">έλεγχος…</div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <a href="#diag" class="on">Διάγνωση</a><a href="#get">Απόκτηση</a><a href="#inst">Εγκατεστημένα</a>
+    <a href="#val">Επικύρωση</a><a href="#repo">Repo</a><a href="#help">Οδηγός</a>
+  </nav>
+</header>
+
+<div class="rail"><div class="railin">
+  <label class="ctl w"><small>Πηγή repo (raw)</small><input id="cBase" spellcheck="false"></label>
+  <label class="ctl w"><small>Πακέτο PyPI</small><input id="cPkg" value="rapidocr_onnxruntime" spellcheck="false"></label>
+  <label class="ctl w"><small>GitHub owner/repo</small><input id="cGh" value="RapidAI/RapidOCR" spellcheck="false"></label>
+  <label class="ctl"><small>Κλαδί</small><input id="cBr" value="main" spellcheck="false"></label>
+  <label class="ctl w"><small>Hugging Face repo</small><input id="cHf" placeholder="owner/name" spellcheck="false"></label>
+  <label class="ctl"><small>Φίλτρο αρχείων</small><select id="cFilt"><option value="all">Όλα</option><option value="onnx" selected>ONNX + λεξικά</option><option value="dict">Μόνο λεξικά</option></select></label>
+  <div class="ctl"><small>Αυτόματη επικύρωση</small><div class="sw on" id="cAuto"><i></i><span>μετά τη λήψη</span></div></div>
+  <div class="ctl"><small>Ύποπτα μικρά</small><div class="sw on" id="cSniff"><i></i><span>ανίχνευση 404</span></div></div>
+  <label class="ctl"><small>Θέμα</small><select id="cTheme"><option value="dark">Ασφάλτινο</option><option value="paper">Χαρτί</option></select></label>
+  <label class="ctl"><small>Πυκνότητα</small><select id="cDens"><option value="cozy">Άνετη</option><option value="tight">Συμπαγής</option></select></label>
+  <label class="ctl"><small>Γραμματοσειρά <b id="vFs">14</b></small><input type="range" id="cFs" min="12" max="18" step="1" value="14"></label>
+  <div class="ctl"><small>Επαναφορά</small><button class="btn sm gh" id="cReset" type="button">Reset</button></div>
+  <div class="ctl"><small>Εξαγωγή</small><button class="btn sm gh" id="cExport" type="button">Manifest</button></div>
+</div></div>
+
+<div class="wrap">
+
+<section id="diag" class="rise">
+  <div class="hd"><span class="num">01</span><h2>Γιατί απέτυχαν οι λήψεις</h2><span class="bar"></span></div>
+  <div id="verdict"></div>
+  <div class="card">
+    <div class="row">
+      <button class="btn pri" id="btnDiag" type="button">Έλεγχος τώρα</button>
+      <button class="btn gh" id="btnSame" type="button">Ίδια προέλευση (./)</button>
+    </div>
+    <div id="diagList" style="margin-top:11px"></div>
+    <label class="lbl">Καταγραφή δικτύου</label>
+    <div class="log" id="netlog"><div>—</div></div>
+  </div>
+</section>
+
+<section id="get">
+  <div class="hd"><span class="num">02</span><h2>Απόκτηση μοντέλων</h2><span class="bar"></span></div>
+  <div class="seg" id="seg">
+    <button data-s="dev" class="on">Συσκευή</button><button data-s="url">URL</button>
+    <button data-s="pypi">PyPI wheel</button><button data-s="hf">Hugging Face</button><button data-s="gh">GitHub</button>
+  </div>
+
+  <div class="card" id="p-dev">
+    <p class="lead">Αν έχεις ήδη τα αρχεία στη συσκευή, φόρτωσέ τα απευθείας. Μπαίνουν στην ίδια cache που διαβάζουν τα υπόλοιπα εργαλεία.</p>
+    <div class="two">
+      <div><label class="lbl">Θέση</label><select id="devSlot"><option value="det">DET</option><option value="rec">REC</option><option value="cls">CLS</option><option value="dict">ΛΕΞΙΚΟ</option></select></div>
+      <div style="display:flex;align-items:flex-end"><label class="btn pri" for="devFile" tabindex="0" role="button" style="width:100%">Επιλογή αρχείου</label></div>
+    </div>
+    <input class="srfile" type="file" id="devFile" accept=".onnx,.txt,application/octet-stream,text/plain">
+  </div>
+
+  <div class="card" id="p-url" hidden>
+    <p class="lead">Οποιαδήποτε απευθείας διεύθυνση. Ελέγχεται ότι είναι πραγματικό ONNX και όχι σελίδα σφάλματος.</p>
+    <div class="two">
+      <div><label class="lbl">Θέση</label><select id="urlSlot"><option value="det">DET</option><option value="rec">REC</option><option value="cls">CLS</option><option value="dict">ΛΕΞΙΚΟ</option></select></div>
+      <div><label class="lbl">Διεύθυνση</label><input id="urlIn" placeholder="https://…/model.onnx" spellcheck="false"></div>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn pri" id="btnUrl" type="button">Λήψη & εγκατάσταση</button></div>
+  </div>
+
+  <div class="card" id="p-pypi" hidden>
+    <p class="lead">Τα πακέτα Python περιέχουν έτοιμα <code class="i">.onnx</code> και λεξικά. Το εργαλείο βρίσκει <span class="k">ζωντανά</span> το wheel, το ξεζιπάρει μέσα στον browser και σου δείχνει τα πραγματικά αρχεία. Δεν χρειάζεται Python.</p>
+    <div class="row">
+      <button class="btn pri" id="btnPypi" type="button">Αναζήτηση πακέτου</button>
+      <button class="btn gh" id="btnPypiVers" type="button">Άλλες εκδόσεις</button>
+    </div>
+    <div class="pbar" style="margin-top:10px"><i id="pypiBar"></i></div>
+    <div class="stats" id="pypiStats"></div>
+    <div id="pypiVers" style="margin-top:9px"></div>
+    <div class="files" id="pypiFiles" style="margin-top:10px"><div class="empty">Δεν έχει γίνει αναζήτηση.</div></div>
+  </div>
+
+  <div class="card" id="p-hf" hidden>
+    <p class="lead">Δώσε αναγνωριστικό αποθετηρίου και το εργαλείο εμφανίζει τα πραγματικά αρχεία που είναι δημοσιευμένα.</p>
+    <div class="row"><button class="btn pri" id="btnHf" type="button">Εμφάνιση αρχείων</button></div>
+    <div class="files" id="hfFiles" style="margin-top:10px"><div class="empty">—</div></div>
+  </div>
+
+  <div class="card" id="p-gh" hidden>
+    <p class="lead">Σαρώνει ολόκληρο το δέντρο του αποθετηρίου και βρίσκει κάθε <code class="i">.onnx</code> και λεξικό, σε οποιονδήποτε φάκελο.</p>
+    <div class="row"><button class="btn pri" id="btnGh" type="button">Σάρωση αποθετηρίου</button></div>
+    <div class="files" id="ghFiles" style="margin-top:10px"><div class="empty">—</div></div>
+  </div>
+</section>
+
+<section id="inst">
+  <div class="hd"><span class="num">03</span><h2>Εγκατεστημένα</h2><span class="bar"></span></div>
+  <div class="card">
+    <div id="slots"></div>
+    <div class="row">
+      <button class="btn go" id="btnDlAll" type="button">Λήψη όλων για ανέβασμα</button>
+      <button class="btn bad" id="btnWipe" type="button">Διαγραφή όλων</button>
+      <a class="btn cy" href="./tune.html">Σάρωση</a>
+      <a class="btn am" href="./ocr-lab.html">Αναγνώριση</a>
+    </div>
+  </div>
+</section>
+
+<section id="val">
+  <div class="hd"><span class="num">04</span><h2>Επικύρωση</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Πραγματικό inference με κενή είσοδο: σχήματα, κλάσεις εξόδου, αντιστοιχία λεξικού και — το κρίσιμο — <span class="k">αν το μοντέλο μπορεί να βγάλει ελληνικά</span>.</p>
+    <div class="row"><button class="btn pri" id="btnVal" type="button">Εκτέλεση επικύρωσης</button></div>
+    <div id="valOut" style="margin-top:11px"><div class="empty">Δεν έχει γίνει επικύρωση.</div></div>
+  </div>
+</section>
+
+<section id="repo">
+  <div class="hd"><span class="num">05</span><h2>Μόνιμη εγκατάσταση στο repo</h2><span class="bar"></span></div>
+  <div class="card">
+    <p class="lead">Η cache αρκεί για να δουλέψουν τα εργαλεία σε αυτή τη συσκευή. Για να δουλεύουν παντού, ανέβασε τα αρχεία στον φάκελο <code class="i">models/</code> με τα σωστά ονόματα.</p>
+    <div class="note cy">GitHub → <b>Add file → Upload files</b> → φάκελος <code class="i">models/</code> → ονόματα <code class="i">det.onnx</code>, <code class="i">rec.onnx</code>, <code class="i">cls.onnx</code>, <code class="i">el_dict.txt</code>. Το «Λήψη όλων» τα κατεβάζει ήδη με αυτά τα ονόματα.</div>
+    <div id="repoState"></div>
+  </div>
+</section>
+
+<section id="help">
+  <div class="hd"><span class="num">06</span><h2>Οδηγός</h2><span class="bar"></span></div>
+  <div class="card">
+    <div class="chk p"><b>1</b><span>Το <code class="i">0.01 MB ✕</code> στη λήψη σημαίνει <b>404</b>: το αρχείο δεν υπάρχει στο repo. Δεν φταίει το δίκτυο.</span></div>
+    <div class="chk p"><b>2</b><span>Χρησιμοποίησε <b>PyPI wheel</b> για να πάρεις έτοιμα ONNX χωρίς υπολογιστή. Τα αρχεία που εμφανίζονται είναι τα πραγματικά περιεχόμενα του πακέτου.</span></div>
+    <div class="chk w"><b>!</b><span>Το <b>λεξικό πρέπει να είναι εκείνο του συγκεκριμένου rec</b>. Η επικύρωση συγκρίνει κλάσεις εξόδου με λεξικό+1 και το δείχνει καθαρά.</span></div>
+    <div class="chk w"><b>!</b><span>Αν το λεξικό δεν περιέχει ελληνικούς χαρακτήρες, το μοντέλο <b>δεν μπορεί</b> να διαβάσει ελληνικά — θα βγάζει λατινικά/κινέζικα. Η επικύρωση το επισημαίνει αντί να το κρύψει.</span></div>
+    <div class="chk p"><b>✓</b><span>Ό,τι κατεβαίνει αποθηκεύεται τοπικά. Καμία εικόνα υπόθεσης δεν αποστέλλεται πουθενά.</span></div>
+  </div>
+</section>
+
+<footer>ΜΟΝΤΕΛΑ OCR troxonomika · απόκτηση, εγκατάσταση και πραγματική επικύρωση στη συσκευή.</footer>
+</div>
+<div id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+var $=function(s){return document.querySelector(s);};
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+function fmt(b){if(b==null)return "—";return b>=1048576?(b/1048576).toFixed(2)+" MB":b>=1024?(b/1024).toFixed(0)+" KB":b+" B";}
+function toast(m,k){var t=document.createElement("div");t.className="tst "+(k||"");t.textContent=m;$("#toast").appendChild(t);
+ setTimeout(function(){t.style.opacity=0;t.style.transition="opacity .3s";setTimeout(function(){t.remove();},320);},4600);}
+function nlog(m,k){var d=document.createElement("div");d.className=k||"";d.textContent=m;var b=$("#netlog");
+ if(b.firstChild&&b.firstChild.textContent==="—")b.innerHTML="";b.insertBefore(d,b.firstChild);while(b.children.length>60)b.removeChild(b.lastChild);}
+function dl(n,data,ty){var b=data instanceof Blob?data:new Blob([data],{type:ty||"application/octet-stream"}),u=URL.createObjectURL(b),a=document.createElement("a");
+ a.href=u;a.download=n;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);}
+
+var origFetch=window.fetch.bind(window),NETB=0;
+window.fetch=function(u,o){var url=String(typeof u==="string"?u:(u&&u.url)||"");
+ return origFetch(u,o).then(function(r){var L=+(r.headers.get("content-length")||0);if(r.ok)NETB+=L;
+  nlog((r.ok?"✓ ":"✕ ")+url+" · HTTP "+r.status+(L?" · "+fmt(L):""),r.ok?"ok":"err");
+  $("#pill").textContent="λήψεις "+fmt(NETB);$("#pill").className="pill"+(NETB?" warn":"");
+  return r;}).catch(function(e){nlog("✕ "+url+" · "+e.message,"err");throw e;});};
+
+/* ---------- IDB ---------- */
+function idb(){return new Promise(function(res,rej){var r=indexedDB.open("troxo_ocr_models",1);
+ r.onupgradeneeded=function(){var d=r.result;if(!d.objectStoreNames.contains("m"))d.createObjectStore("m");};
+ r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});}
+function put(k,v){return idb().then(function(d){return new Promise(function(res,rej){var t=d.transaction("m","readwrite");t.objectStore("m").put(v,k);t.oncomplete=function(){res();};t.onerror=function(){rej(t.error);};});});}
+function get(k){return idb().then(function(d){return new Promise(function(res){var t=d.transaction("m","readonly"),q=t.objectStore("m").get(k);q.onsuccess=function(){res(q.result||null);};q.onerror=function(){res(null);};});}).catch(function(){return null;});}
+function del(k){return idb().then(function(d){return new Promise(function(res){var t=d.transaction("m","readwrite");if(k)t.objectStore("m").delete(k);else t.objectStore("m").clear();t.oncomplete=function(){res();};t.onerror=function(){res();};});}).catch(function(){});}
+
+/* ---------- inflate (raw DEFLATE) ---------- */
+function inflateRaw(src){
+ var sp=0,bb=0,bc=0,out=new Uint8Array(1<<16),ol=0;
+ function grow(n){if(ol+n<=out.length)return;var cap=out.length;while(cap<ol+n)cap*=2;var nb=new Uint8Array(cap);nb.set(out.subarray(0,ol));out=nb;}
+ function bits(need){var v=bb;while(bc<need){if(sp>=src.length)throw new Error("DEFLATE: πρόωρο τέλος");v|=src[sp++]<<bc;bc+=8;}bb=v>>>need;bc-=need;return v&((1<<need)-1);}
+ function H(){this.count=new Int32Array(16);this.symbol=null;}
+ function build(h,lens,n){var i,len;for(len=0;len<16;len++)h.count[len]=0;
+  for(i=0;i<n;i++)h.count[lens[i]]++;
+  if(h.count[0]===n)return 0;
+  var left=1;for(len=1;len<=15;len++){left<<=1;left-=h.count[len];if(left<0)return left;}
+  var offs=new Int32Array(16);offs[1]=0;for(len=1;len<15;len++)offs[len+1]=offs[len]+h.count[len];
+  h.symbol=new Int32Array(n);for(i=0;i<n;i++)if(lens[i])h.symbol[offs[lens[i]]++]=i;
+  return left;}
+ function decode(h){var code=0,first=0,index=0,len;
+  for(len=1;len<=15;len++){code|=bits(1);var cnt=h.count[len];
+   if(code-cnt<first)return h.symbol[index+(code-first)];
+   index+=cnt;first+=cnt;first<<=1;code<<=1;}
+  throw new Error("DEFLATE: άκυρος κώδικας");}
+ var LENS=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258];
+ var LEXT=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
+ var DIST=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];
+ var DEXT=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
+ var fixedL=null,fixedD=null;
+ function fixed(){if(fixedL)return;var l=new Uint8Array(288),i;
+  for(i=0;i<144;i++)l[i]=8;for(;i<256;i++)l[i]=9;for(;i<280;i++)l[i]=7;for(;i<288;i++)l[i]=8;
+  fixedL=new H();build(fixedL,l,288);var d=new Uint8Array(30);for(i=0;i<30;i++)d[i]=5;fixedD=new H();build(fixedD,d,30);}
+ function codes(lh,dh){var sym,len,dist;
+  do{sym=decode(lh);
+   if(sym<256){grow(1);out[ol++]=sym;}
+   else if(sym>256){sym-=257;if(sym>=29)throw new Error("DEFLATE: άκυρο μήκος");
+    len=LENS[sym]+bits(LEXT[sym]);dist=decode(dh);if(dist>=30)throw new Error("DEFLATE: άκυρη απόσταση");
+    var d=DIST[dist]+bits(DEXT[dist]);if(d>ol)throw new Error("DEFLATE: απόσταση εκτός ορίων");
+    grow(len);for(var i=0;i<len;i++){out[ol]=out[ol-d];ol++;}}
+  }while(sym!==256);}
+ var last;
+ do{last=bits(1);var type=bits(2);
+  if(type===0){bb=0;bc=0;if(sp+4>src.length)throw new Error("DEFLATE: header");
+   var len=src[sp]|(src[sp+1]<<8);sp+=4;grow(len);for(var i=0;i<len;i++)out[ol++]=src[sp++];}
+  else if(type===1){fixed();codes(fixedL,fixedD);}
+  else if(type===2){
+   var nlen=bits(5)+257,ndist=bits(5)+1,hclen=bits(4)+4;
+   var order=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];
+   var cl=new Uint8Array(19),i2;for(i2=0;i2<hclen;i2++)cl[order[i2]]=bits(3);
+   var ch=new H();if(build(ch,cl,19))throw new Error("DEFLATE: code lengths");
+   var lens=new Uint8Array(nlen+ndist),idx=0;
+   while(idx<nlen+ndist){var s=decode(ch);
+    if(s<16)lens[idx++]=s;
+    else{var rep,val=0;
+     if(s===16){if(!idx)throw new Error("DEFLATE: repeat");val=lens[idx-1];rep=3+bits(2);}
+     else if(s===17){rep=3+bits(3);}else{rep=11+bits(7);}
+     if(idx+rep>nlen+ndist)throw new Error("DEFLATE: overflow");
+     while(rep--)lens[idx++]=val;}}
+   var lh=new H(),dh=new H();
+   if(build(lh,lens.subarray(0,nlen),nlen)||build(dh,lens.subarray(nlen),ndist))throw new Error("DEFLATE: πίνακες");
+   codes(lh,dh);
+  } else throw new Error("DEFLATE: άκυρος τύπος μπλοκ");
+ }while(!last);
+ return out.subarray(0,ol);
+}
+function unzip(buf){
+ var u=new Uint8Array(buf),dv=new DataView(buf),i,eocd=-1;
+ var start=Math.max(0,u.length-66000);
+ for(i=u.length-22;i>=start;i--){if(dv.getUint32(i,true)===0x06054b50){eocd=i;break;}}
+ if(eocd<0)throw new Error("Δεν είναι έγκυρο ZIP/wheel.");
+ var n=dv.getUint16(eocd+10,true),cd=dv.getUint32(eocd+16,true),p=cd,files=[];
+ for(i=0;i<n;i++){
+  if(dv.getUint32(p,true)!==0x02014b50)break;
+  var method=dv.getUint16(p+10,true),csz=dv.getUint32(p+20,true),usz=dv.getUint32(p+24,true);
+  var nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+  var name=new TextDecoder().decode(u.subarray(p+46,p+46+nl));
+  files.push({name:name,method:method,csz:csz,usz:usz,lo:lo});
+  p+=46+nl+el+cl;
+ }
+ function read(f){
+  var nl=dv.getUint16(f.lo+26,true),el=dv.getUint16(f.lo+28,true),ds=f.lo+30+nl+el;
+  var raw=u.subarray(ds,ds+f.csz);
+  if(f.method===0)return raw;
+  if(f.method===8)return inflateRaw(raw);
+  throw new Error("Μη υποστηριζόμενη συμπίεση: "+f.method);
+ }
+ return{files:files,read:read};
+}
+
+/* ---------- ONNX / ORT ---------- */
+var SESS={det:null,rec:null,cls:null},DICT=null,META={};
+function ensureOrt(){
+ if(window.ort)return Promise.resolve();
+ return get("lib/ort").then(function(v){
+  if(v&&v.text){var b=new Blob([v.text],{type:"text/javascript"}),u=URL.createObjectURL(b);
+   return new Promise(function(res,rej){var s=document.createElement("script");s.src=u;s.onload=function(){res();};s.onerror=function(){rej(new Error("τοπική βιβλιοθήκη"));};document.head.appendChild(s);});}
+  return new Promise(function(res,rej){var s=document.createElement("script");
+   s.src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js";
+   s.onload=function(){res();};s.onerror=function(){rej(new Error("αποτυχία φόρτωσης ONNX Runtime"));};document.head.appendChild(s);});
+ }).then(function(){return get("lib/wasm").then(function(w){
+  try{window.ort.env.wasm.numThreads=1;window.ort.env.wasm.simd=true;
+   if(w&&w.buf)window.ort.env.wasm.wasmBinary=w.buf;
+   else window.ort.env.wasm.wasmPaths="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/";}catch(e){}});});
+}
+function looksOnnx(buf){var u=new Uint8Array(buf,0,Math.min(16,buf.byteLength));return buf.byteLength>20000&&u[0]===0x08;}
+function parseDict(t){var ls=String(t).split(/\r?\n/);while(ls.length&&ls[ls.length-1]==="")ls.pop();if(ls[ls.length-1]!==" ")ls.push(" ");return ls;}
+function greekCount(chars){return chars.filter(function(c){return /^[Α-Ωα-ωάέήίόύώϊϋΐΰΆΈΉΊΌΎΏ]$/.test(c);}).length;}
+
+/* ---------- install ---------- */
+function install(slot,data,name){
+ if(slot==="dict"){
+  var txt=typeof data==="string"?data:new TextDecoder().decode(data);
+  DICT=parseDict(txt);META.dict={chars:DICT.length,greek:greekCount(DICT)};
+  return put("dict",{text:txt,name:name||"el_dict.txt"}).then(function(){renderSlots();toast("Λεξικό: "+DICT.length+" χαρακτήρες.","ok");});
+ }
+ var buf=data instanceof ArrayBuffer?data:data.buffer;
+ if(!looksOnnx(buf))return Promise.reject(new Error("Το αρχείο δεν μοιάζει με ONNX (πιθανή σελίδα σφάλματος ή λάθος αρχείο)."));
+ return put(slot,{buf:buf,name:name||slot+".onnx"}).then(function(){
+  if(!$("#cAuto").classList.contains("on")){renderSlots();toast(slot.toUpperCase()+" εγκαταστάθηκε ("+fmt(buf.byteLength)+").","ok");return;}
+  return ensureOrt().then(function(){return window.ort.InferenceSession.create(buf,{executionProviders:["wasm"],graphOptimizationLevel:"all"});})
+   .then(function(s){SESS[slot]=s;META[slot]={in:s.inputNames.join(","),out:s.outputNames.join(","),bytes:buf.byteLength};
+    renderSlots();toast(slot.toUpperCase()+" έτοιμο ("+fmt(buf.byteLength)+").","ok");})
+   .catch(function(e){renderSlots();toast("Αποθηκεύτηκε αλλά δεν φορτώθηκε: "+e.message,"warn");});
+ });
+}
+
+/* ---------- diagnosis ---------- */
+var DIAG={};
+function renderVerdict(){
+ var need=["det","rec","dict"],have=0;
+ need.forEach(function(k){if(SESS[k]||(k==="dict"&&DICT))have++;});
+ var greek=DICT?greekCount(DICT):0;
+ var v=$("#verdict");
+ if(have===3&&greek>=25){
+  v.innerHTML='<div class="verdict ok"><h3>Έτοιμο <span class="tag g">3/3</span><span class="tag g">ελληνικά '+greek+'</span></h3><p>Και τα τρία αρχεία είναι εγκατεστημένα και το λεξικό καλύπτει ελληνικά. Μπορείς να πας στη σάρωση.</p></div>';
+ }else if(have===3){
+  v.innerHTML='<div class="verdict warn"><h3>Μοντέλα εγκατεστημένα, αλλά <span class="tag a">χωρίς ελληνικά</span></h3><p>Το λεξικό έχει '+greek+' ελληνικούς χαρακτήρες. Αυτό το μοντέλο αναγνώρισης δεν μπορεί να αποδώσει ελληνικό κείμενο — θα βγάζει λατινικά/κινέζικα. Χρειάζεται μοντέλο με ελληνική κάλυψη ή fine-tune.</p></div>';
+ }else{
+  var missing=need.filter(function(k){return !(SESS[k]||(k==="dict"&&DICT));}).map(function(k){return k.toUpperCase();});
+  v.innerHTML='<div class="verdict bad"><h3>Λείπουν: '+missing.join(", ")+' <span class="tag r">'+have+'/3</span></h3><p>Τα <code class="i">./models/…</code> δεν υπάρχουν στο repo — γι\' αυτό οι λήψεις έδειχναν ✕ με ~10 KB (σελίδα 404). Πήγαινε στην «Απόκτηση» και χρησιμοποίησε <b>PyPI wheel</b> για να τα πάρεις χωρίς υπολογιστή.</p></div>';
+ }
+ $("#pill").textContent=have+"/3 έτοιμα";$("#pill").className="pill"+(have===3?"":" warn");
+}
+function diagnose(){
+ var base=$("#cBase").value.trim().replace(/\/?$/,"/");
+ var targets=[["det","models/det.onnx"],["rec","models/rec.onnx"],["cls","models/cls.onnx"],["dict","models/el_dict.txt"]];
+ $("#diagList").innerHTML=targets.map(function(t){return '<div class="chk" data-d="'+t[0]+'"><b>·</b><span>'+esc(t[1])+' — έλεγχος…</span></div>';}).join("");
+ targets.forEach(function(t){
+  origFetch(base+t[1],{cache:"no-store"}).then(function(r){
+   return r.text().then(function(txt){
+    var el=document.querySelector('[data-d="'+t[0]+'"]');
+    var is404=!r.ok;
+    var head=txt.slice(0,120).replace(/\s+/g," ");
+    var cls=is404?"f":"p";
+    var msg=is404?("HTTP "+r.status+" — δεν υπάρχει στο repo. Αρχή απάντησης: «"+head.slice(0,60)+"…»")
+                  :("βρέθηκε, "+fmt(new Blob([txt]).size));
+    el.className="chk "+cls;el.innerHTML="<b>"+(is404?"✕":"✓")+"</b><span>"+esc(t[1])+" — "+esc(msg)+"</span>";
+    DIAG[t[0]]={ok:!is404,status:r.status};
+   });
+  }).catch(function(e){
+   var el=document.querySelector('[data-d="'+t[0]+'"]');
+   el.className="chk f";el.innerHTML="<b>✕</b><span>"+esc(t[1])+" — "+esc(e.message)+" (δίκτυο/CORS)</span>";
+   DIAG[t[0]]={ok:false,err:e.message};
+  });
+ });
+}
+$("#btnDiag").onclick=diagnose;
+$("#btnSame").onclick=function(){$("#cBase").value="./";diagnose();};
+
+/* ---------- slots ---------- */
+var SLOTS=[{k:"det",t:"det.onnx",req:true,d:"Εντοπισμός γραμμών (DBNet)"},
+ {k:"rec",t:"rec.onnx",req:true,d:"Αναγνώριση χαρακτήρων (CRNN/SVTR)"},
+ {k:"dict",t:"el_dict.txt",req:true,d:"Λεξικό χαρακτήρων του rec"},
+ {k:"cls",t:"cls.onnx",req:false,d:"Διόρθωση περιστροφής 180°"}];
+function renderSlots(){
+ Promise.all(SLOTS.map(function(s){return get(s.k);})).then(function(vals){
+  $("#slots").innerHTML=SLOTS.map(function(s,i){
+   var v=vals[i],ok=!!v,meta=META[s.k];
+   var size=v?(s.k==="dict"?new Blob([v.text||""]).size:(v.buf?v.buf.byteLength:0)):0;
+   var h='<div class="slot '+(ok?"ok":(s.req?"bad":""))+'" data-k="'+s.k+'"><div class="sh"><i class="'+(ok?"g":s.req?"r":"a")+'"></i><b>'+s.t+'</b>'+
+    '<span class="tag '+(s.req?"v":"")+'">'+(s.req?"απαραίτητο":"προαιρετικό")+'</span>'+
+    '<span class="tag '+(ok?"g":"r")+'">'+(ok?"εγκατεστημένο":"λείπει")+'</span></div><div class="sb">'+
+    '<div style="font-size:12.5px;color:var(--mut);margin-bottom:8px">'+esc(s.d)+'</div><div class="kv">'+
+    '<div><small>Πηγή</small><span>'+esc(v&&v.name?v.name:"—")+'</span></div>'+
+    '<div><small>Μέγεθος</small><span>'+(size?fmt(size):"—")+'</span></div>';
+   if(s.k==="dict"&&DICT)h+='<div><small>Χαρακτήρες</small><span>'+DICT.length+'</span></div><div><small>Ελληνικοί</small><span>'+greekCount(DICT)+'</span></div>';
+   if(meta&&meta.in)h+='<div><small>Είσοδοι</small><span>'+esc(meta.in)+'</span></div><div><small>Έξοδοι</small><span>'+esc(meta.out)+'</span></div>';
+   h+='</div><div class="row"><label class="btn sm" for="f-'+s.k+'" tabindex="0" role="button">Από συσκευή</label>';
+   if(ok)h+='<button class="btn sm gh" data-a="dl" type="button">Λήψη</button><button class="btn sm bad" data-a="del" type="button">Αφαίρεση</button>';
+   h+='</div><input class="srfile" type="file" id="f-'+s.k+'" accept="'+(s.k==="dict"?".txt,text/plain":".onnx")+'"></div></div>';
+   return h;
+  }).join("");
+  SLOTS.forEach(function(s){
+   var el=document.getElementById("f-"+s.k);
+   el.onchange=function(){var f=this.files[0];if(!f)return;
+    var p=s.k==="dict"?f.text():f.arrayBuffer();
+    p.then(function(d){return install(s.k,d,f.name);}).catch(function(e){toast(e.message,"err");});
+    this.value="";};
+  });
+  renderVerdict();renderRepo();
+ });
+}
+$("#slots").addEventListener("click",function(e){
+ var b=e.target.closest("[data-a]");if(!b)return;
+ var k=e.target.closest(".slot").dataset.k;
+ get(k).then(function(v){
+  if(!v)return;
+  if(b.dataset.a==="del"){del(k).then(function(){SESS[k]=null;if(k==="dict")DICT=null;delete META[k];renderSlots();toast("Αφαιρέθηκε.","warn");});}
+  else{var name=k==="dict"?"el_dict.txt":k+".onnx";
+   dl(name,k==="dict"?new Blob([v.text],{type:"text/plain;charset=utf-8"}):new Blob([v.buf]));}
+ });
+});
+$("#btnWipe").onclick=function(){del(null).then(function(){SESS={det:null,rec:null,cls:null};DICT=null;META={};renderSlots();toast("Όλα διαγράφηκαν.","warn");});};
+$("#btnDlAll").onclick=function(){
+ var seq=["det","rec","cls","dict"],i=0;
+ (function next(){if(i>=seq.length){toast("Ολοκληρώθηκε. Ανέβασέ τα στον φάκελο models/.","ok");return;}
+  var k=seq[i++];get(k).then(function(v){if(v)dl(k==="dict"?"el_dict.txt":k+".onnx",k==="dict"?new Blob([v.text],{type:"text/plain;charset=utf-8"}):new Blob([v.buf]));
+   setTimeout(next,500);});})();
+};
+function renderRepo(){
+ Promise.all(SLOTS.map(function(s){return get(s.k);})).then(function(vals){
+  var ok=vals.filter(Boolean).length;
+  $("#repoState").innerHTML='<div class="stats"><span class="tag '+(ok>=3?"g":"a")+'">στη συσκευή: '+ok+'/4</span>'+
+   SLOTS.map(function(s,i){return '<span class="tag '+(vals[i]?"g":"")+'">'+s.t+'</span>';}).join("")+'</div>';
+ });
+}
+
+/* ---------- file list renderer ---------- */
+function fileList(box,items,fetcher){
+ if(!items.length){box.innerHTML='<div class="empty">Δεν βρέθηκαν αρχεία με το τρέχον φίλτρο.</div>';return;}
+ box.innerHTML=items.map(function(it,i){
+  return '<div class="fr" data-i="'+i+'"><span class="n">'+esc(it.name)+'</span>'+
+   (it.size?'<span class="tag">'+fmt(it.size)+'</span>':'')+
+   '<select data-slot><option value="det">DET</option><option value="rec">REC</option><option value="cls">CLS</option><option value="dict">ΛΕΞΙΚΟ</option></select>'+
+   '<button class="btn sm go" data-get type="button">Εγκατάσταση</button></div>';
+ }).join("");
+ [].forEach.call(box.querySelectorAll(".fr"),function(row,i){
+  var it=items[i],sel=row.querySelector("[data-slot]");
+  var n=it.name.toLowerCase();
+  sel.value=/dict|keys|alphabet|character/.test(n)?"dict":/cls|angle|orient/.test(n)?"cls":/det|db/.test(n)?"det":/rec|crnn|svtr/.test(n)?"rec":"det";
+  row.querySelector("[data-get]").onclick=function(){
+   var btn=this;btn.disabled=true;btn.textContent="Λήψη…";
+   fetcher(it).then(function(d){return install(sel.value,d,it.name.split("/").pop());})
+    .then(function(){btn.textContent="Έγινε";btn.className="btn sm gh";})
+    .catch(function(e){btn.disabled=false;btn.textContent="Ξανά";toast(e.message,"err");});
+  };
+ });
+}
+function passes(name){
+ var f=$("#cFilt").value,n=name.toLowerCase();
+ if(f==="all")return true;
+ if(f==="dict")return /\.(txt|json)$/.test(n)&&/dict|keys|alphabet|character/.test(n);
+ return /\.onnx$/.test(n)||(/\.(txt)$/.test(n)&&/dict|keys|alphabet|character/.test(n));
+}
+
+/* ---------- sources ---------- */
+$("#seg").addEventListener("click",function(e){
+ var b=e.target.closest("[data-s]");if(!b)return;
+ [].forEach.call(this.children,function(c){c.classList.toggle("on",c===b);});
+ ["dev","url","pypi","hf","gh"].forEach(function(s){$("#p-"+s).hidden=s!==b.dataset.s;});
+});
+$("#devFile").onchange=function(){var f=this.files[0];if(!f)return;var slot=$("#devSlot").value;
+ var p=slot==="dict"?f.text():f.arrayBuffer();
+ p.then(function(d){return install(slot,d,f.name);}).catch(function(e){toast(e.message,"err");});this.value="";};
+$("#btnUrl").onclick=function(){
+ var u=$("#urlIn").value.trim(),slot=$("#urlSlot").value;
+ if(!u){toast("Γράψε διεύθυνση.","warn");return;}
+ window.fetch(u,{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return slot==="dict"?r.text():r.arrayBuffer();})
+  .then(function(d){return install(slot,d,u.split("/").pop().split("?")[0]);})
+  .catch(function(e){toast("Αποτυχία: "+e.message,"err");});
+};
+
+var PYPI=null;
+$("#btnPypi").onclick=function(){pypiLatest($("#cPkg").value.trim());};
+$("#btnPypiVers").onclick=function(){
+ var pkg=$("#cPkg").value.trim();if(!pkg)return;
+ window.fetch("https://pypi.org/pypi/"+encodeURIComponent(pkg)+"/json").then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
+  .then(function(j){
+   var vs=Object.keys(j.releases||{}).sort().reverse().slice(0,24);
+   $("#pypiVers").innerHTML='<label class="lbl">Εκδόσεις</label><div class="stats">'+vs.map(function(v){
+    return '<button class="btn sm gh" data-v="'+esc(v)+'" type="button">'+esc(v)+'</button>';}).join("")+'</div>';
+   [].forEach.call($("#pypiVers").querySelectorAll("[data-v]"),function(b){
+    b.onclick=function(){pypiVersion(pkg,b.dataset.v,j.releases[b.dataset.v]);};});
+  }).catch(function(e){toast("Αποτυχία PyPI: "+e.message,"err");});
+};
+function pypiLatest(pkg){
+ if(!pkg){toast("Γράψε όνομα πακέτου.","warn");return;}
+ $("#pypiStats").innerHTML='<span class="tag c">αναζήτηση…</span>';
+ window.fetch("https://pypi.org/pypi/"+encodeURIComponent(pkg)+"/json").then(function(r){if(!r.ok)throw new Error("HTTP "+r.status+" — άγνωστο πακέτο");return r.json();})
+  .then(function(j){
+   var urls=(j.urls||[]).filter(function(u){return /\.whl$/.test(u.filename);});
+   if(!urls.length)urls=(j.urls||[]).filter(function(u){return /\.(tar\.gz|zip)$/.test(u.filename);});
+   if(!urls.length)throw new Error("δεν βρέθηκε wheel");
+   var pick=urls.filter(function(u){return /py3-none-any|py2.py3-none-any/.test(u.filename);})[0]||urls[0];
+   $("#pypiStats").innerHTML='<span class="tag g">'+esc(j.info.name)+' '+esc(j.info.version)+'</span><span class="tag">'+esc(pick.filename)+'</span><span class="tag c">'+fmt(pick.size)+'</span>';
+   pypiFetch(pick.url,pick.filename);
+  }).catch(function(e){$("#pypiStats").innerHTML='<span class="tag r">αποτυχία</span>';toast(e.message,"err");});
+}
+function pypiVersion(pkg,ver,arr){
+ var urls=(arr||[]).filter(function(u){return /\.whl$/.test(u.filename);});
+ if(!urls.length){toast("Η έκδοση δεν έχει wheel.","warn");return;}
+ var pick=urls.filter(function(u){return /py3-none-any|py2.py3-none-any/.test(u.filename);})[0]||urls[0];
+ $("#pypiStats").innerHTML='<span class="tag g">'+esc(pkg)+' '+esc(ver)+'</span><span class="tag">'+esc(pick.filename)+'</span><span class="tag c">'+fmt(pick.size)+'</span>';
+ pypiFetch(pick.url,pick.filename);
+}
+function pypiFetch(url,fname){
+ $("#pypiBar").style.width="8%";
+ window.fetch(url,{cache:"force-cache"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);
+  var total=+(r.headers.get("content-length")||0);
+  if(!r.body||!total)return r.arrayBuffer();
+  var reader=r.body.getReader(),chunks=[],got=0;
+  return (function pump(){return reader.read().then(function(res){
+   if(res.done){var out=new Uint8Array(got),o=0;chunks.forEach(function(c){out.set(c,o);o+=c.length;});return out.buffer;}
+   chunks.push(res.value);got+=res.value.length;
+   $("#pypiBar").style.width=(8+80*got/total)+"%";return pump();});})();
+ }).then(function(buf){
+  $("#pypiBar").style.width="92%";
+  var z=unzip(buf);PYPI=z;
+  var items=z.files.filter(function(f){return passes(f.name)&&!/$/.test(f.name)&&f.usz>0;})
+   .map(function(f){return{name:f.name,size:f.usz,ref:f};});
+  fileList($("#pypiFiles"),items,function(it){return Promise.resolve(z.read(it.ref));});
+  $("#pypiBar").style.width="100%";
+  toast("Βρέθηκαν "+items.length+" αρχεία μέσα στο "+fname+".","ok");
+ }).catch(function(e){$("#pypiBar").style.width="0%";toast("Αποτυχία: "+e.message,"err");
+  $("#pypiFiles").innerHTML='<div class="empty">'+esc(e.message)+' — δοκίμασε άλλη πηγή (GitHub / Hugging Face / URL).</div>';});
+}
+$("#btnHf").onclick=function(){
+ var id=$("#cHf").value.trim();if(!id){toast("Γράψε owner/name.","warn");return;}
+ $("#hfFiles").innerHTML='<div class="empty">αναζήτηση…</div>';
+ window.fetch("https://huggingface.co/api/models/"+id).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
+  .then(function(j){
+   var items=(j.siblings||[]).map(function(s){return s.rfilename;}).filter(passes).map(function(n){return{name:n};});
+   fileList($("#hfFiles"),items,function(it){
+    return window.fetch("https://huggingface.co/"+id+"/resolve/main/"+it.name).then(function(r){
+     if(!r.ok)throw new Error("HTTP "+r.status);return /\.txt$/.test(it.name)?r.text():r.arrayBuffer();});});
+  }).catch(function(e){$("#hfFiles").innerHTML='<div class="empty">'+esc(e.message)+'</div>';toast(e.message,"err");});
+};
+$("#btnGh").onclick=function(){
+ var repo=$("#cGh").value.trim(),br=$("#cBr").value.trim()||"main";
+ if(!repo){toast("Γράψε owner/repo.","warn");return;}
+ $("#ghFiles").innerHTML='<div class="empty">σάρωση δέντρου…</div>';
+ window.fetch("https://api.github.com/repos/"+repo+"/git/trees/"+br+"?recursive=1")
+  .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status+" (έλεγξε owner/repo/κλαδί)");return r.json();})
+  .then(function(j){
+   var items=(j.tree||[]).filter(function(t){return t.type==="blob"&&passes(t.path);})
+    .map(function(t){return{name:t.path,size:t.size};});
+   fileList($("#ghFiles"),items,function(it){
+    return window.fetch("https://raw.githubusercontent.com/"+repo+"/"+br+"/"+it.name)
+     .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return /\.txt$/.test(it.name)?r.text():r.arrayBuffer();});});
+   toast(items.length+" αρχεία στο δέντρο.","ok");
+  }).catch(function(e){$("#ghFiles").innerHTML='<div class="empty">'+esc(e.message)+'</div>';toast(e.message,"err");});
+};
+
+/* ---------- validation ---------- */
+function chk(ok,l,d,w){return '<div class="chk '+(ok?"p":(w?"w":"f"))+'"><b>'+(ok?"✓":(w?"•":"✕"))+'</b><span>'+esc(l)+(d?" — "+esc(d):"")+'</span></div>';}
+$("#btnVal").onclick=function(){
+ var out=$("#valOut");out.innerHTML='<div class="empty">φόρτωση & εκτέλεση…</div>';
+ var rep=[],classes=null;
+ get("dict").then(function(v){
+  if(v){DICT=parseDict(v.text);rep.push(chk(true,"Λεξικό",DICT.length+" χαρακτήρες"));
+   var g=greekCount(DICT);rep.push(chk(g>=25,"Ελληνική κάλυψη",g+" ελληνικοί χαρακτήρες",g<25));}
+  else rep.push(chk(false,"Λεξικό","λείπει"));
+  return ensureOrt();
+ }).then(function(){return get("rec");})
+ .then(function(v){
+  if(!v)throw new Error("λείπει το rec.onnx");
+  rep.push(chk(looksOnnx(v.buf),"Μορφή ONNX",fmt(v.buf.byteLength)));
+  return window.ort.InferenceSession.create(v.buf,{executionProviders:["wasm"],graphOptimizationLevel:"all"});
+ }).then(function(s){
+  SESS.rec=s;META.rec={in:s.inputNames.join(","),out:s.outputNames.join(","),bytes:0};
+  rep.push(chk(true,"rec φορτώθηκε",s.inputNames.join(",")+" → "+s.outputNames.join(",")));
+  function attempt(h){var W=320,f=new Float32Array(3*h*W),fd={};fd[s.inputNames[0]]=new window.ort.Tensor("float32",f,[1,3,h,W]);
+   return s.run(fd).then(function(r){return r[s.outputNames[0]].dims;});}
+  return attempt(48).catch(function(){return attempt(32);});
+ }).then(function(dims){
+  rep.push(chk(dims.length===3,"Σχήμα εξόδου","["+dims.join(", ")+"]",dims.length!==3));
+  classes=dims[dims.length-1];
+  if(DICT){var exp=DICT.length+1,ok=classes===exp;
+   rep.push(chk(ok,"Λεξικό ↔ μοντέλο","κλάσεις "+classes+" vs λεξικό+1 = "+exp+(ok?"":" → ΛΑΘΟΣ dict")));}
+  return get("det");
+ }).then(function(v){
+  if(!v){rep.push(chk(false,"det","λείπει",true));return;}
+  return window.ort.InferenceSession.create(v.buf,{executionProviders:["wasm"]}).then(function(s){
+   SESS.det=s;META.det={in:s.inputNames.join(","),out:s.outputNames.join(","),bytes:v.buf.byteLength};
+   var W=320,H=320,f=new Float32Array(3*H*W),fd={};fd[s.inputNames[0]]=new window.ort.Tensor("float32",f,[1,3,H,W]);
+   return s.run(fd).then(function(r){rep.push(chk(true,"det εκτελέστηκε","χάρτης ["+r[s.outputNames[0]].dims.join(", ")+"]"));});
+  }).catch(function(e){rep.push(chk(false,"det",e.message));});
+ }).then(function(){
+  var g=DICT?greekCount(DICT):0;
+  var verdict=g>=25?"ok":(classes?"warn":"bad");
+  var title=g>=25?"Μπορεί να διαβάσει ελληνικά":"Δεν καλύπτει ελληνικά";
+  var body=g>=25?"Το λεξικό περιέχει ελληνικούς χαρακτήρες και το μοντέλο εκτελείται κανονικά."
+   :"Ακόμη κι αν όλα φορτώνουν, χωρίς ελληνικούς χαρακτήρες στο λεξικό το αποτέλεσμα δεν θα είναι ελληνικό κείμενο. Χρειάζεται μοντέλο αναγνώρισης με ελληνική κάλυψη.";
+  out.innerHTML='<div class="verdict '+verdict+'"><h3>'+title+'</h3><p>'+body+'</p></div>'+rep.join("");
+  renderSlots();
+ }).catch(function(e){
+  rep.push(chk(false,"Σφάλμα",e.message));
+  out.innerHTML='<div class="verdict bad"><h3>Η επικύρωση δεν ολοκληρώθηκε</h3><p>Φόρτωσε πρώτα τα απαραίτητα αρχεία από την «Απόκτηση».</p></div>'+rep.join("");
+ });
+};
+
+/* ---------- rail ---------- */
+$("#cTheme").onchange=function(){document.documentElement.setAttribute("data-theme",this.value==="paper"?"paper":"dark");};
+$("#cDens").onchange=function(){document.documentElement.setAttribute("data-density",this.value);};
+$("#cFs").oninput=function(){document.documentElement.style.setProperty("--fs",this.value+"px");$("#vFs").textContent=this.value;};
+$("#cAuto").onclick=function(){this.classList.toggle("on");};
+$("#cSniff").onclick=function(){this.classList.toggle("on");};
+$("#cReset").onclick=function(){$("#cPkg").value="rapidocr_onnxruntime";$("#cGh").value="RapidAI/RapidOCR";$("#cBr").value="main";$("#cHf").value="";$("#cFilt").value="onnx";toast("Επαναφορά.","ok");};
+$("#cExport").onclick=function(){
+ Promise.all(SLOTS.map(function(s){return get(s.k).then(function(v){return{k:s.k,v:v};});})).then(function(list){
+  var o={at:new Date().toISOString(),installed:{}};
+  list.forEach(function(it){o.installed[it.k]=it.v?{name:it.v.name,bytes:it.k==="dict"?new Blob([it.v.text]).size:it.v.buf.byteLength}:null;});
+  o.greekChars=DICT?greekCount(DICT):0;o.dictChars=DICT?DICT.length:0;o.recClasses=null;
+  dl("models-manifest.json",JSON.stringify(o,null,2),"application/json");
+ });
+};
+$("#cFilt").onchange=function(){toast("Το φίλτρο εφαρμόζεται στην επόμενη αναζήτηση.","warn");};
+
+/* ---------- boot ---------- */
+$("#cBase").value="https://raw.githubusercontent.com/giadokimes/troxonomika/main/";
+Promise.all(["det","rec","cls","dict"].map(function(k){return get(k).then(function(v){
+ if(!v)return;
+ if(k==="dict"){DICT=parseDict(v.text);return;}
+ return ensureOrt().then(function(){return window.ort.InferenceSession.create(v.buf,{executionProviders:["wasm"]});})
+  .then(function(s){SESS[k]=s;META[k]={in:s.inputNames.join(","),out:s.outputNames.join(",")};}).catch(function(){});});}))
+ .then(function(){renderSlots();diagnose();});
+renderSlots();
+var secs=[].slice.call(document.querySelectorAll("section")),links=[].slice.call(document.querySelectorAll("#tabs a"));
+function spy(){var y=window.scrollY+240,cur=secs[0];secs.forEach(function(s){if(s.offsetTop<=y)cur=s;});
+ links.forEach(function(a){a.classList.toggle("on",a.getAttribute("href")==="#"+cur.id);});}
+window.addEventListener("scroll",spy,{passive:true});spy();
+})();
+</script>
+</body>
+  </html>
