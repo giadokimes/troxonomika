@@ -370,3 +370,8 @@ main { padding-top: 4px; display: block; }
   .adv .sub { padding: 6px 8px; }
   .invrow { padding: 6px 8px; gap: 6px; }
 }
+
+
+/* APPTBAR-V61 */
+.apptbar { width: 100%; margin: 0 0 12px; min-height: 48px; border: 1px solid rgba(10,132,255,.55); color: var(--info); font-weight: 600; }
+.apptbar:active { background: rgba(10,132,255,.12); }

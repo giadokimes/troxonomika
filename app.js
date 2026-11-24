@@ -519,7 +519,6 @@
   const secondary = (c) => {
     const s = c.state, out = [];
     if (s === 'closed') return [['Άνοιγμα υπόθεσης', c => { if (confirm('Να ανοίξει ξανά η υπόθεση;')) act(c, 'Άνοιγμα υπόθεσης', () => { c.dates.closed = ''; c.dates.closedKind = ''; c.statePin = null; }); }]];
-    if (s !== 'transmittal' && s !== 'complaint') out.push([liveAppt(c) ? 'Αλλαγή ραντεβού' : 'Κλείσιμο ραντεβού', actAppt]);
     const lastInv = [3, 2, 1].find(k => c.dates['inv' + k + 'Create']);
     if (lastInv) out.push(['Λήψη ' + lastInv + 'ης πρόσκλησης (Word)', c => sendInvitation(c, lastInv, c.dates['inv' + lastInv + 'Create'])]);
     if (!NOSEC.includes(s)) {
@@ -966,7 +965,7 @@
     const nO = (pc[normPlate(c.plate)] || 1) - 1;
     const nP = cases.filter(x => x.id !== c.id && fold(x.name) === fold(c.name)).length;
     let sec = '';
-    if (c.state === 'appointment' || apptTag(c)) sec += `<a class="btn ghost" target="_blank" rel="noopener" href="${esc(calLink(c))}">Προσθήκη στο Google Calendar</a><button class="btn ghost" data-r="${c.id}">Αλλαγή ραντεβού</button>`;
+    if (c.state === 'appointment' || apptTag(c)) sec += `<a class="btn ghost" target="_blank" rel="noopener" href="${esc(calLink(c))}">Προσθήκη στο Google Calendar</a>`;
     secondary(c).forEach((x, i) => { sec += `<button class="btn ghost" data-b="${c.id}|${i}">${x[0]}</button>`; });
     if (c.state !== 'closed' && !c.dates.oos) sec += `<button class="btn ghost" data-oos="${c.id}">Εκτός αρμοδιότητας</button>`;
     const det = [
@@ -987,6 +986,7 @@
         ${a ? `<button class="btn pri big" data-a="${c.id}">${esc(a[0])}</button>` : (nl ? `<strong>${esc(nl)}</strong>` : '')}
         ${wt ? `<span>${esc(wt)}</span>` : ''}${apptTag(c) ? `<span>${esc(apptTag(c))}</span>` : ''}</div>
       ${c.moveTo ? `<div class="mvbox"><span>Μετακίνηση φακέλου: <b>${esc(c.moveTo)}</b></span><button class="btn ghost" data-mv="${c.id}">Μετακινήθηκε</button></div>` : ''}
+      ${(c.state !== 'closed' && c.state !== 'transmittal' && c.state !== 'complaint') ? `<button class="btn ghost apptbar" data-r="${c.id}">${liveAppt(c) ? 'Αλλαγή ραντεβού · ' + sd(lastAppt(c).d) : 'Κλείσιμο ραντεβού'}</button>` : ''}
       ${stepper(c)}
       ${sec ? `<details class="more"><summary>Άλλες ενέργειες</summary><div class="sec">${sec}</div></details>` : ''}
       <h3 class="d-h">Ιστορικό</h3>
