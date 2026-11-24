@@ -50,7 +50,9 @@
     'Αναμονή αποδεικτικού': ['Αναμονή αποδεικτικού'],
     'Εκκρεμότητες': ['Αναζήτηση τηλεφώνου', 'Αποστολή πρόσκλησης', 'Διαβίβαση σε Υπηρεσία', 'Καταχώρηση POL']
   };
-  const VIOL = ['Υπερβολική ταχύτητα','ΚΤΕΟ','Διόδια','Στάθμευση'];
+  const VIOL = ['Υπερβολική ταχύτητα','Μέθη','ΚΤΕΟ','Διόδια','Στάθμευση'];
+  const ART_BY_VIOL = { 'Υπερβολική ταχύτητα':'24§9αγ', 'Μέθη':'42§1', 'ΚΤΕΟ':'40§5', 'Διόδια':'', 'Στάθμευση':'' };
+  const SVC_CITIES = ['ΘΕΡΜΗΣ','ΛΗΤΗΣ','ΚΑΛΑΜΑΡΙΑΣ','ΤΟΥΜΠΑΣ','ΒΟΛΟΥ','ΛΑΡΙΣΑΣ','ΛΑΜΙΑΣ','ΘΕΣΣΑΛΟΝΙΚΗΣ','ΓΡΕΒΕΝΩΝ','ΧΑΛΚΗΔΟΝΑΣ','ΑΣΠΡΟΒΑΛΤΑΣ','ΜΟΥΔΑΝΙΩΝ','ΚΑΣΣΑΝΔΡΕΙΑΣ','ΧΑΛΚΙΔΙΚΗΣ','ΜΑΓΝΗΣΙΑΣ','ΠΙΕΡΙΑΣ','ΚΑΡΔΙΤΣΑΣ','ΤΡΙΚΑΛΩΝ','ΚΟΖΑΝΗΣ','ΦΛΩΡΙΝΑΣ','ΚΑΣΤΟΡΙΑΣ','ΙΩΑΝΝΙΝΩΝ','ΑΡΤΑΣ','ΠΡΕΒΕΖΑΣ','ΘΕΣΠΡΩΤΙΑΣ','ΞΑΝΘΗΣ','ΚΟΜΟΤΗΝΗΣ','ΡΟΔΟΠΗΣ','ΕΒΡΟΥ','ΔΡΑΜΑΣ','ΚΑΒΑΛΑΣ','ΣΕΡΡΩΝ','ΚΙΛΚΙΣ','ΒΕΡΟΙΑΣ','ΕΔΕΣΣΑΣ','ΝΑΟΥΣΑΣ','ΓΙΑΝΝΙΤΣΩΝ','ΑΛΕΞΑΝΔΡΕΙΑΣ','ΠΟΛΥΓΥΡΟΥ','ΑΡΝΑΙΑΣ','ΣΤΑΥΡΟΥ','ΗΡΑΚΛΕΙΟΥ','ΧΑΝΙΩΝ','ΡΟΔΟΥ','ΑΘΗΝΩΝ','ΠΕΙΡΑΙΑΣ','ΝΙΚΑΙΑΣ','ΚΟΡΥΔΑΛΛΟΥ','ΚΗΦΙΣΙΑΣ','ΜΑΡΟΥΣΙΟΥ','ΧΑΛΑΝΔΡΙΟΥ','ΖΩΓΡΑΦΟΥ','ΓΛΥΦΑΔΑΣ','ΒΑΡΗΣ','ΤΡΙΠΟΛΗΣ','ΚΑΛΑΜΑΤΑΣ','ΜΕΣΣΗΝΗΣ','ΑΡΓΟΥΣ','ΝΑΥΠΛΙΟΥ','ΚΟΡΙΝΘΟΥ','ΛΟΥΤΡΑΚΙΟΥ','ΑΜΦΙΣΣΑΣ','ΛΕΒΑΔΕΙΑΣ','ΑΙΓΙΟΥ','ΟΡΕΣΤΙΑΔΑΣ','ΠΥΛΟΥ','ΑΜΦΙΛΟΧΙΑΣ'];
   const REMS = { license: 'δίπλωμα', plates: 'άδεια κυκλοφορίας και πινακίδες', both: 'δίπλωμα, άδεια κυκλοφορίας και πινακίδες', foreign: 'δίπλωμα εξωτερικού (χωρίς POL)' };
   const BLANK_DATES = { phone:'', appt:'', susp:'', return:'', inv1Send:'', inv1Proof:'', inv2Send:'', inv2Proof:'', inv3Send:'', inv3Proof:'', inv1Create:'', inv2Create:'', inv3Create:'', inv1Res:'', inv2Res:'', inv3Res:'', returned:'', closed:'', closedKind:'', callRes:'', searchNone:'', searchFound:'', docRecv:'', complaint:'', polRem:'', polRet:'', oos:'', oosDest:'', oosReason:'' };
 
@@ -514,13 +516,13 @@
     if (c.state === 'transmittal' && c.dates.complaint) return ['Δημιουργία διαβιβαστικού ενημέρωσης', actTransmit];
     return ACT[c.state];
   };
-  const NOSEC = ['pol_rem', 'pol_ret', 'suspended', 'to_return', 'transmittal'];
+  const NOSEC = [];
   const NO_APPT = ['to_return', 'pol_ret', 'transmittal', 'complaint'];
   const secondary = (c) => {
     const s = c.state, out = [];
     if (s === 'closed') return [['Άνοιγμα υπόθεσης', c => { if (confirm('Να ανοίξει ξανά η υπόθεση;')) act(c, 'Άνοιγμα υπόθεσης', () => { c.dates.closed = ''; c.dates.closedKind = ''; c.statePin = null; }); }]];
-    if (s === 'appointment') return out;
-    if (s !== 'informed' && !NO_APPT.includes(s)) out.push(['Κλείσιμο ραντεβού', actAppt]);
+    if (s === 'appointment') { out.push(['Αλλαγή ραντεβού', actAppt]); return out; }
+    if (s !== 'informed' && s !== 'appointment' && s !== 'transmittal' && s !== 'complaint' && s !== 'closed') out.push(['Κλείσιμο ραντεβού', actAppt]);
     const lastInv = [3, 2, 1].find(k => c.dates['inv' + k + 'Create']);
     if (lastInv) out.push(['Λήψη ' + lastInv + 'ης πρόσκλησης (Word)', c => sendInvitation(c, lastInv, c.dates['inv' + lastInv + 'Create'])]);
     if (!NOSEC.includes(s)) {
@@ -584,12 +586,14 @@
     ΜΑΓΝΗΣΙΑΣ: 'Μαγνησίας', ΦΘΙΩΤΙΔΑΣ: 'Φθιώτιδας', ΠΑΘΕ: 'ΠΑΘΕ', ΚΑΙ: 'και' };
   const titleWords = (s) => String(s || '').trim().split(/\s+/).filter(Boolean).map(w => PLACE[fold(w)] || tcase(w)).join(' ');
   const docService = (s) => {
-    const u = fold(s);
+    const u = fold(s).replace(/\s+/g, ' ').trim();
     if (!u) return '';
     if (/^(ΥΔΝΣΗ|ΥΠΟΔ)/.test(u)) return 'Υδ/νση Τροχαίας Θες/νικης';
     let m;
-    if ((m = /^ΑΤ\.?\s+(.+)$/.exec(u))) return 'Αστυνομικό Τμήμα ' + titleWords(m[1]);
-    if ((m = /^ΤΤ\.?\s+(.+)$/.exec(u))) return 'Τμήμα Τροχαίας ' + titleWords(m[1]);
+    if ((m = /^(?:Τ\s*\.?\s*Τ\s*\.?|ΤΤ|ΤΜΗΜΑ\s+ΤΡΟΧΑΙΑΣ)\s+(.+)$/.exec(u))) return 'Τμήμα Τροχαίας ' + titleWords(m[1]);
+    if ((m = /^(?:Α\s*\.?\s*Τ\s*\.?|ΑΤ|ΑΣΤΥΝΟΜΙΚΟ\s+ΤΜΗΜΑ)\s+(.+)$/.exec(u))) return 'Αστυνομικό Τμήμα ' + titleWords(m[1]);
+    if ((m = /^ΥΠΟΔΙΕΥΘΥΝΣΗ\s+ΤΡΟΧΑΙΑΣ\s+(.+)$/.exec(u))) return 'Υποδιεύθυνση Τροχαίας ' + titleWords(m[1]);
+    if ((m = /^ΔΙΕΥΘΥΝΣΗ\s+ΤΡΟΧΑΙΑΣ\s+(.+)$/.exec(u))) return 'Διεύθυνση Τροχαίας ' + titleWords(m[1]);
     return titleWords(s);
   };
   const splitAddr = (a) => {
@@ -976,7 +980,7 @@
       c.service && `<span><b>Υπηρεσία παράβασης:</b> ${esc(c.service)}</span>`,
       c.folder && `<span><b>Φάκελος:</b> ${esc(c.folder)}</span>`,
       c.fine && `<span><b>Πρόστιμο:</b> ${esc(c.fine)} €</span>`,
-      c.removalDays > 0 && `<span><b>Αφαίρεση:</b> ${esc(c.removalDays)} ημέρες · ${esc(REMS[c.removalWhat] || REMS.license)}</span>`,
+      (c.removalDays > 0 || c.dates.susp) && `<span><b>Αφαίρεση:</b> ${c.removalDays > 0 ? esc(c.removalDays) + ' ημέρες' : 'χωρίς ημέρες'} · ${esc(REMS[c.removalWhat] || REMS.license)}</span>`,
       c.protocol && `<span><b>Πρωτόκολλο:</b> ${esc(c.protocol)}</span>`,
       c.address && `<span><b>Διεύθυνση:</b> ${esc(c.address)}</span>`,
       c.violationType && `<span><b>Είδος παράβασης:</b> ${esc(c.violationType)}</span>`,
@@ -1093,8 +1097,11 @@
     w.append(b);
   });
   const refreshSvc = () => {
-    const s = new Set(['ΑΤ ΚΑΛΑΜΑΡΙΑΣ', 'ΤΤ ΚΑΛΑΜΑΡΙΑΣ', 'ΥΔΝΣΗ']); cases.forEach(c => { if (c.service) s.add(c.service); if (c.dates && c.dates.oosDest) s.add(c.dates.oosDest); });
-    $('#serviceList').innerHTML = [...s].sort().map(v => `<option value="${esc(v)}">`).join('');
+    const s = new Set(['ΑΤ ΚΑΛΑΜΑΡΙΑΣ','ΤΤ ΚΑΛΑΜΑΡΙΑΣ','ΥΔΝΣΗ']);
+    SVC_CITIES.forEach(ct => { s.add('ΤΤ ' + ct); s.add('ΑΤ ' + ct); });
+    cases.forEach(c => { if (c.service) s.add(c.service); if (c.dates && c.dates.oosDest) s.add(c.dates.oosDest); });
+    const dl = document.getElementById('serviceList');
+    if (dl) dl.innerHTML = [...s].sort().map(v => `<option value="${esc(v)}"></option>`).join('');
   };
   const CALLOPT = [['noanswer', 'Δεν απάντησε'], ['informed', 'Δεν έκλεισε ραντεβού'], ['booked', 'Έκλεισε ραντεβού']];
   const callRow = (k) => `<div class="er"><input type="date" class="cd" value="${esc(k.d || '')}"><select class="cr">${CALLOPT.map(o => `<option value="${o[0]}"${o[0] === k.r ? ' selected' : ''}>${o[1]}</option>`).join('')}</select><button type="button" class="x" aria-label="Διαγραφή">×</button></div>`;
@@ -1260,7 +1267,7 @@
       const v = o[k];
       if (k === 'plate') { E.plate.value = normPlate(v); checkPlate(E.plate.value); }
       else if (k === 'service') E.service.value = normText(v);
-      else if (k === 'violationType') { E.violationType.value = v; toggles(); }
+      else if (k === 'violationType') { E.violationType.value = v; toggles(); const d = ART_BY_VIOL[v]; if (d && !E.vArticle.value.trim()) E.vArticle.value = d; }
       else E[k].value = v;
     });
     
@@ -1318,7 +1325,12 @@
   window.addEventListener('popstate', () => { if (view === 'case') { view = prevView; openId = null; render(); } });
   $('#searchInput').oninput = (e) => { q = e.target.value; render(); };
   
-  $('#fFolder').onchange = toggles; $('#fViol').onchange = toggles;
+  $('#fFolder').onchange = toggles;
+  $('#fViol').onchange = () => {
+    toggles();
+    const t = E.violationType.value, def = ART_BY_VIOL[t];
+    if (def && (!E.vArticle.value.trim() || Object.values(ART_BY_VIOL).includes(E.vArticle.value.trim()))) E.vArticle.value = def;
+  };
   $('#btnNew').onclick = () => openForm(null);
   $('#btnFormCancel').onclick = () => dlgF.close();
   $('#btnHistoryClose').onclick = () => $('#dlgHistory').close();
