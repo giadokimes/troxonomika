@@ -50,7 +50,9 @@
     'Αναμονή αποδεικτικού': ['Αναμονή αποδεικτικού'],
     'Εκκρεμότητες': ['Αναζήτηση τηλεφώνου', 'Αποστολή πρόσκλησης', 'Διαβίβαση σε Υπηρεσία', 'Καταχώρηση POL']
   };
-  const VIOL = ['Υπερβολική ταχύτητα','ΚΤΕΟ','Διόδια','Στάθμευση'];
+  const VIOL = ['Υπερβολική ταχύτητα','Μέθη (αλκοόλ)','ΚΤΕΟ','Διόδια','Στάθμευση'];
+  // Άρθρο ΚΟΚ (Ν.5209/2025) που συμπληρώνεται αυτόματα όταν επιλέγεται το είδος παράβασης (μόνο αν το πεδίο είναι κενό)
+  const ART_AUTO = { 'Υπερβολική ταχύτητα': '24', 'Μέθη (αλκοόλ)': '46', 'ΚΤΕΟ': '90', 'Διόδια': '33' };
   const REMS = { license: 'δίπλωμα', plates: 'άδεια κυκλοφορίας και πινακίδες', both: 'δίπλωμα, άδεια κυκλοφορίας και πινακίδες', foreign: 'δίπλωμα εξωτερικού (χωρίς POL)' };
   const BLANK_DATES = { phone:'', appt:'', susp:'', return:'', inv1Send:'', inv1Proof:'', inv2Send:'', inv2Proof:'', inv3Send:'', inv3Proof:'', inv1Create:'', inv2Create:'', inv3Create:'', inv1Res:'', inv2Res:'', inv3Res:'', returned:'', closed:'', closedKind:'', callRes:'', searchNone:'', searchFound:'', docRecv:'', complaint:'', polRem:'', polRet:'', oos:'', oosDest:'', oosReason:'' };
 
@@ -515,10 +517,18 @@
     return ACT[c.state];
   };
   const NOSEC = ['pol_rem', 'pol_ret', 'suspended', 'to_return', 'transmittal'];
-  const NO_APPT = ['to_return', 'pol_ret', 'transmittal', 'complaint'];
+  const APPT_NO = ['pol_ret', 'transmittal', 'complaint', 'closed'];
+  // Κουμπιά ραντεβού: διαθέσιμα σε κάθε στάδιο όσο ο πολίτης έχει λόγο να προσέλθει (όχι μετά την απόδοση / την τελική διαβίβαση)
+  const apptBtns = (c) => {
+    if (APPT_NO.includes(c.state)) return '';
+    return (c.state === 'appointment' || apptTag(c))
+      ? `<button class="btn ghost" data-r="${c.id}">Αλλαγή ραντεβού</button><a class="btn ghost" target="_blank" rel="noopener" href="${esc(calLink(c))}">Google Calendar</a>`
+      : `<button class="btn ghost" data-r="${c.id}">Κλείσιμο ραντεβού</button>`;
+  };
   const secondary = (c) => {
     const s = c.state, out = [];
     if (s === 'closed') return [['Άνοιγμα υπόθεσης', c => { if (confirm('Να ανοίξει ξανά η υπόθεση;')) act(c, 'Άνοιγμα υπόθεσης', () => { c.dates.closed = ''; c.dates.closedKind = ''; c.statePin = null; }); }]];
+    if (s === 'appointment') return out;
     const lastInv = [3, 2, 1].find(k => c.dates['inv' + k + 'Create']);
     if (lastInv) out.push(['Λήψη ' + lastInv + 'ης πρόσκλησης (Word)', c => sendInvitation(c, lastInv, c.dates['inv' + lastInv + 'Create'])]);
     if (!NOSEC.includes(s)) {
@@ -579,16 +589,26 @@
   };
   const PLACE = { ΛΗΤΗΣ: 'Λητής', ΘΕΡΜΗΣ: 'Θέρμης', ΓΡΕΒΕΝΩΝ: 'Γρεβενών', ΒΟΛΟΥ: 'Βόλου', ΧΑΛΚΗΔΟΝΑΣ: 'Χαλκηδόνας', ΑΣΠΡΟΒΑΛΤΑΣ: 'Ασπροβάλτας', ΜΟΥΔΑΝΙΩΝ: 'Μουδανιών',
     ΤΟΥΜΠΑΣ: 'Τούμπας', ΚΑΣΣΑΝΔΡΕΙΑΣ: 'Κασσάνδρειας', ΤΗΝΟΥ: 'Τήνου', ΧΑΛΚΙΔΙΚΗΣ: 'Χαλκιδικής', ΕΙΣΑΓΓΕΛΙΑ: 'Εισαγγελία', ΘΕΣΣΑΛΟΝΙΚΗΣ: 'Θεσσαλονίκης', ΚΑΛΑΜΑΡΙΑΣ: 'Καλαμαριάς',
-    ΜΑΓΝΗΣΙΑΣ: 'Μαγνησίας', ΦΘΙΩΤΙΔΑΣ: 'Φθιώτιδας', ΠΑΘΕ: 'ΠΑΘΕ', ΚΑΙ: 'και' };
+    ΜΑΓΝΗΣΙΑΣ: 'Μαγνησίας', ΦΘΙΩΤΙΔΑΣ: 'Φθιώτιδας', ΠΑΘΕ: 'ΠΑΘΕ', ΚΑΙ: 'και',
+    ΑΘΗΝΩΝ: 'Αθηνών', ΠΕΙΡΑΙΑ: 'Πειραιά', ΠΑΤΡΩΝ: 'Πατρών', ΗΡΑΚΛΕΙΟΥ: 'Ηρακλείου', ΧΑΝΙΩΝ: 'Χανίων', ΡΕΘΥΜΝΟΥ: 'Ρεθύμνου', ΙΩΑΝΝΙΝΩΝ: 'Ιωαννίνων',
+    ΚΑΒΑΛΑΣ: 'Καβάλας', ΣΕΡΡΩΝ: 'Σερρών', ΔΡΑΜΑΣ: 'Δράμας', ΚΟΜΟΤΗΝΗΣ: 'Κομοτηνής', ΞΑΝΘΗΣ: 'Ξάνθης', ΑΛΕΞΑΝΔΡΟΥΠΟΛΗΣ: 'Αλεξανδρούπολης', ΚΙΛΚΙΣ: 'Κιλκίς',
+    ΠΟΛΥΓΥΡΟΥ: 'Πολυγύρου', ΚΑΤΕΡΙΝΗΣ: 'Κατερίνης', ΒΕΡΟΙΑΣ: 'Βέροιας', ΝΑΟΥΣΑΣ: 'Νάουσας', ΕΔΕΣΣΑΣ: 'Έδεσσας', ΦΛΩΡΙΝΑΣ: 'Φλώρινας', ΚΑΣΤΟΡΙΑΣ: 'Καστοριάς',
+    ΚΟΖΑΝΗΣ: 'Κοζάνης', ΤΡΙΚΑΛΩΝ: 'Τρικάλων', ΚΑΡΔΙΤΣΑΣ: 'Καρδίτσας', ΛΑΜΙΑΣ: 'Λαμίας', ΧΑΛΚΙΔΑΣ: 'Χαλκίδας', ΛΙΒΑΔΕΙΑΣ: 'Λιβαδειάς', ΑΡΤΑΣ: 'Άρτας',
+    ΠΡΕΒΕΖΑΣ: 'Πρέβεζας', ΗΓΟΥΜΕΝΙΤΣΑΣ: 'Ηγουμενίτσας', ΚΕΡΚΥΡΑΣ: 'Κέρκυρας', ΛΑΡΙΣΑΣ: 'Λάρισας', ΣΤΥΛΙΔΑΣ: 'Στυλίδας', ΕΛΑΣΣΟΝΑΣ: 'Ελασσόνας',
+    ΓΙΑΝΝΙΤΣΩΝ: 'Γιαννιτσών', ΣΚΥΔΡΑΣ: 'Σκύδρας', ΑΛΕΞΑΝΔΡΕΙΑΣ: 'Αλεξάνδρειας', ΛΑΓΚΑΔΑ: 'Λαγκαδά', ΣΟΧΟΥ: 'Σοχού', ΕΥΟΣΜΟΥ: 'Εύοσμου',
+    ΣΤΑΥΡΟΥΠΟΛΗΣ: 'Σταυρούπολης', ΝΕΑΠΟΛΗΣ: 'Νεάπολης', ΑΜΠΕΛΟΚΗΠΩΝ: 'Αμπελοκήπων', ΑΤΤΙΚΗΣ: 'Αττικής', ΕΛΕΥΣΙΝΑΣ: 'Ελευσίνας', ΜΕΓΑΡΩΝ: 'Μεγάρων',
+    ΑΧΑΡΝΩΝ: 'Αχαρνών', ΠΕΡΙΣΤΕΡΙΟΥ: 'Περιστερίου', ΓΛΥΦΑΔΑΣ: 'Γλυφάδας', ΚΗΦΙΣΙΑΣ: 'Κηφισιάς', ΧΑΛΑΝΔΡΙΟΥ: 'Χαλανδρίου', ΚΟΡΙΝΘΟΥ: 'Κορίνθου',
+    ΤΡΙΠΟΛΗΣ: 'Τρίπολης', ΚΑΛΑΜΑΤΑΣ: 'Καλαμάτας', ΣΠΑΡΤΗΣ: 'Σπάρτης', ΠΥΡΓΟΥ: 'Πύργου', ΜΥΤΙΛΗΝΗΣ: 'Μυτιλήνης', ΧΙΟΥ: 'Χίου', ΡΟΔΟΥ: 'Ρόδου', ΖΑΚΥΝΘΟΥ: 'Ζακύνθου' };
   const titleWords = (s) => String(s || '').trim().split(/\s+/).filter(Boolean).map(w => PLACE[fold(w)] || tcase(w)).join(' ');
+  // «ΤΤ ΘΕΡΜΗΣ», «Τ.Τ. ΘΕΡΜΗΣ», «Τμήμα Τροχαίας Θέρμης» → «Τμήμα Τροχαίας Θέρμης» (όχι όλα κεφαλαία)
   const docService = (s) => {
-    const u = fold(s);
+    const u = fold(s).replace(/\./g, ' ').replace(/\s+/g, ' ').trim();
     if (!u) return '';
-    if (/^(ΥΔΝΣΗ|ΥΠΟΔ)/.test(u)) return 'Υδ/νση Τροχαίας Θες/νικης';
     let m;
-    if ((m = /^ΑΤ\.?\s+(.+)$/.exec(u))) return 'Αστυνομικό Τμήμα ' + titleWords(m[1]);
-    if ((m = /^ΤΤ\.?\s+(.+)$/.exec(u))) return 'Τμήμα Τροχαίας ' + titleWords(m[1]);
-    return titleWords(s);
+    if (/^(Υ ?Δ ?Ν ?Σ ?Η|ΥΠΟΔ)/.test(u)) return 'Υδ/νση Τροχαίας Θες/νικης';
+    if ((m = /^(?:ΑΣΤΥΝΟΜΙΚΟ ΤΜΗΜΑ|Α ?Τ) (.+)$/.exec(u))) return 'Αστυνομικό Τμήμα ' + titleWords(m[1]);
+    if ((m = /^(?:ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ|Τ ?Τ) (.+)$/.exec(u))) return 'Τμήμα Τροχαίας ' + titleWords(m[1]);
+    return titleWords(u);
   };
   const splitAddr = (a) => {
     a = String(a || '').trim(); if (!a) return { street: '', num: '' };
@@ -883,12 +903,14 @@
     const pls = c.state === 'closed' ? [] : phoneList(c.phone);
     const cls = hotState(c) ? 'o' : urgent(c) ? 'u' : '', n = invDone(c);
     const at = apptTag(c), when = [whenText(c), at].filter(Boolean).join(' · '), lead = badge ? '' : pendingLabel(c);
+    const rt = (c.removalDays > 0 && !c.dates.susp && c.state !== 'closed') ? `<div class="rc-r">Αφαίρεση ${esc(c.removalDays)} ημ. · ${esc(cap1(REMS[c.removalWhat] || REMS.license))}</div>` : '';
     const sv = [c.service, c.notes ? 'ΣΗΜ: ' + String(c.notes).split('\n')[0].slice(0, 40) : ''].filter(Boolean).join(' · ');
     return `<div class="rc ${cls}" data-open="${c.id}">
       <div class="rc-m">
         <div class="rc-t"><b>${esc(c.plate)}</b><span>${esc(c.name)}</span>${n ? `<em>${n}/3</em>` : ''}</div>
         ${badge || lead ? `<div class="rc-s">${badge ? `<span class="bd t-${s.t}">${esc(s.l)}</span>` : ''}${esc(lead)}</div>` : ''}
         ${when ? `<div class="rc-w">${esc(when)}</div>` : ''}
+        ${rt}
         ${sv ? `<div class="rc-v">${esc(sv)}</div>` : ''}
         ${c.moveTo ? `<div class="rc-f">Φάκελος → ${esc(c.moveTo)}</div>` : ''}
         <div class="rc-p"><i style="width:${stepPct(c)}%"></i></div>
@@ -965,7 +987,7 @@
     const nO = (pc[normPlate(c.plate)] || 1) - 1;
     const nP = cases.filter(x => x.id !== c.id && fold(x.name) === fold(c.name)).length;
     let sec = '';
-    if (c.state === 'appointment' || apptTag(c)) sec += `<a class="btn ghost" target="_blank" rel="noopener" href="${esc(calLink(c))}">Προσθήκη στο Google Calendar</a>`;
+    const quick = apptBtns(c);
     secondary(c).forEach((x, i) => { sec += `<button class="btn ghost" data-b="${c.id}|${i}">${x[0]}</button>`; });
     if (c.state !== 'closed' && !c.dates.oos) sec += `<button class="btn ghost" data-oos="${c.id}">Εκτός αρμοδιότητας</button>`;
     const det = [
@@ -980,13 +1002,13 @@
       c.violationType && `<span><b>Είδος παράβασης:</b> ${esc(c.violationType)}</span>`,
       `<span><b>Παραλαβή εγγράφου:</b> ${esc(fmt(c.receivedDate))}</span>`
     ].filter(Boolean).join('');
-    return `<div class="d-hd"><div class="d-pl">${esc(c.plate)}</div><div class="d-nm">${esc(c.name)}${c.service ? ' · ' + esc(c.service) : ''}</div><div><span class="bd t-${s.t}">${esc(s.l)}</span></div></div>
+    return `<div class="d-hd"><div class="d-pl">${esc(c.plate)}</div><div class="d-nm">${esc(c.name)}${c.service ? ' · ' + esc(c.service) : ''}</div><div><span class="bd t-${s.t}">${esc(s.l)}</span></div>${c.removalDays > 0 ? `<div class="d-rem">Αφαίρεση: ${esc(c.removalDays)} ημέρες · ${esc(cap1(REMS[c.removalWhat] || REMS.license))}</div>` : ''}</div>
       ${pls.length ? `<div class="tels">${pls.map(x => `<a class="tel" href="${esc(telHref(x))}">Κλήση ${esc(x)}</a>`).join('')}</div>` : ''}
       <div class="d-next ${cls}"><small>Επόμενη ενέργεια</small>
         ${a ? `<button class="btn pri big" data-a="${c.id}">${esc(a[0])}</button>` : (nl ? `<strong>${esc(nl)}</strong>` : '')}
         ${wt ? `<span>${esc(wt)}</span>` : ''}${apptTag(c) ? `<span>${esc(apptTag(c))}</span>` : ''}</div>
+      ${quick ? `<div class="quick">${quick}</div>` : ''}
       ${c.moveTo ? `<div class="mvbox"><span>Μετακίνηση φακέλου: <b>${esc(c.moveTo)}</b></span><button class="btn ghost" data-mv="${c.id}">Μετακινήθηκε</button></div>` : ''}
-      ${(c.state !== 'closed' && c.state !== 'transmittal' && c.state !== 'complaint') ? `<button class="btn ghost apptbar" data-r="${c.id}">${liveAppt(c) ? 'Αλλαγή ραντεβού · ' + sd(lastAppt(c).d) : 'Κλείσιμο ραντεβού'}</button>` : ''}
       ${stepper(c)}
       ${sec ? `<details class="more"><summary>Άλλες ενέργειες</summary><div class="sec">${sec}</div></details>` : ''}
       <h3 class="d-h">Ιστορικό</h3>
@@ -1056,6 +1078,7 @@
   const toggles = () => {
     $('#fFolderCustomWrap').hidden = $('#fFolder').value !== 'custom';
     $('#fViolCustomWrap').hidden = $('#fViol').value !== 'custom';
+    { const w = $('#fRemWhatWrap'); if (w) w.hidden = !(Number(E.removalDays.value) > 0); }
   };
 
   const checkPlate = (val) => {
@@ -1084,16 +1107,56 @@
   const DL = { searchFound: 'Βρέθηκε τηλέφωνο', searchNone: 'Δεν βρέθηκε τηλέφωνο', susp: 'Αφαίρεση', polRem: 'POL αφαίρεσης', returned: 'Απόδοση', polRet: 'POL απόδοσης',
     docRecv: 'Παραλαβή εγγράφου', oos: 'Εκτός αρμοδιότητας', oosDest: 'Υπηρεσία προορισμού', oosReason: 'Αιτιολογία', complaint: 'Μήνυση', closed: 'Κλείσιμο', closedKind: 'Είδος κλεισίματος' };
   [1, 2, 3].forEach(n => { DL['inv' + n + 'Create'] = n + 'η δημιουργία πρόσκλησης'; DL['inv' + n + 'Send'] = n + 'η αποστολή πρόσκλησης'; DL['inv' + n + 'Proof'] = n + 'ο αποδεικτικό'; DL['inv' + n + 'Res'] = n + 'ο αποδεικτικό (αποτέλεσμα)'; });
-  F.querySelectorAll('.adv input[type=date]:not([readonly])').forEach(inp => {
+  F.querySelectorAll('.adv input[type=date]:not([readonly]), .wrapdate input[type=date]').forEach(inp => {
     const w = document.createElement('span'); w.className = 'dw';
     inp.parentNode.insertBefore(w, inp); w.append(inp);
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'clr'; b.textContent = 'Καθαρισμός';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'clr'; b.textContent = '×'; b.setAttribute('aria-label', 'Καθαρισμός ημερομηνίας');
     b.onclick = () => { inp.value = ''; };
     w.append(b);
   });
   const refreshSvc = () => {
     const s = new Set(['ΑΤ ΚΑΛΑΜΑΡΙΑΣ', 'ΤΤ ΚΑΛΑΜΑΡΙΑΣ', 'ΥΔΝΣΗ']); cases.forEach(c => { if (c.service) s.add(c.service); if (c.dates && c.dates.oosDest) s.add(c.dates.oosDest); });
     $('#serviceList').innerHTML = [...s].sort().map(v => `<option value="${esc(v)}">`).join('');
+  };
+  // Προτάσεις υπηρεσίας κατά την πληκτρολόγηση (από το ιστορικό των καταχωρήσεων, χωρίς τόνους/πεζά-κεφαλαία)
+  const canonSvc = (v) => normText(String(v || '').replace(/\./g, ''));
+  const svcPool = () => {
+    const cnt = new Map();
+    ['ΑΤ ΚΑΛΑΜΑΡΙΑΣ', 'ΤΤ ΚΑΛΑΜΑΡΙΑΣ', 'ΥΔΝΣΗ'].forEach(v => cnt.set(v, 0));
+    cases.forEach(c => { [c.service, c.dates && c.dates.oosDest].forEach(v => { const k = canonSvc(v); if (k) cnt.set(k, (cnt.get(k) || 0) + 1); }); });
+    return [...cnt.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'el')).map(x => x[0]);
+  };
+  const attachSug = (input, box) => {
+    if (!input || !box) return;
+    const hide = () => { box.hidden = true; box.innerHTML = ''; };
+    const show = () => {
+      const raw = fold(String(input.value || '').replace(/\./g, '')).trim();
+      const qs = raw.split(' ').filter(Boolean);
+      const out = svcPool().filter(p => fold(p) !== raw && qs.every(t => fold(p).includes(t)));
+      if (raw) out.sort((a, b) => (fold(b).startsWith(raw) ? 1 : 0) - (fold(a).startsWith(raw) ? 1 : 0));
+      const top = out.slice(0, 6);
+      if (!top.length) { hide(); return; }
+      box.innerHTML = top.map(p => `<button type="button" class="sug-i">${esc(p)}</button>`).join('');
+      box.hidden = false;
+    };
+    input.addEventListener('input', show);
+    input.addEventListener('focus', show);
+    input.addEventListener('blur', () => setTimeout(hide, 250));
+    box.addEventListener('mousedown', (e) => e.preventDefault());
+    box.addEventListener('click', (e) => { const b = e.target.closest('.sug-i'); if (!b) return; input.value = b.textContent; hide(); input.dispatchEvent(new Event('change', { bubbles: true })); });
+  };
+  const autoArticle = () => {
+    const cur = String(E.vArticle.value || '').trim();
+    if (cur && !Object.values(ART_AUTO).includes(cur)) return;   // δεν πειράζουμε άρθρο που έχει συμπληρωθεί από το έγγραφο ή με το χέρι
+    E.vArticle.value = ART_AUTO[E.violationType.value] || '';
+  };
+  const sumSections = (c) => {
+    const D = c ? c.dates : {}, set = (id, v) => { const el = $('#' + id); if (el) el.textContent = v || ''; };
+    set('sumWhere', c ? (c.folder || '—') : '—');
+    set('sumComm', c ? ((c.calls || []).length + ' κλήσεις · ' + (c.appts || []).length + ' ραντεβού') : '—');
+    set('sumRem', c ? (D.susp ? 'Αφαίρεση ' + sd(D.susp) + (D.returned ? ' · Απόδοση ' + sd(D.returned) : '') : (c.removalDays > 0 ? 'Εκκρεμεί · ' + c.removalDays + ' ημ.' : '—')) : '—');
+    set('sumInv', c ? ([1, 2, 3].filter(n => D['inv' + n + 'Send'] || D['inv' + n + 'Create']).length + ' από 3') : '—');
+    set('sumEnd', c ? (D.closed ? 'Κλείσιμο ' + sd(D.closed) : D.complaint ? 'Μήνυση ' + sd(D.complaint) : D.oos ? 'Εκτός αρμοδιότητας' : '—') : '—');
   };
   const CALLOPT = [['noanswer', 'Δεν απάντησε'], ['informed', 'Δεν έκλεισε ραντεβού'], ['booked', 'Έκλεισε ραντεβού']];
   const callRow = (k) => `<div class="er"><input type="date" class="cd" value="${esc(k.d || '')}"><select class="cr">${CALLOPT.map(o => `<option value="${o[0]}"${o[0] === k.r ? ' selected' : ''}>${o[1]}</option>`).join('')}</select><button type="button" class="x" aria-label="Διαγραφή">×</button></div>`;
@@ -1136,6 +1199,8 @@
     $('#callRows').innerHTML = (c ? c.calls || [] : []).map(callRow).join('');
     $('#apptRows').innerHTML = (c ? c.appts || [] : []).map(apptRow).join('');
     F.querySelector('.adv').open = !!adv;
+    F.querySelectorAll('.sub').forEach(d => { d.open = false; });
+    sumSections(c);
     if (c) {
       E.plate.value = c.plate; E.name.value = c.name; E.service.value = c.service || ''; E.phone.value = c.phone || '';
       E.receivedDate.value = c.receivedDate;
@@ -1181,6 +1246,7 @@
     D.closedKind = D.closed ? (D.closedKind || 'transmittal') : '';
     if (D.susp && days) D.return = addDays(D.susp, days);
 
+    if (!String(E.vArticle.value || '').trim() && ART_AUTO[E.violationType.value]) E.vArticle.value = ART_AUTO[E.violationType.value];
     let plate = String(E.plate.value || '').replace(/\/+$/, ''), proto = buildProtocol();
     const pm = /^(.*?)\/(\d{2,3})$/.exec(plate); if (pm) { plate = pm[1]; if (!proto) proto = autoPrefix(pm[2], yy2(E.receivedDate.value)) + pm[2]; }
     const recv = E.receivedDate.value;
@@ -1317,7 +1383,10 @@
   window.addEventListener('popstate', () => { if (view === 'case') { view = prevView; openId = null; render(); } });
   $('#searchInput').oninput = (e) => { q = e.target.value; render(); };
   
-  $('#fFolder').onchange = toggles; $('#fViol').onchange = toggles;
+  $('#fFolder').onchange = toggles;
+  $('#fViol').onchange = () => { toggles(); autoArticle(); };
+  E.removalDays.addEventListener('input', toggles);
+  attachSug(E.service, $('#svcSug')); attachSug(E.d_oosDest, $('#oosSug'));
   $('#btnNew').onclick = () => openForm(null);
   $('#btnFormCancel').onclick = () => dlgF.close();
   $('#btnHistoryClose').onclick = () => $('#dlgHistory').close();
@@ -1326,6 +1395,24 @@
       cases = cases.filter(x => x.id !== F.dataset.id); save(); render(); dlgF.close();
     }
   };
+
+  // Ανάκτηση ημερών αφαίρεσης από παλιά δεδομένα που δεν σβήστηκαν από το κινητό (πριν την αναβάθμιση σχήματος)
+  const recoverRemovals = () => {
+    const old = new Map();
+    ['troxonomika_pre5'].concat(OLD).forEach(k => {
+      let arr = null; try { arr = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return; }
+      if (!Array.isArray(arr)) return;
+      arr.forEach(o => { if (o && o.id && o.state && o.dates && o.requiresLicense && Number(o.removalDays) > 0 && !old.has(o.id)) old.set(o.id, o); });
+    });
+    const todo = cases.filter(c => !(c.removalDays > 0) && old.has(c.id));
+    if (!todo.length) { alert('Δεν βρέθηκαν παλιά δεδομένα με ημέρες αφαίρεσης που να λείπουν από τις τρέχουσες υποθέσεις.'); return; }
+    const list = todo.slice(0, 12).map(c => c.plate + ' — ' + old.get(c.id).removalDays + ' ημ.').join('\n');
+    if (!confirm('Βρέθηκαν ' + todo.length + ' υποθέσεις χωρίς ημέρες αφαίρεσης, που στα παλιά δεδομένα είχαν:\n' + list + (todo.length > 12 ? '\n…' : '') + '\n\nΝα επαναφερθούν;')) return;
+    todo.forEach(c => { const o = old.get(c.id); c.removalDays = Number(o.removalDays); c.requiresLicense = true; c.removalWhat = o.removalWhat || c.removalWhat || 'license'; reconcile(c); });
+    save(); render();
+    alert('Επαναφέρθηκαν ημέρες αφαίρεσης σε ' + todo.length + ' υποθέσεις.');
+  };
+  { const br = $('#btnRecover'); if (br) br.onclick = recoverRemovals; }
 
   $('#btnExport').onclick = () => {
     const a = document.createElement('a');

@@ -44,6 +44,7 @@
       <button class="mrow" id="btnExport"><b>Backup</b><span id="lastBackup"></span></button>
       <button class="mrow" id="btnImport"><b>Επαναφορά από αρχείο</b><span>Αντικαθιστά τις τρέχουσες υποθέσεις</span></button>
       <button class="mrow" id="btnPrint"><b>Εκτύπωση λίστας</b><span>A4 οριζόντια</span></button>
+      <button class="mrow" id="btnRecover"><b>Ανάκτηση αφαιρέσεων</b><span>Επαναφορά ημερών αφαίρεσης από παλιά δεδομένα του κινητού</span></button>
       <input type="file" id="importFile" accept=".json,application/json,text/plain" hidden>
       <div class="msum" id="menuSum"></div>
     </div>
@@ -58,6 +59,7 @@
   <button data-nav="menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Μενού</span></button>
 </nav>
 
+<!-- Modal Φόρμας -->
 <dialog id="dlgForm">
   <form id="caseForm" class="dlg">
     <h2 id="formTitle">Νέα Υπόθεση</h2>
@@ -73,30 +75,36 @@
         <div id="plateWarning" class="warn-text" style="display:none;"></div>
       </label>
       <label class="full">Ονοματεπώνυμο *<input name="name" required autocomplete="off" placeholder="ΕΠΩΝΥΜΟ ΟΝΟΜΑ"></label>
-      <label>Τηλέφωνο<input name="phone" type="tel"></label>
-      <label>Ημ. Παραλαβής *<input type="date" name="receivedDate" required></label>
-      <label class="full">Περιγραφή παράβασης
-        <select name="violationType" id="fViol">
-          <option value="">—</option>
-          <option>Υπερβολική ταχύτητα</option>
-          <option>Μέθη</option>
-          <option>ΚΤΕΟ</option>
-          <option>Διόδια</option>
-          <option>Στάθμευση</option>
-          <option value="custom">Άλλο (ελεύθερο κείμενο)...</option>
-        </select>
-      </label>
-      <label class="full" id="fViolCustomWrap" hidden>Περιγραφή (άλλο)<input name="violationOther"></label>
-      <label class="full">Τι αφορά (είδος εγγράφου)
-        <select name="docType" id="fDoc">
-          <option>Κλήση</option>
-          <option>Απόφαση</option>
-          <option>Παραλαβή εγγράφου</option>
-        </select>
-      </label>
-      <label>Πρόστιμο (€)<input type="number" name="fine" min="0" step="0.01"></label>
-      <label>Ημέρες αφαίρεσης<input type="number" name="removalDays" min="0" placeholder="π.χ. 30"></label>
-      <label class="full">Προς αφαίρεση
+      <div class="duo full">
+        <label>Τηλέφωνο<input name="phone" type="tel"></label>
+        <label>Ημ. παραλαβής *<input type="date" name="receivedDate" required></label>
+      </div>
+      <div class="duo full">
+        <label>Τι αφορά
+          <select name="docType" id="fDoc">
+            <option>Κλήση</option>
+            <option>Απόφαση</option>
+            <option>Παραλαβή εγγράφου</option>
+          </select>
+        </label>
+        <label>Παράβαση
+          <select name="violationType" id="fViol">
+            <option value="">—</option>
+            <option>Υπερβολική ταχύτητα</option>
+            <option>Μέθη (αλκοόλ)</option>
+            <option>ΚΤΕΟ</option>
+            <option>Διόδια</option>
+            <option>Στάθμευση</option>
+            <option value="custom">Άλλο...</option>
+          </select>
+        </label>
+      </div>
+      <label class="full" id="fViolCustomWrap" hidden>Περιγραφή παράβασης (άλλο)<input name="violationOther"></label>
+      <div class="duo full">
+        <label>Πρόστιμο (€)<input type="number" name="fine" min="0" step="0.01"></label>
+        <label>Ημέρες αφαίρεσης<input type="number" name="removalDays" min="1" placeholder="π.χ. 30"></label>
+      </div>
+      <label class="full" id="fRemWhatWrap" hidden>Προς αφαίρεση
         <select name="removalWhat">
           <option value="license">Δίπλωμα</option>
           <option value="plates">Άδεια κυκλοφορίας και πινακίδες</option>
@@ -105,36 +113,94 @@
         </select>
       </label>
       <label class="full">Υπηρεσία παράβασης
-        <input name="service" list="serviceList" autocomplete="off" placeholder="π.χ. ΤΤ ΘΕΡΜΗΣ — γράψε 2-3 γράμματα">
-        <datalist id="serviceList"></datalist>
+        <input name="service" autocomplete="off" placeholder="π.χ. ΥΔΝΣΗ ή ΤΤ ΛΗΤΗΣ">
+        <div class="sug" id="svcSug" hidden></div>
       </label>
       <label class="full">Αρ. πρωτοκόλλου
         <div class="two"><select name="protocolPrefix"></select><input name="protocolNum" inputmode="numeric" autocomplete="off" placeholder="τελικό νούμερο, π.χ. 451"></div>
       </label>
-      <label class="full">Διεύθυνση κατοικίας<input name="address" autocomplete="off" placeholder="π.χ. Φιλαδελφείας 22"></label>
       <label class="full">Παρατηρήσεις<textarea name="notes" rows="2"></textarea></label>
     </div>
 
-    <details class="adv">
-      <summary>Στοιχεία παράβασης (για την πρόσκληση)</summary>
-      <div class="grid g2">
-        <label>Ημερομηνία παράβασης<input type="date" name="vDate"></label>
+    <div class="grid blk wrapdate">
+      <div class="fsec full"><b>Για την πρόσκληση</b></div>
+      <div class="duo full">
+        <label>Ημ. παράβασης<input type="date" name="vDate"></label>
         <label>Άρθρο<input name="vArticle" autocomplete="off" placeholder="π.χ. 24§9αγ"></label>
-        <label class="full">Τόπος παράβασης<input name="vPlace" autocomplete="off" placeholder="π.χ. 39+370 χ/θ της Π.Ε.Ο. Λάρισας - Βόλου"></label>
-        <div class="full"><button type="button" class="btn ghost sm" id="btnGenInv">Δημιουργία πρόσκλησης (Word) από τα στοιχεία της φόρμας</button></div>
       </div>
-    </details>
+      <label class="full">Τόπος παράβασης<input name="vPlace" autocomplete="off" placeholder="π.χ. 39+370 χ/θ της Π.Ε.Ο. Λάρισας - Βόλου"></label>
+      <div class="full"><button type="button" class="btn ghost sm" id="btnGenInv">Δημιουργία πρόσκλησης (αρχείο Word) από τα στοιχεία της φόρμας</button></div>
+    </div>
 
     <details class="adv">
       <summary>Προχωρημένη διόρθωση</summary>
-      <label class="full">Αλλαγή κατάστασης<select name="manualState"></select></label>
-      <div class="pinhint">«Αυτόματο» = η φάση υπολογίζεται από τις ημερομηνίες.</div>
+      <label class="full">Αλλαγή κατάστασης
+        <select name="manualState"></select>
+      </label>
+      <div class="pinhint">«Αυτόματο» = η φάση υπολογίζεται από τις ημερομηνίες. Με χειροκίνητη επιλογή, η πορεία συνεχίζει αυτόματα από τη νέα φάση.</div>
 
       <details class="sub">
-        <summary>Φάκελος &amp; διαδρομή</summary>
-        <div class="grid g2">
-          <label class="full">Θέση φακέλου<select name="folderSelect" id="fFolder"></select></label>
-          <label class="full" id="fFolderCustomWrap" hidden>Νέος φάκελος<input name="folderCustom"></label>
+        <summary><span>Επικοινωνία</span><small id="sumComm"></small></summary>
+        <div class="grid">
+          <div class="full eds"><b>Κλήσεις</b><div id="callRows"></div><button type="button" class="btn ghost sm" id="addCall">Προσθήκη κλήσης</button></div>
+          <div class="full eds"><b>Ραντεβού</b><div id="apptRows"></div><button type="button" class="btn ghost sm" id="addAppt">Προσθήκη ραντεβού</button></div>
+          <div class="duo full">
+            <label>Βρέθηκε τηλέφωνο<input type="date" name="d_searchFound"></label>
+            <label>Δεν βρέθηκε τηλέφωνο<input type="date" name="d_searchNone"></label>
+          </div>
+        </div>
+      </details>
+
+      <details class="sub">
+        <summary><span>Προσκλήσεις</span><small id="sumInv"></small></summary>
+        <div class="grid">
+          <div class="inv full">
+            <div class="inv-h">1η πρόσκληση</div>
+            <div class="duo">
+              <label>Δημιουργία<input type="date" name="d_inv1Create"></label>
+              <label>Αποστολή<input type="date" name="d_inv1Send"></label>
+              <label>Αποδεικτικό<input type="date" name="d_inv1Proof"></label>
+              <label>Αποτέλεσμα<select name="d_inv1Res"><option value="">—</option><option value="ok">Βρέθηκε / μένει εκεί</option><option value="bad">Λάθος διεύθυνση / δεν μένει</option></select></label>
+            </div>
+          </div>
+          <div class="inv full">
+            <div class="inv-h">2η πρόσκληση</div>
+            <div class="duo">
+              <label>Δημιουργία<input type="date" name="d_inv2Create"></label>
+              <label>Αποστολή<input type="date" name="d_inv2Send"></label>
+              <label>Αποδεικτικό<input type="date" name="d_inv2Proof"></label>
+              <label>Αποτέλεσμα<select name="d_inv2Res"><option value="">—</option><option value="ok">Βρέθηκε / μένει εκεί</option><option value="bad">Λάθος διεύθυνση / δεν μένει</option></select></label>
+            </div>
+          </div>
+          <div class="inv full">
+            <div class="inv-h">3η πρόσκληση</div>
+            <div class="duo">
+              <label>Δημιουργία<input type="date" name="d_inv3Create"></label>
+              <label>Αποστολή<input type="date" name="d_inv3Send"></label>
+              <label>Αποδεικτικό<input type="date" name="d_inv3Proof"></label>
+              <label>Αποτέλεσμα<select name="d_inv3Res"><option value="">—</option><option value="ok">Βρέθηκε / μένει εκεί</option><option value="bad">Λάθος διεύθυνση / δεν μένει</option></select></label>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="sub">
+        <summary><span>Αφαίρεση και απόδοση</span><small id="sumRem"></small></summary>
+        <div class="grid">
+          <div class="duo full">
+            <label>Αφαίρεση<input type="date" name="d_susp"></label>
+            <label>Λήξη (αυτόματα)<input type="date" name="d_return" readonly></label>
+            <label>POL αφαίρεσης<input type="date" name="d_polRem"></label>
+            <label>Απόδοση<input type="date" name="d_returned"></label>
+            <label>POL απόδοσης<input type="date" name="d_polRet"></label>
+            <label>Παραλαβή εγγράφου (χωρίς αφαίρεση)<input type="date" name="d_docRecv"></label>
+          </div>
+        </div>
+      </details>
+
+      <details class="sub">
+        <summary><span>Διαβίβαση και κλείσιμο</span><small id="sumEnd"></small></summary>
+        <div class="grid">
           <label class="full">Τέλος διαδικασίας
             <select name="endRoute">
               <option value="">Αυτόματο (κλήση → διαβιβαστικό · απόφαση → μήνυση)</option>
@@ -142,64 +208,26 @@
               <option value="transmittal">Διαβιβαστικό</option>
             </select>
           </label>
-        </div>
-      </details>
-
-      <details class="sub">
-        <summary>Επικοινωνία</summary>
-        <div class="grid g2">
-          <div class="full eds"><b>Κλήσεις</b><div id="callRows"></div><button type="button" class="btn ghost sm" id="addCall">+ Κλήση</button></div>
-          <div class="full eds"><b>Ραντεβού</b><div id="apptRows"></div><button type="button" class="btn ghost sm" id="addAppt">+ Ραντεβού</button></div>
-          <label>Βρέθηκε τηλ.<input type="date" name="d_searchFound"></label>
-          <label>Δεν βρέθηκε τηλ.<input type="date" name="d_searchNone"></label>
-        </div>
-      </details>
-
-      <details class="sub">
-        <summary>Αφαίρεση &amp; απόδοση</summary>
-        <div class="grid g2">
-          <label>Αφαίρεση<input type="date" name="d_susp"></label>
-          <label>Λήξη (auto)<input type="date" name="d_return" readonly></label>
-          <label>POL αφαίρεσης<input type="date" name="d_polRem"></label>
-          <label>Απόδοση<input type="date" name="d_returned"></label>
-          <label>POL απόδοσης<input type="date" name="d_polRet"></label>
-          <label>Παραλαβή εγγράφου<input type="date" name="d_docRecv"></label>
-        </div>
-      </details>
-
-      <details class="sub">
-        <summary>Προσκλήσεις</summary>
-        <div class="invbox">
-          <div class="invrow"><b>1η</b>
-            <label>Δημιουργία<input type="date" name="d_inv1Create"></label>
-            <label>Αποστολή<input type="date" name="d_inv1Send"></label>
-            <label>Αποδεικτικό<input type="date" name="d_inv1Proof"></label>
-            <label>Αποτέλεσμα<select name="d_inv1Res"><option value="">—</option><option value="ok">Βρέθηκε</option><option value="bad">Δεν βρέθηκε</option></select></label>
+          <div class="duo full">
+            <label>Υποβολή μήνυσης<input type="date" name="d_complaint"></label>
+            <label>Κλείσιμο υπόθεσης<input type="date" name="d_closed"></label>
           </div>
-          <div class="invrow"><b>2η</b>
-            <label>Δημιουργία<input type="date" name="d_inv2Create"></label>
-            <label>Αποστολή<input type="date" name="d_inv2Send"></label>
-            <label>Αποδεικτικό<input type="date" name="d_inv2Proof"></label>
-            <label>Αποτέλεσμα<select name="d_inv2Res"><option value="">—</option><option value="ok">Βρέθηκε</option><option value="bad">Δεν βρέθηκε</option></select></label>
-          </div>
-          <div class="invrow"><b>3η</b>
-            <label>Δημιουργία<input type="date" name="d_inv3Create"></label>
-            <label>Αποστολή<input type="date" name="d_inv3Send"></label>
-            <label>Αποδεικτικό<input type="date" name="d_inv3Proof"></label>
-            <label>Αποτέλεσμα<select name="d_inv3Res"><option value="">—</option><option value="ok">Βρέθηκε</option><option value="bad">Δεν βρέθηκε</option></select></label>
-          </div>
-        </div>
-      </details>
-
-      <details class="sub">
-        <summary>Διαβίβαση &amp; κλείσιμο</summary>
-        <div class="grid g2">
-          <label>Εκτός αρμοδιότητας<input type="date" name="d_oos"></label>
-          <label>Υπηρεσία προορισμού<input type="text" name="d_oosDest" list="serviceList" autocomplete="off"></label>
-          <label class="full">Αιτιολογία<input type="text" name="d_oosReason" autocomplete="off"></label>
-          <label>Υποβολή μήνυσης<input type="date" name="d_complaint"></label>
-          <label>Κλείσιμο<input type="date" name="d_closed"></label>
           <label class="full">Είδος κλεισίματος<select name="d_closedKind"><option value="">—</option><option value="transmittal">Διαβιβαστικό</option><option value="complaint">Μήνυση</option></select></label>
+          <div class="duo full">
+            <label>Εκτός αρμοδιότητας<input type="date" name="d_oos"></label>
+            <label>Υπηρεσία προορισμού<input type="text" name="d_oosDest" autocomplete="off"></label>
+          </div>
+          <div class="sug full" id="oosSug" hidden></div>
+          <label class="full">Αιτιολογία<input type="text" name="d_oosReason" autocomplete="off"></label>
+        </div>
+      </details>
+
+      <details class="sub">
+        <summary><span>Φάκελος και διεύθυνση</span><small id="sumWhere"></small></summary>
+        <div class="grid">
+          <label class="full">Θέση φακέλου<select name="folderSelect" id="fFolder"></select></label>
+          <label class="full" id="fFolderCustomWrap" hidden>Νέος φάκελος<input name="folderCustom"></label>
+          <label class="full">Διεύθυνση κατοικίας<input name="address" autocomplete="off" placeholder="π.χ. Κυρίλλου και Μεθοδίου 07"></label>
         </div>
       </details>
     </details>
@@ -211,8 +239,10 @@
     </div>
   </form>
 </dialog>
+<datalist id="serviceList"></datalist>
 <div id="undoBar" hidden><span></span><button type="button">Αναίρεση</button></div>
 
+<!-- Modal Wizard (Βήμα-Βήμα Ενέργειες) -->
 <dialog id="dlgWizard">
   <div class="dlg">
     <h2 id="wT"></h2>
@@ -222,14 +252,18 @@
   </div>
 </dialog>
 
+<!-- Modal Ιστορικού -->
 <dialog id="dlgHistory">
   <div class="dlg">
     <h2>Ιστορικό Ενεργειών</h2>
     <div id="histBody" class="hist"></div>
-    <div class="acts"><button type="button" class="btn ghost" id="btnHistoryClose">Κλείσιμο</button></div>
+    <div class="acts">
+      <button type="button" class="btn ghost" id="btnHistoryClose">Κλείσιμο</button>
+    </div>
   </div>
 </dialog>
 
+<!-- Επιλογή φίλτρου -->
 <dialog id="dlgPick">
   <div class="dlg">
     <h2 id="pickT"></h2>

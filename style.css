@@ -345,33 +345,30 @@ main { padding-top: 4px; display: block; }
 .fsec b { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink); }
 .grid > .fsec:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
 
-
-/* ===== MOBILE-FIX-V60: συμμάζεμα προχωρημένης ===== */
-.grid.g2 { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
-.grid.g2 > .full { grid-column: 1 / -1; }
-.adv .sub { margin: 8px 0; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: rgba(255,255,255,.02); }
-.adv .sub > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink); list-style: none; padding: 4px 0; }
-.adv .sub > summary::-webkit-details-marker { display: none; }
-.adv .sub > summary::before { content: '\25B8  '; color: var(--mut); }
-.adv .sub[open] > summary::before { content: '\25BE  '; }
-.adv .sub .grid { margin-top: 10px; }
-.adv label { font-size: 12px; gap: 4px; }
-.adv input:not([type=checkbox]), .adv select, .adv textarea { padding: 9px 10px; font-size: 14px; border-radius: 9px; }
-.adv .dw { gap: 6px; }
-.adv .clr { padding: 7px 8px; font-size: 11px; border-radius: 8px; }
-.invbox { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-.invrow { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
-.invrow > b { grid-column: 1 / -1; font-size: 12px; color: var(--info); letter-spacing: .04em; }
-.invrow label { font-size: 11px; }
-.invrow input, .invrow select { padding: 8px 9px; font-size: 13px; }
-@media (max-width: 420px) {
-  .grid.g2 { gap: 8px; }
-  .adv { padding: 8px; }
-  .adv .sub { padding: 6px 8px; }
-  .invrow { padding: 6px 8px; gap: 6px; }
-}
-
-
-/* APPTBAR-V61 */
-.apptbar { width: 100%; margin: 0 0 12px; min-height: 48px; border: 1px solid rgba(10,132,255,.55); color: var(--info); font-weight: 600; }
-.apptbar:active { background: rgba(10,132,255,.12); }
+/* ---- v31: συμμάζεμα φόρμας, προτάσεις υπηρεσίας, κουμπιά ραντεβού ---- */
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.duo > * { min-width: 0; }
+.duo label { font-size: 12px; }
+.blk { margin: 18px 0 6px; padding-top: 4px; }
+.sug { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); margin-top: 6px; }
+.sug[hidden] { display: none; }
+.sug-i { text-align: left; padding: 13px 14px; background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 15px; cursor: pointer; }
+.sug-i:last-child { border-bottom: 0; }
+.sug-i:active { background: var(--bg); }
+.sub { border-top: 1px solid var(--line); }
+.sub > summary { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 13px 0; cursor: pointer; font-weight: 600; font-size: 14px; color: var(--ink); list-style: none; }
+.sub > summary::-webkit-details-marker { display: none; }
+.sub > summary small { color: var(--mut); font-weight: 500; font-size: 12px; text-align: right; }
+.sub[open] > summary { padding-bottom: 8px; }
+.sub > .grid { margin: 4px 0 14px; gap: 10px; }
+.sub input:not([type=checkbox]), .sub select { padding: 10px 10px; font-size: 15px; border-radius: 10px; }
+.sub .er > input, .sub .er > select, .sub .er > label { flex: 1 1 110px; }
+.sub .er .x { flex: 0 0 40px; height: 40px; }
+.inv { border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 8px; }
+.inv-h { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink); }
+.clr { padding: 0 12px; font-size: 18px; line-height: 1; font-weight: 500; }
+.dw .clr { align-self: stretch; }
+.quick { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+.quick .btn { flex: 1 1 140px; min-height: 44px; font-size: 14px; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.rc-r { font-size: 12px; font-weight: 600; color: var(--warn); }
+.d-rem { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--warn); }
