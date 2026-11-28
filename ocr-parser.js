@@ -219,35 +219,56 @@
 
   function cleanKm(s) { return String(s).replace(/[οΟoO]/g, '0').replace(/[Iιl|]/g, '1').replace(/\s+/g, ''); }
 
-  function findPlace(flat) {
-    const kmMatch = flat.match(/(\d{1,3})\s*\+\s*(\d{2,3})/) ||
-                    flat.match(/(\d{1,3})\s+(\d{2,3})\s*χ\s*[\/ήη|]?\s*θ/i);
-    if (!kmMatch) return null;
-    const kmStr = cleanKm(kmMatch[1]) + '+' + cleanKm(kmMatch[2]) + ' χ/θ';
+  // Δρόμοι: κεφαλαία, με όρια λέξης (ώστε το «ΑΜ» μέσα στο «ΑΜΕΣΑ» ή το «ΕΟ» μέσα σε άλλη λέξη να μη διαβάζεται ως δρόμος).
+  const ROAD_RE = /(?<![Α-Ωα-ωA-Za-z])(Π\.?\s*[ΕE]\.?\s*[ΟO]\.?|Ν\.?\s*[ΕE]\.?\s*[ΟO]\.?(?:\s*[ΑA]\.?\s*Κ\.?)?|Π\.?\s*[ΑA]\.?\s*Θ\.?\s*[ΕE]\.?|[ΕE]\.?\s*[ΟO]\.?|[ΑA]\.?\s*[ΜM]\.?|Θ\.?\s*[ΑA]\.?|[ΟO]\.?\s*[ΑA]\.?)(?![Α-Ωα-ωA-Za-z])/;
+  const ROAD_NAMES = [[/^ΠΕΟ$/, 'Π.Ε.Ο.'], [/^ΝΕΟΑΚ$/, 'Ν.Ε.Ο.Α.Κ.'], [/^ΝΕΟ$/, 'Ν.Ε.Ο.'], [/^ΠΑΘΕ$/, 'Π.Α.Θ.Ε.'], [/^ΕΟ$/, 'Ε.Ο.'], [/^ΑΜ$/, 'Α.Μ.'], [/^ΘΑ$/, 'Θ.Α.'], [/^ΟΑ$/, 'Ο.Α.']];
+  const LAT_TO_GR = { E: 'Ε', O: 'Ο', A: 'Α', M: 'Μ' };
+  function roadName(raw) {
+    const k = String(raw).replace(/[\s.]+/g, '').replace(/[EOAM]/g, ch => LAT_TO_GR[ch]);
+    const r = ROAD_NAMES.find(x => x[0].test(k));
+    return r ? r[1] : '';
+  }
+  // Επαναφέρει τους τόνους από το αρχικό κείμενο (το flat έχει ίδιο μήκος με το orig).
+  function tone(flat, orig, str) { const p = flat.indexOf(str); return (p >= 0 && orig && orig.length === flat.length) ? orig.slice(p, p + str.length) : str; }
 
-    const roadRegex = /(Π\.?\s*Ε\.?\s*Ο\.?|Ε\.?\s*Ο\.?|Α\.?\s*Μ\.?|Θ\.?\s*Α\.?)/i;
-    const roadIdx = flat.search(roadRegex);
-    let roadName = '', cities = [];
-    if (roadIdx !== -1) {
-      const seg = flat.slice(roadIdx, Math.min(flat.length, roadIdx + 90));
-      const rm = seg.match(roadRegex);
-      if (rm) {
-        roadName = rm[1].replace(/\s+/g, '')
-          .replace(/ΠΕΟ/, 'Π.Ε.Ο.').replace(/ΕΟ/, 'Ε.Ο.')
-          .replace(/ΑΜ/, 'Α.Μ.').replace(/ΘΑ/, 'Θ.Α.');
-      }
-      const toks = seg.split(/[^Α-Ωα-ωA-Za-z]+/).filter(Boolean);
-      for (const t of toks) {
+  function findPlace(flat, orig) {
+    const plusM = flat.match(/(\d{1,3})\s*\+\s*(\d{2,3})/);
+    const spaceM = !plusM && flat.match(/(\d{1,3})\s+(\d{2,3})\s*χ\s*[\/ήη|]?\s*θ/i);
+    const kmM = !plusM && !spaceM && flat.match(/(\d{1,3})\s*(?:ο|η|°)?\s*χλμ/i);
+    const anchor = plusM || spaceM || kmM;
+    if (!anchor) {
+      // Παράβαση σε οδό χωρίς χιλιομετρική θέση: «στην οδό Εγνατία 24». Απαιτείται το «στην/επί της», ώστε να μη διαβαστεί η κατοικία του ιδιοκτήτη.
+      const st = flat.match(/(?:στην|στη|επι\s+της|επι)\s+(?:οδ(?:ος|ου|ο)?|λεωφ(?:ορου|ορος)?)\s+([Α-Ωα-ωA-Za-z]{3,}(?:\s+[Α-Ωα-ωA-Za-z]{3,}){0,4}?)\s+(\d{1,3}[Α-Ωα-ω]?)(?![0-9])/i);
+      return st ? tone(flat, orig, st[1].trim()) + ' ' + st[2] : null;
+    }
+    // Ο δρόμος αναζητείται μόνο κοντά στη χιλιομετρική θέση (όχι σε όλο το κείμενο)
+    const w0 = Math.max(0, anchor.index - 90);
+    const win = flat.slice(w0, Math.min(flat.length, anchor.index + 220));
+    const rm = win.match(ROAD_RE);
+    let road = '', cities = [];
+    if (rm) {
+      road = roadName(rm[1]);
+      const s0 = rm.index + rm[0].length;
+      const seg = win.slice(s0, s0 + 130);
+      const segO = (orig && orig.length === flat.length) ? orig.slice(w0 + s0, w0 + s0 + seg.length) : seg;
+      for (const tm of seg.matchAll(/[Α-Ωα-ωA-Za-z]+/g)) {
+        const t = tm[0];
         const c = (t === t.toUpperCase()) ? cityOk(t) : cityKnownOnly(t);
-        if (c && !cities.includes(c)) cities.push(c);
+        if (!c) continue;
+        // Αν το όνομα του εγγράφου είναι ήδη σωστό και σε μικτά γράμματα (π.χ. «Λάρισας»), κρατιέται όπως γράφεται, με τόνους.
+        const o = segO.slice(tm.index, tm.index + t.length);
+        const same = t.toUpperCase() === c;
+        const name = (same && o !== o.toUpperCase()) ? o : c;
+        if (!cities.includes(name)) cities.push(name);
         if (cities.length >= 2) break;
       }
     }
-    let result = kmStr;
-    if (roadName) result += ' της ' + roadName;
+    const pos = plusM || spaceM;
+    let result = pos ? (cleanKm(pos[1]) + '+' + cleanKm(pos[2]) + ' χ/θ') : (cleanKm(kmM[1]) + 'ο χλμ.');
+    if (road) result += ' της ' + road;
     if (cities.length >= 2) result += ' ' + cities[0] + ' - ' + cities[1];
     else if (cities.length === 1) result += ' ' + cities[0];
-    if (!roadName && cities.length === 0) return null;
+    if (!road && cities.length === 0) return null;   // μόνο χιλιόμετρα, χωρίς δρόμο: το πεδίο μένει κενό (δεν μαντεύουμε)
     return result;
   }
 
@@ -368,13 +389,16 @@
     return null;
   }
 
-  function findAddress(flat, ownerIndex) {
+  function findAddress(flat, ownerIndex, orig) {
     if (ownerIndex == null) return null;
     const tail = flat.slice(ownerIndex, Math.min(flat.length, ownerIndex + 400));
-    const m = tail.match(/κατοικ[οσς]\s+([Α-Ω]{3,})[\s,]+(?:οδ[οσς]\s+)?([^,.\n]{3,50}?)\s+(\d+[Α-Ω]?(?:\s*[-–]\s*\d+)?)/i);
-    if (m) return { city: cityOk(m[1]) || m[1], street: m[2].trim(), number: m[3] };
-    const s = tail.match(/οδ[οσς]\s+([^,.\n]{3,50}?)\s+(\d+[Α-Ω]?)/i);
-    if (s) return { city: null, street: s[1].trim(), number: s[2] };
+    const tailO = (orig && orig.length === flat.length) ? orig.slice(ownerIndex, ownerIndex + tail.length) : tail;
+    const tn = (x) => tone(tail, tailO, x);
+    // «κάτοικος Καλαμαριάς, οδός Φιλαδελφείας 22»  (κατοικος / κατοικου / κατοικο, οδος / οδου / οδο)
+    const m = tail.match(/κατοικ(?:ος|ου|ο)?\s+([Α-Ωα-ω]{3,})[\s,]+(?:οδ(?:ος|ου|ο)?\s+)?([^,.\n]{3,50}?)\s+(\d+[Α-Ω]?(?:\s*[-–]\s*\d+)?)/i);
+    if (m) return { city: cityOk(m[1]) || m[1], street: tn(m[2].trim()), number: m[3] };
+    const s = tail.match(/οδ(?:ος|ου|ο)?\s+([^,.\n]{3,50}?)\s+(\d+[Α-Ω]?)/i);
+    if (s) return { city: null, street: tn(s[1].trim()), number: s[2] };
     return null;
   }
 
@@ -382,7 +406,7 @@
 
   function parseOne(rawText) {
     const warnings = [];
-    const { flat } = prepare(rawText);
+    const { flat, orig } = prepare(rawText);
     const f = {};
     let m;
 
@@ -407,7 +431,7 @@
     f.violationTime = m ? String(m[4]).padStart(2, '0') + ':' + m[5] : null;
     if (!f.violationDate && f.actDate) { f.violationDate = f.actDate; f.vDateGuess = true; }
 
-    f.place = findPlace(flat);
+    f.place = findPlace(flat, orig);
 
     m = flat.match(/ταχυτητα\s+(\d{2,3})\s*\S{0,5}\s+αντι\s+του\s+ανωτατου\s+επιτρεπομενου\s+οριου\s+των\s+(\d{2,3})/i);
     f.speed = m ? { measured: +m[1], limit: +m[2] } : null;
@@ -420,7 +444,7 @@
     f.law = m ? m[1] : null;
 
     const om = findOwner(flat);
-    if (om) { f.ownerFull = om.name; f.patronymic = om.patronymic; f.address = findAddress(flat, om.index); }
+    if (om) { f.ownerFull = om.name; f.patronymic = om.patronymic; f.address = findAddress(flat, om.index, orig); }
     else { f.ownerFull = null; f.address = null; }
 
     const removal = /αφαιρεση\s+της\s+αδειας\s+ικανοτητας/i.test(flat) ||
